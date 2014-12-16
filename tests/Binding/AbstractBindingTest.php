@@ -11,30 +11,32 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
+use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\Tests\Resource\TestFile;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceBindingTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractBindingTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @param string      $path
+     * @param BindingType $type
+     * @param array       $parameters
+     *
+     * @return AbstractBinding
+     */
+    abstract protected function createBinding($path, BindingType $type, array $parameters = array());
+
     public function testCreate()
     {
-        $resources = new ResourceCollection(array(
-            $first = new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
         $type = new BindingType('type');
 
-        $binding = new ResourceBinding($resources, $type);
+        $binding = $this->createBinding('/path/*', $type);
 
-        $this->assertSame($resources, $binding->getResources());
-        $this->assertSame($first, $binding->getResource());
+        $this->assertSame('/path/*', $binding->getPath());
         $this->assertSame($type, $binding->getType());
         $this->assertSame(array(), $binding->getParameters());
         $this->assertFalse($binding->hasParameter('param'));
@@ -42,21 +44,15 @@ class ResourceBindingTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateWithParameters()
     {
-        $resources = new ResourceCollection(array(
-            $first = new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
         $type = new BindingType('type', array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         ));
 
-        $binding = new ResourceBinding($resources, $type, array(
+        $binding = $this->createBinding('/path/*', $type, array(
             'param1' => 'value',
         ));
 
-        $this->assertSame($resources, $binding->getResources());
-        $this->assertSame($first, $binding->getResource());
         $this->assertSame($type, $binding->getType());
         $this->assertSame(array(
             'param1' => 'value',
@@ -71,33 +67,16 @@ class ResourceBindingTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateWithParameterDefaults()
     {
-        $resources = new ResourceCollection(array(
-            $first = new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
         $type = new BindingType('type', array(
             new BindingParameter('param', null, 'default'),
         ));
 
-        $binding = new ResourceBinding($resources, $type);
+        $binding = $this->createBinding('/path/*', $type);
 
-        $this->assertSame($resources, $binding->getResources());
-        $this->assertSame($first, $binding->getResource());
         $this->assertSame($type, $binding->getType());
         $this->assertSame(array('param' => 'default'), $binding->getParameters());
         $this->assertTrue($binding->hasParameter('param'));
         $this->assertSame('default', $binding->getParameter('param'));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Binding\BindingException
-     */
-    public function testCreateFailsIfNoResources()
-    {
-        $resources = new ResourceCollection();
-        $type = new BindingType('type');
-
-        new ResourceBinding($resources, $type);
     }
 
     /**
@@ -106,14 +85,11 @@ class ResourceBindingTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateFailsIfMissingRequiredParameter()
     {
-        $resources = new ResourceCollection(array(
-            new TestFile('/file1'),
-        ));
         $type = new BindingType('type', array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
-        new ResourceBinding($resources, $type);
+        $this->createBinding('/file1', $type);
     }
 
     /**
@@ -122,12 +98,9 @@ class ResourceBindingTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateFailsIfUnknownParameter()
     {
-        $resources = new ResourceCollection(array(
-            new TestFile('/file1'),
-        ));
         $type = new BindingType('type');
 
-        new ResourceBinding($resources, $type, array(
+        $this->createBinding('/file1', $type, array(
             'foo' => 'bar',
         ));
     }
@@ -138,12 +111,9 @@ class ResourceBindingTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetParameterFailsIfNotFound()
     {
-        $resources = new ResourceCollection(array(
-            new TestFile('/file1'),
-        ));
         $type = new BindingType('type');
 
-        $binding = new ResourceBinding($resources, $type);
+        $binding = $this->createBinding('/file1', $type);
 
         $binding->getParameter('foo');
     }
