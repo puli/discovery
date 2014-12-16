@@ -35,16 +35,27 @@ class BindingParameter
     private $mode;
 
     /**
+     * @var mixed
+     */
+    private $defaultValue;
+
+    /**
      * Creates a new parameter.
      *
-     * @param string   $name The parameter name.
-     * @param int|null $mode A bitwise combination of the parameter's mode
-     *                       constants.
+     * @param string   $name         The parameter name.
+     * @param int|null $mode         A bitwise combination of the parameter's
+     *                               mode constants.
+     * @param mixed    $defaultValue The parameter's default value.
      */
-    public function __construct($name, $mode = null)
+    public function __construct($name, $mode = null, $defaultValue = null)
     {
+        if (($mode & self::REQUIRED) && null !== $defaultValue) {
+            throw new \RuntimeException('Required parameters must not have default values.');
+        }
+
         $this->name = $name;
         $this->mode = (int) $mode;
+        $this->defaultValue = $defaultValue;
     }
 
     /**
@@ -89,5 +100,15 @@ class BindingParameter
     public function isOptional()
     {
         return !$this->isRequired();
+    }
+
+    /**
+     * Returns the default value of the parameter.
+     *
+     * @return mixed The default value.
+     */
+    public function getDefaultValue()
+    {
+        return $this->defaultValue;
     }
 }

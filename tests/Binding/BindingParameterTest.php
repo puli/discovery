@@ -19,11 +19,12 @@ use Puli\Discovery\Binding\BindingParameter;
  */
 class BindingParameterTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGetName()
+    public function testCreate()
     {
         $param = new BindingParameter('name');
 
         $this->assertSame('name', $param->getName());
+        $this->assertNull($param->getDefaultValue());
     }
 
     public function testIsOptionalByDefault()
@@ -40,5 +41,21 @@ class BindingParameterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($param->isOptional());
         $this->assertTrue($param->isRequired());
+    }
+
+    public function testSetDefaultValue()
+    {
+        $param = new BindingParameter('name', null, 'default');
+
+        $this->assertSame('name', $param->getName());
+        $this->assertSame('default', $param->getDefaultValue());
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testFailIfRequiredParameterHasDefault()
+    {
+        new BindingParameter('name', BindingParameter::REQUIRED, 'default');
     }
 }

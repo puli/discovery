@@ -65,10 +65,44 @@ class BindingType
     /**
      * Returns the parameters.
      *
-     * @return array The type parameters.
+     * @return BindingParameter[] The type parameters.
      */
     public function getParameters()
     {
         return $this->parameters;
+    }
+
+    /**
+     * Returns a parameter by name.
+     *
+     * @param string $name The parameter name.
+     *
+     * @return BindingParameter The parameter.
+     *
+     * @throws NoSuchParameterException If the parameter was not found.
+     */
+    public function getParameter($name)
+    {
+        if (!isset($this->parameters[$name])) {
+            throw new NoSuchParameterException(sprintf(
+                'The parameter "%s" does not exist on type "%s".',
+                $name,
+                $this->name
+            ));
+        }
+
+        return $this->parameters[$name];
+    }
+
+    /**
+     * Returns whether a parameter exists.
+     *
+     * @param string $name The parameter name.
+     *
+     * @return bool Returns `true` if a parameter with that name exists.
+     */
+    public function hasParameter($name)
+    {
+        return isset($this->parameters[$name]);
     }
 }

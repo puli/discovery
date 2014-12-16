@@ -38,6 +38,9 @@ class BindingTypeTest extends \PHPUnit_Framework_TestCase
             'param1' => $param1,
             'param2' => $param2,
         ), $type->getParameters());
+        $this->assertTrue($type->hasParameter('param1'));
+        $this->assertFalse($type->hasParameter('foo'));
+        $this->assertSame($param1, $type->getParameter('param1'));
     }
 
     /**
@@ -46,5 +49,15 @@ class BindingTypeTest extends \PHPUnit_Framework_TestCase
     public function testFailIfInvalidParameter()
     {
         new BindingType('name', array(new \stdClass()));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Binding\NoSuchParameterException
+     */
+    public function testGetParameterFailsIfNotSet()
+    {
+        $type = new BindingType('name');
+
+        $type->getParameter('foo');
     }
 }
