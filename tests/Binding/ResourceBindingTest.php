@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discover\Tests\Binding;
+namespace Puli\Discovery\Tests\Binding;
 
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
