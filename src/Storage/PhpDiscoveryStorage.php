@@ -12,7 +12,7 @@
 namespace Puli\Discovery\Storage;
 
 use Puli\Discovery\ResourceDiscoveryInterface;
-use Puli\Repository\ResourceRepositoryInterface;
+use Puli\Repository\ResourceRepository;
 
 /**
  * Generates a resource discovery as PHP file.
@@ -66,7 +66,7 @@ class PhpDiscoveryStorage implements DiscoveryStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function loadDiscovery(ResourceRepositoryInterface $repo, array $options = array())
+    public function loadDiscovery(ResourceRepository $repo, array $options = array())
     {
         if (!isset($options['path'])) {
             throw new \InvalidArgumentException('The "path" option is missing.');

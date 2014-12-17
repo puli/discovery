@@ -33,7 +33,7 @@ use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Discovery\Binding\NoSuchTypeException;
 use Puli\Discovery\ResourceDiscoveryInterface;
-use Puli\Repository\ResourceRepositoryInterface;
+use Puli\Repository\ResourceRepository;
 
 class <?php echo $className ?> implements ResourceDiscoveryInterface
 {
@@ -71,7 +71,7 @@ class <?php echo $className ?> implements ResourceDiscoveryInterface
 <?php endforeach ?>
     );
 
-    public function __construct(ResourceRepositoryInterface $repo)
+    public function __construct(ResourceRepository $repo)
     {
         $this->repo = $repo;
     }

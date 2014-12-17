@@ -11,9 +11,9 @@
 
 namespace Puli\Discovery\Binding;
 
+use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
-use Puli\Repository\Resource\ResourceInterface;
+use Puli\Repository\Resource\Resource;
 
 /**
  * Binds resources to a type.
@@ -24,28 +24,28 @@ use Puli\Repository\Resource\ResourceInterface;
 class EagerBinding extends AbstractBinding
 {
     /**
-     * @var ResourceCollectionInterface
+     * @var ResourceCollection
      */
     private $resources;
 
     /**
      * Creates a new binding.
      *
-     * @param string                                        $path       The path of the binding.
-     * @param ResourceInterface|ResourceCollectionInterface $resources  The resources to bind.
-     * @param BindingType                                   $type       The type to bind against.
-     * @param array                                         $parameters Additional parameters.
+     * @param string                      $path       The path of the binding.
+     * @param Resource|ResourceCollection $resources  The resources to bind.
+     * @param BindingType                 $type       The type to bind against.
+     * @param array                       $parameters Additional parameters.
      *
      * @throws BindingException If the binding fails.
      * @throws \InvalidArgumentException If the resources are invalid.
      */
     public function __construct($path, $resources, BindingType $type, array $parameters = array())
     {
-        if ($resources instanceof ResourceInterface) {
-            $resources = new ResourceCollection(array($resources));
+        if ($resources instanceof Resource) {
+            $resources = new ArrayResourceCollection(array($resources));
         }
 
-        if (!$resources instanceof ResourceCollectionInterface) {
+        if (!$resources instanceof ResourceCollection) {
             throw new \InvalidArgumentException(sprintf(
                 'Expected resources of type ResourceInterface or '.
                 'ResourceCollectionInterface. Got: %s',

@@ -11,12 +11,11 @@
 
 namespace Puli\Discovery\Binder;
 
-use Puli\Discovery\AbstractDiscovery;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\NoSuchTypeException;
 use Puli\Discovery\Binding\ResourceBindingInterface;
-use Puli\Repository\ResourceRepositoryInterface;
+use Puli\Repository\ResourceRepository;
 
 /**
  * A resource binder based on a Puli repository.
@@ -27,7 +26,7 @@ use Puli\Repository\ResourceRepositoryInterface;
 class ResourceBinder implements ResourceBinderInterface
 {
     /**
-     * @var ResourceRepositoryInterface
+     * @var ResourceRepository
      */
     private $repo;
 
@@ -64,10 +63,9 @@ class ResourceBinder implements ResourceBinderInterface
     /**
      * Creates a new resource binder.
      *
-     * @param ResourceRepositoryInterface $repo The repository to fetch
-     *                                          resources from.
+     * @param ResourceRepository $repo The repository to fetch resources from.
      */
-    public function __construct(ResourceRepositoryInterface $repo)
+    public function __construct(ResourceRepository $repo)
     {
         $this->repo = $repo;
     }

@@ -14,6 +14,7 @@ namespace Puli\Discovery\Binding;
 use Puli\Repository\Resource\Collection\ResourceCollection;
 use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
 use Puli\Repository\Resource\ResourceInterface;
+use Puli\Repository\ResourceRepository;
 use Puli\Repository\ResourceRepositoryInterface;
 
 /**
@@ -25,27 +26,27 @@ use Puli\Repository\ResourceRepositoryInterface;
 class LazyBinding extends AbstractBinding
 {
     /**
-     * @var ResourceCollectionInterface
+     * @var ResourceCollection
      */
     private $resources;
 
     /**
-     * @var ResourceRepositoryInterface
+     * @var ResourceRepository
      */
     private $repo;
 
     /**
      * Creates a new binding.
      *
-     * @param string                      $path       The path of the binding.
-     * @param ResourceRepositoryInterface $repo       The repository to load the
-     *                                                resources from.
-     * @param BindingType                 $type       The type to bind against.
-     * @param array                       $parameters Additional parameters.
+     * @param string             $path       The path of the binding.
+     * @param ResourceRepository $repo       The repository to load the
+     *                                       resources from.
+     * @param BindingType        $type       The type to bind against.
+     * @param array              $parameters Additional parameters.
      *
      * @throws BindingException If the binding fails.
      */
-    public function __construct($path, ResourceRepositoryInterface $repo, BindingType $type, array $parameters = array())
+    public function __construct($path, ResourceRepository $repo, BindingType $type, array $parameters = array())
     {
         parent::__construct($path, $type, $parameters);
 

@@ -15,7 +15,7 @@ use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\ResourceBindingInterface;
 use Puli\Discovery\ResourceDiscoveryInterface;
-use Puli\Repository\Resource\Collection\ResourceCollection;
+use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
@@ -65,7 +65,7 @@ abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
         $resource2 = new TestFile('/data/file2');
         $resource3 = new TestFile('/data/file3');
 
-        $coll = new ResourceCollection(array($resource2, $resource3));
+        $coll = new ArrayResourceCollection(array($resource2, $resource3));
 
         $discovery = $this->createDiscovery(array(
             $binding1 = new EagerBinding('/file1', $resource1, $type1),

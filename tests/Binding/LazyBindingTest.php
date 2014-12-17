@@ -14,8 +14,8 @@ namespace Puli\Discovery\Tests\Binding;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\LazyBinding;
-use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\ResourceRepository;
+use Puli\Repository\InMemoryRepository;
+use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
@@ -33,7 +33,7 @@ class LazyBindingTest extends AbstractBindingTest
      */
     protected function createBinding($path, BindingType $type, array $parameters = array())
     {
-        $repo = new ResourceRepository();
+        $repo = new InMemoryRepository();
         $repo->add($path, new TestFile($path));
 
         return new LazyBinding($path, $repo, $type, $parameters);
@@ -41,7 +41,7 @@ class LazyBindingTest extends AbstractBindingTest
 
     public function testDoNotLoadUponConstruction()
     {
-        $repo = $this->getMock('Puli\Repository\ResourceRepositoryInterface');
+        $repo = $this->getMock('Puli\Repository\ResourceRepository');
         $type = new BindingType('type');
 
         $repo->expects($this->never())
@@ -52,9 +52,9 @@ class LazyBindingTest extends AbstractBindingTest
 
     public function testLoadOnDemand()
     {
-        $repo = $this->getMock('Puli\Repository\ResourceRepositoryInterface');
+        $repo = $this->getMock('Puli\Repository\ResourceRepository');
         $type = new BindingType('type');
-        $collection = new ResourceCollection(array(
+        $collection = new ArrayResourceCollection(array(
             $first = new TestFile('/file1'),
             new TestFile('/file2'),
         ));

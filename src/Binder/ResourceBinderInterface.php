@@ -13,7 +13,6 @@ namespace Puli\Discovery\Binder;
 
 use Puli\Discovery\Binding\BindingException;
 use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\NoSuchTypeException;
 use Puli\Discovery\ResourceDiscoveryInterface;
 
 /**

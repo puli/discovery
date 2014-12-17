@@ -14,7 +14,7 @@ namespace Puli\Discovery\Tests\Binding;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
-use Puli\Repository\Resource\Collection\ResourceCollection;
+use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
@@ -39,7 +39,7 @@ class EagerBindingTest extends AbstractBindingTest
 
     public function testCreateFromCollection()
     {
-        $resources = new ResourceCollection(array(
+        $resources = new ArrayResourceCollection(array(
             $first = new TestFile('/path/file1'),
             new TestFile('/path/file2'),
         ));
@@ -60,7 +60,7 @@ class EagerBindingTest extends AbstractBindingTest
         $binding = new EagerBinding('/file1', $resource, $type);
 
         $this->assertSame('/file1', $binding->getPath());
-        $this->assertEquals(new ResourceCollection(array($resource)), $binding->getResources());
+        $this->assertEquals(new ArrayResourceCollection(array($resource)), $binding->getResources());
         $this->assertSame($resource, $binding->getResource());
     }
 
@@ -80,7 +80,7 @@ class EagerBindingTest extends AbstractBindingTest
      */
     public function testCreateFailsIfNoResources()
     {
-        $resources = new ResourceCollection();
+        $resources = new ArrayResourceCollection();
         $type = new BindingType('type');
 
         new EagerBinding('/path/*', $resources, $type);
