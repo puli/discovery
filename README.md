@@ -73,7 +73,7 @@ $storage->storeDiscovery($binder, array('path' => '/path/to/discovery.php'));
 // run whenever bindings need to be accessed
 $discovery = $storage->loadDiscovery($repo, array('path' => '/path/to/discovery.php'));
 
-$bindings = $binder->find('acme/xliff-messages');
+$bindings = $discovery->find('acme/xliff-messages');
 // ...
 ```
 
