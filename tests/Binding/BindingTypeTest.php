@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
+use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 
@@ -18,7 +19,7 @@ use Puli\Discovery\Binding\BindingType;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingTypeTest extends \PHPUnit_Framework_TestCase
+class BindingTypeTest extends PHPUnit_Framework_TestCase
 {
     public function testGetName()
     {

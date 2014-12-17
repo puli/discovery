@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Binding;
 
+use InvalidArgumentException;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Resource\Collection\ResourceCollection;
 use Puli\Repository\Resource\Resource;
@@ -37,7 +38,7 @@ class EagerBinding extends AbstractBinding
      * @param array                       $parameters Additional parameters.
      *
      * @throws BindingException If the binding fails.
-     * @throws \InvalidArgumentException If the resources are invalid.
+     * @throws InvalidArgumentException If the resources are invalid.
      */
     public function __construct($path, $resources, BindingType $type, array $parameters = array())
     {
@@ -46,7 +47,7 @@ class EagerBinding extends AbstractBinding
         }
 
         if (!$resources instanceof ResourceCollection) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'Expected resources of type ResourceInterface or '.
                 'ResourceCollectionInterface. Got: %s',
                 is_object($resources) ? get_class($resources) : gettype($resources)

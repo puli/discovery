@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
+use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
@@ -19,7 +20,7 @@ use Puli\Discovery\Binding\BindingType;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractBindingTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @param string      $path

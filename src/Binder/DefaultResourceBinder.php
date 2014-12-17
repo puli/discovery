@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Binder;
 
+use InvalidArgumentException;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\NoSuchTypeException;
@@ -110,7 +111,7 @@ class DefaultResourceBinder implements ResourceBinder
         }
 
         if (!$type instanceof BindingType) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'Expected argument of type string or BindingType. Got: %s',
                 is_object($type) ? get_class($type) : gettype($type)
             ));
@@ -125,7 +126,7 @@ class DefaultResourceBinder implements ResourceBinder
     public function undefine($typeName)
     {
         if (!is_string($typeName)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'Expected argument of type string. Got: %s',
                 is_object($typeName) ? get_class($typeName) : gettype($typeName)
             ));

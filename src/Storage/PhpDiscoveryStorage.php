@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Storage;
 
+use InvalidArgumentException;
 use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\ResourceRepository;
 
@@ -45,7 +46,7 @@ class PhpDiscoveryStorage implements DiscoveryStorage
     public function storeDiscovery(ResourceDiscovery $discovery, array $options = array())
     {
         if (!isset($options['path'])) {
-            throw new \InvalidArgumentException('The "path" option is missing.');
+            throw new InvalidArgumentException('The "path" option is missing.');
         }
 
         if (!file_exists($dir = dirname($options['path']))) {
@@ -69,7 +70,7 @@ class PhpDiscoveryStorage implements DiscoveryStorage
     public function loadDiscovery(ResourceRepository $repo, array $options = array())
     {
         if (!isset($options['path'])) {
-            throw new \InvalidArgumentException('The "path" option is missing.');
+            throw new InvalidArgumentException('The "path" option is missing.');
         }
 
         $options = array_replace(self::$defaultOptions, $options);

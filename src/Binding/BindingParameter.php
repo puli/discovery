@@ -11,6 +11,8 @@
 
 namespace Puli\Discovery\Binding;
 
+use RuntimeException;
+
 /**
  * A parameter that can be set during binding.
  *
@@ -50,7 +52,7 @@ class BindingParameter
     public function __construct($name, $mode = null, $defaultValue = null)
     {
         if (($mode & self::REQUIRED) && null !== $defaultValue) {
-            throw new \RuntimeException('Required parameters must not have default values.');
+            throw new RuntimeException('Required parameters must not have default values.');
         }
 
         $this->name = $name;

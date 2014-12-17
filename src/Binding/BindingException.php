@@ -11,12 +11,14 @@
 
 namespace Puli\Discovery\Binding;
 
+use RuntimeException;
+
 /**
  * Thrown when an error occurs during binding.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingException extends \RuntimeException
+class BindingException extends RuntimeException
 {
 }

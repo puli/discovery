@@ -11,13 +11,14 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
+use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Binding\BindingParameter;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingParameterTest extends \PHPUnit_Framework_TestCase
+class BindingParameterTest extends PHPUnit_Framework_TestCase
 {
     public function testCreate()
     {

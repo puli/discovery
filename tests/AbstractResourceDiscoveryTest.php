@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Tests;
 
+use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\ResourceBinding;
@@ -22,7 +23,7 @@ use Puli\Repository\Tests\Resource\TestFile;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractResourceDiscoveryTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @param ResourceBinding[] $bindings

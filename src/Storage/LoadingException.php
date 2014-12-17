@@ -11,12 +11,14 @@
 
 namespace Puli\Discovery\Storage;
 
+use RuntimeException;
+
 /**
  * Thrown when a resource discovery could not be loaded.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class LoadingException extends \RuntimeException
+class LoadingException extends RuntimeException
 {
 }

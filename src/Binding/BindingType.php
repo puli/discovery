@@ -11,6 +11,8 @@
 
 namespace Puli\Discovery\Binding;
 
+use InvalidArgumentException;
+
 /**
  * A type that a resource can be bound to.
  *
@@ -42,7 +44,7 @@ class BindingType
 
         foreach ($parameters as $parameter) {
             if (!$parameter instanceof BindingParameter) {
-                throw new \InvalidArgumentException(sprintf(
+                throw new InvalidArgumentException(sprintf(
                     'The parameters must be of type BindingParameter. Got: %s',
                     is_object($parameter) ? get_class($parameter) : gettype($parameter)
                 ));
