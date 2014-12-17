@@ -114,8 +114,8 @@ abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
 
             $actualBinding = $actual[$key];
             $this->assertSame($expectedBinding->getPath(), $actualBinding->getPath());
-            $this->assertSame($expectedBinding->getType(), $actualBinding->getType());
-            $this->assertSame($expectedBinding->getParameters(), $actualBinding->getParameters());
+            $this->assertEquals($expectedBinding->getType(), $actualBinding->getType());
+            $this->assertEquals($expectedBinding->getParameters(), $actualBinding->getParameters());
             $this->assertEquals($expectedBinding->getResource(), $actualBinding->getResource());
             $this->assertEquals($expectedBinding->getResources(), $actualBinding->getResources());
         }

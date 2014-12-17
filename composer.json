@@ -12,6 +12,9 @@
         "php": ">=5.3.9",
         "puli/repository": "~1.0"
     },
+    "require-dev": {
+        "symfony/filesystem": "~2.5"
+    },
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {

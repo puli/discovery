@@ -133,31 +133,4 @@ interface ResourceBinderInterface extends ResourceDiscoveryInterface
      * @param string $typeName The name of a binding type.
      */
     public function undefine($typeName);
-
-    /**
-     * Returns whether a binding type has been defined.
-     *
-     * @param string $typeName The name of a binding type.
-     *
-     * @return bool Returns `true` if the binding type has been defined.
-     */
-    public function isDefined($typeName);
-
-    /**
-     * Returns the binding type with a given name.
-     *
-     * @param string $typeName The name of a binding type.
-     *
-     * @return BindingType The matching binding type.
-     *
-     * @throws NoSuchTypeException If a type with that name has not been defined.
-     */
-    public function getType($typeName);
-
-    /**
-     * Returns all defined binding types.
-     *
-     * @return BindingType[] The defined binding types.
-     */
-    public function getTypes();
 }

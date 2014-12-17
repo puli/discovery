@@ -11,9 +11,11 @@
 
 namespace Puli\Discovery\Binder;
 
+use Puli\Discovery\AbstractDiscovery;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\NoSuchTypeException;
+use Puli\Discovery\Binding\ResourceBindingInterface;
 use Puli\Repository\ResourceRepositoryInterface;
 
 /**
@@ -42,7 +44,7 @@ class ResourceBinder implements ResourceBinderInterface
     /**
      * @var int
      */
-    private $nextKey = 0;
+    private $nextId = 0;
 
     /**
      * @var bool[][]
@@ -170,10 +172,6 @@ class ResourceBinder implements ResourceBinderInterface
      */
     public function find($typeName)
     {
-        if (!isset($this->typeIndex[$typeName])) {
-            return array();
-        }
-
         return $this->getBindingsByType($typeName);
     }
 
@@ -216,8 +214,8 @@ class ResourceBinder implements ResourceBinderInterface
             return false;
         }
 
-        foreach ($this->pathIndex[$binding->getPath()] as $key => $true) {
-            if ($this->bindings[$key]->equals($binding)) {
+        foreach ($this->pathIndex[$binding->getPath()] as $id => $true) {
+            if ($this->bindings[$id]->equals($binding)) {
                 return true;
             }
         }
@@ -232,17 +230,17 @@ class ResourceBinder implements ResourceBinderInterface
      */
     private function insertBinding(EagerBinding $binding)
     {
-        $key = $this->nextKey++;
+        $id = $this->nextId++;
         $typeName = $binding->getType()->getName();
 
-        $this->bindings[$key] = $binding;
-        $this->pathIndex[$binding->getPath()][$key] = true;
+        $this->bindings[$id] = $binding;
+        $this->pathIndex[$binding->getPath()][$id] = true;
 
         if (!isset($this->typeIndex[$typeName])) {
             $this->typeIndex[$typeName] = array();
         }
 
-        $this->typeIndex[$typeName][$key] = true;
+        $this->typeIndex[$typeName][$id] = true;
 
         foreach ($binding->getResources() as $resource) {
             $resourcePath = $resource->getPath();
@@ -251,14 +249,14 @@ class ResourceBinder implements ResourceBinderInterface
                 $this->resourcePathIndex[$resourcePath] = array();
             }
 
-            $this->resourcePathIndex[$resourcePath][$key] = true;
+            $this->resourcePathIndex[$resourcePath][$id] = true;
         }
     }
 
     /**
      * Returns all bindings.
      *
-     * @return EagerBinding[] The bindings.
+     * @return ResourceBindingInterface[] The bindings.
      */
     private function getAllBindings()
     {
@@ -270,15 +268,19 @@ class ResourceBinder implements ResourceBinderInterface
      *
      * @param string $typeName The type name.
      *
-     * @return EagerBinding[] The bindings for that type.
+     * @return ResourceBindingInterface[] The bindings for that type.
      */
     private function getBindingsByType($typeName)
     {
+        if (!isset($this->typeIndex[$typeName])) {
+            return array();
+        }
+
         $bindings = array();
 
         if (isset($this->typeIndex[$typeName])) {
-            foreach ($this->typeIndex[$typeName] as $key => $true) {
-                $bindings[] = $this->bindings[$key];
+            foreach ($this->typeIndex[$typeName] as $id => $true) {
+                $bindings[] = $this->bindings[$id];
             }
         }
 
@@ -290,15 +292,19 @@ class ResourceBinder implements ResourceBinderInterface
      *
      * @param string $resourcePath The resource path.
      *
-     * @return EagerBinding[] The bindings for that resource path.
+     * @return ResourceBindingInterface[] The bindings for that resource path.
      */
     private function getBindingsByResourcePath($resourcePath)
     {
+        if (!isset($this->resourcePathIndex[$resourcePath])) {
+            return array();
+        }
+
         $bindings = array();
 
         if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $key => $true) {
-                $bindings[] = $this->bindings[$key];
+            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
+                $bindings[] = $this->bindings[$id];
             }
         }
 
@@ -311,16 +317,24 @@ class ResourceBinder implements ResourceBinderInterface
      * @param string $resourcePath The resource path.
      * @param string $typeName     The type name.
      *
-     * @return EagerBinding[] The matching bindings.
+     * @return ResourceBindingInterface[] The matching bindings.
      */
     private function getBindingsByResourcePathAndType($resourcePath, $typeName)
     {
+        if (!isset($this->typeIndex[$typeName])) {
+            return array();
+        }
+
+        if (!isset($this->resourcePathIndex[$resourcePath])) {
+            return array();
+        }
+
         $bindings = array();
 
         if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $key => $true) {
-                if ($typeName === $this->bindings[$key]->getType()->getName()) {
-                    $bindings[] = $this->bindings[$key];
+            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
+                if ($typeName === $this->bindings[$id]->getType()->getName()) {
+                    $bindings[] = $this->bindings[$id];
                 }
             }
         }
@@ -339,14 +353,14 @@ class ResourceBinder implements ResourceBinderInterface
             return;
         }
 
-        foreach ($this->pathIndex[$path] as $key => $true) {
-            $binding = $this->bindings[$key];
+        foreach ($this->pathIndex[$path] as $id => $true) {
+            $binding = $this->bindings[$id];
 
-            unset($this->bindings[$key]);
-            unset($this->typeIndex[$binding->getType()->getName()][$key]);
+            unset($this->bindings[$id]);
+            unset($this->typeIndex[$binding->getType()->getName()][$id]);
 
             foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$key]);
+                unset($this->resourcePathIndex[$resource->getPath()][$id]);
             }
         }
 
@@ -369,19 +383,19 @@ class ResourceBinder implements ResourceBinderInterface
             return;
         }
 
-        foreach ($this->pathIndex[$path] as $key => $true) {
-            $binding = $this->bindings[$key];
+        foreach ($this->pathIndex[$path] as $id => $true) {
+            $binding = $this->bindings[$id];
 
             if ($typeName !== $binding->getType()->getName()) {
                 continue;
             }
 
-            unset($this->bindings[$key]);
-            unset($this->pathIndex[$path][$key]);
-            unset($this->typeIndex[$typeName][$key]);
+            unset($this->bindings[$id]);
+            unset($this->pathIndex[$path][$id]);
+            unset($this->typeIndex[$typeName][$id]);
 
             foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$key]);
+                unset($this->resourcePathIndex[$resource->getPath()][$id]);
             }
         }
     }

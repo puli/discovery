@@ -16,6 +16,7 @@ use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\ResourceBindingInterface;
 use Puli\Discovery\Tests\AbstractResourceDiscoveryTest;
+use Puli\Repository\ManageableRepositoryInterface;
 use Puli\Repository\ResourceRepository;
 use Puli\Repository\Tests\Resource\TestFile;
 
@@ -26,14 +27,15 @@ use Puli\Repository\Tests\Resource\TestFile;
 class ResourceBinderTest extends AbstractResourceDiscoveryTest
 {
     /**
-     * @param ResourceBindingInterface[] $bindings
+     * Creates a binder for a set of bindings.
      *
-     * @return ResourceBinder
+     * @param ManageableRepositoryInterface $repo     The repository to use.
+     * @param ResourceBindingInterface[]    $bindings The bindings to store.
+     *
+     * @return ResourceBinder The created binder.
      */
-    protected function createDiscovery(array $bindings = array())
+    public static function createBinder(ManageableRepositoryInterface $repo, array $bindings = array())
     {
-        $repo = new ResourceRepository();
-
         foreach ($bindings as $binding) {
             foreach ($binding->getResources() as $resource) {
                 $path = $resource->getPath();
@@ -61,6 +63,14 @@ class ResourceBinderTest extends AbstractResourceDiscoveryTest
         }
 
         return $binder;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function createDiscovery(array $bindings = array())
+    {
+        return self::createBinder(new ResourceRepository(), $bindings);
     }
 
     /**
