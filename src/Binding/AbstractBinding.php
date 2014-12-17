@@ -11,7 +11,6 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Repository\Resource\Collection\ResourceCollection;
 use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
 use Puli\Repository\Resource\ResourceInterface;
 
@@ -21,7 +20,7 @@ use Puli\Repository\Resource\ResourceInterface;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractBinding implements ResourceBindingInterface
+abstract class AbstractBinding implements ResourceBinding
 {
     /**
      * @var string
@@ -126,7 +125,7 @@ abstract class AbstractBinding implements ResourceBindingInterface
     /**
      * {@inheritdoc}
      */
-    public function equals(ResourceBindingInterface $binding)
+    public function equals(ResourceBinding $binding)
     {
         if (get_class($binding) !== get_class($this)) {
             return false;

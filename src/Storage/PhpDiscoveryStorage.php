@@ -11,7 +11,7 @@
 
 namespace Puli\Discovery\Storage;
 
-use Puli\Discovery\ResourceDiscoveryInterface;
+use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\ResourceRepository;
 
 /**
@@ -29,7 +29,7 @@ use Puli\Repository\ResourceRepository;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class PhpDiscoveryStorage implements DiscoveryStorageInterface
+class PhpDiscoveryStorage implements DiscoveryStorage
 {
     /**
      * @var array
@@ -42,7 +42,7 @@ class PhpDiscoveryStorage implements DiscoveryStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function storeDiscovery(ResourceDiscoveryInterface $discovery, array $options = array())
+    public function storeDiscovery(ResourceDiscovery $discovery, array $options = array())
     {
         if (!isset($options['path'])) {
             throw new \InvalidArgumentException('The "path" option is missing.');
@@ -108,7 +108,7 @@ class PhpDiscoveryStorage implements DiscoveryStorageInterface
         return "<?php\n\n".ob_get_clean();
     }
 
-    private function createVariables(ResourceDiscoveryInterface $discovery)
+    private function createVariables(ResourceDiscovery $discovery)
     {
         $vars = array(
             'bindingsById' => array(),

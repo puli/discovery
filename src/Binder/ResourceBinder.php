@@ -11,390 +11,125 @@
 
 namespace Puli\Discovery\Binder;
 
+use Puli\Discovery\Binding\BindingException;
 use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\Binding\ResourceBindingInterface;
-use Puli\Repository\ResourceRepository;
+use Puli\Discovery\ResourceDiscovery;
 
 /**
- * A resource binder based on a Puli repository.
+ * Binds resources to binding types.
+ *
+ * Binding types have a name and optionally one or more parameters. Binding
+ * types can be defined with the {@link define()} method:
+ *
+ * ```php
+ * use Puli\Discovery\Binding\BindingParameter;
+ * use Puli\Discovery\Binding\BindingType;
+ *
+ * $binder->define(new BindingType('acme/xliff-messages', array(
+ *     new BindingParameter('translationDomain', null, 'messages'),
+ * ));
+ * ```
+ *
+ * Resources can be bound to these types with the {@link bind()} method:
+ *
+ * ```php
+ * $binder->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
+ *     'translationDomain' => 'errors',
+ * ));
+ * ```
+ *
+ * Use {@link find()} of {@link ResourceDiscovery} to retrieve
+ * bindings for a given type:
+ *
+ * ```php
+ * $bindings = $binder->find('acme/xliff-messages');
+ *
+ * foreach ($bindings as $binding) {
+ *     foreach ($binding->getResources() as $resource) {
+ *         $translator->addXlfCatalog(
+ *             $resource->getLocalPath(),
+ *             $binding->getParameter('translationDomain')
+ *         );
+ *     }
+ * }
+ * ```
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceBinder implements ResourceBinderInterface
+interface ResourceBinder extends ResourceDiscovery
 {
     /**
-     * @var ResourceRepository
-     */
-    private $repo;
-
-    /**
-     * @var BindingType[]
-     */
-    private $types = array();
-
-    /**
-     * @var EagerBinding[]
-     */
-    private $bindings = array();
-
-    /**
-     * @var int
-     */
-    private $nextId = 0;
-
-    /**
-     * @var bool[][]
-     */
-    private $pathIndex = array();
-
-    /**
-     * @var bool[][]
-     */
-    private $typeIndex = array();
-
-    /**
-     * @var bool[][]
-     */
-    private $resourcePathIndex = array();
-
-    /**
-     * Creates a new resource binder.
+     * Binds resources to a type.
      *
-     * @param ResourceRepository $repo The repository to fetch resources from.
-     */
-    public function __construct(ResourceRepository $repo)
-    {
-        $this->repo = $repo;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function bind($path, $typeName, array $parameters = array())
-    {
-        $type = $this->getType($typeName);
-        $resources = $this->repo->find($path);
-        $binding = new EagerBinding($path, $resources, $type, $parameters);
-
-        if ($this->containsBinding($binding)) {
-            return;
-        }
-
-        $this->insertBinding($binding);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function unbind($path, $typeName = null)
-    {
-        if (null !== $typeName) {
-            $this->removeBindingsByPathAndType($path, $typeName);
-
-            return;
-        }
-
-        $this->removeBindingsByPath($path);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function define($type)
-    {
-        if (is_string($type)) {
-            $type = new BindingType($type);
-        }
-
-        if (!$type instanceof BindingType) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected argument of type string or BindingType. Got: %s',
-                is_object($type) ? get_class($type) : gettype($type)
-            ));
-        }
-
-        $this->types[$type->getName()] = $type;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function undefine($typeName)
-    {
-        if (!is_string($typeName)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected argument of type string. Got: %s',
-                is_object($typeName) ? get_class($typeName) : gettype($typeName)
-            ));
-        }
-
-        unset($this->types[$typeName]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getType($typeName)
-    {
-        if (!isset($this->types[$typeName])) {
-            throw new NoSuchTypeException(sprintf(
-                'The binding type "%s" has not been defined.',
-                $typeName
-            ));
-        }
-
-        return $this->types[$typeName];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isDefined($typeName)
-    {
-        return isset($this->types[$typeName]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getTypes()
-    {
-        return $this->types;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function find($typeName)
-    {
-        return $this->getBindingsByType($typeName);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBindings($resourcePath = null, $typeName = null)
-    {
-        if (null === $resourcePath && null === $typeName) {
-            return $this->getAllBindings();
-        }
-
-        if (null === $resourcePath) {
-            return $this->getBindingsByType($typeName);
-        }
-
-        if (null === $typeName) {
-            return $this->getBindingsByResourcePath($resourcePath);
-        }
-
-        return $this->getBindingsByResourcePathAndType($resourcePath, $typeName);
-    }
-
-    /**
-     * Returns whether the binder contains a binding equal to the given one.
+     * The type must have been defined. You can pass values for the parameters
+     * defined for the type.
      *
-     * The {@link EagerBinding::equals()} method is used to compare bindings.
+     * @param string $path       A resource path or a glob pattern. Must start
+     *                           with "/". "." and ".." segments in the path are
+     *                           supported.
+     * @param string $typeName   The type name to bind to.
+     * @param array  $parameters Values for the parameters defined for the type.
      *
-     * @param EagerBinding $binding A binding to search for.
-     *
-     * @return bool Returns `true` if an equal binding has been defined.
+     * @throws BindingException If the path could not be bound.
      */
-    private function containsBinding(EagerBinding $binding)
-    {
-        if (!isset($this->typeIndex[$binding->getType()->getName()])) {
-            return false;
-        }
-
-        if (!isset($this->pathIndex[$binding->getPath()])) {
-            return false;
-        }
-
-        foreach ($this->pathIndex[$binding->getPath()] as $id => $true) {
-            if ($this->bindings[$id]->equals($binding)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    public function bind($path, $typeName, array $parameters = array());
 
     /**
-     * Inserts a binding.
+     * Unbinds a bound path.
      *
-     * @param EagerBinding $binding The binding to insert.
+     * You can pass any binding path that was previously passed to
+     * {@link bind()}. If the path was not bound, this method does nothing.
+     *
+     * Pass the parameter `$typeName` if you want to unbind bindings from a
+     * specific binding type. If you don't pass this parameter or if you pass
+     * `null`, the bindings will be unbound from all types.
+     *
+     * If you want to unbind a specific resource, you need to query the bindings
+     * matching the resource path first:
+     *
+     * ```php
+     * $bindings = $binder->getBindings('/path/to/resource');
+     *
+     * foreach ($bindings as $binding) {
+     *     $binder->unbind($binding->getPath(), $binding->getType()->getName());
+     * }
+     * ```
+     *
+     * Caution: This will remove the bindings for other resources matched by
+     * the same binding path as well.
+     *
+     * @param string      $path     The binding path.
+     * @param string|null $typeName The name of a binding type.
      */
-    private function insertBinding(EagerBinding $binding)
-    {
-        $id = $this->nextId++;
-        $typeName = $binding->getType()->getName();
-
-        $this->bindings[$id] = $binding;
-        $this->pathIndex[$binding->getPath()][$id] = true;
-
-        if (!isset($this->typeIndex[$typeName])) {
-            $this->typeIndex[$typeName] = array();
-        }
-
-        $this->typeIndex[$typeName][$id] = true;
-
-        foreach ($binding->getResources() as $resource) {
-            $resourcePath = $resource->getPath();
-
-            if (!isset($this->resourcePathIndex[$resourcePath])) {
-                $this->resourcePathIndex[$resourcePath] = array();
-            }
-
-            $this->resourcePathIndex[$resourcePath][$id] = true;
-        }
-    }
+    public function unbind($path, $typeName = null);
 
     /**
-     * Returns all bindings.
+     * Defines a binding type.
      *
-     * @return ResourceBindingInterface[] The bindings.
+     * The type can be passed as string or as an instance of
+     * {@link BindingType}. If you want to define parameters for the type, you
+     * need to construct an instance of {@link BindingType} manually:
+     *
+     * ```php
+     * use Puli\Discovery\Binding\BindingParameter;
+     * use Puli\Discovery\Binding\BindingType;
+     *
+     * $binder->define(new BindingType('acme/xliff-message', array(
+     *     new BindingParameter('translationDomain', null, 'messages'),
+     * ));
+     * ```
+     *
+     * @param string|BindingType $type The type name or instance.
      */
-    private function getAllBindings()
-    {
-        return array_values($this->bindings);
-    }
+    public function define($type);
 
     /**
-     * Returns the bindings for a type.
+     * Undefines a binding type.
      *
-     * @param string $typeName The type name.
+     * If the type has not been defined, this method does nothing.
      *
-     * @return ResourceBindingInterface[] The bindings for that type.
+     * @param string $typeName The name of a binding type.
      */
-    private function getBindingsByType($typeName)
-    {
-        if (!isset($this->typeIndex[$typeName])) {
-            return array();
-        }
-
-        $bindings = array();
-
-        if (isset($this->typeIndex[$typeName])) {
-            foreach ($this->typeIndex[$typeName] as $id => $true) {
-                $bindings[] = $this->bindings[$id];
-            }
-        }
-
-        return $bindings;
-    }
-
-    /**
-     * Returns the bindings for a resource path.
-     *
-     * @param string $resourcePath The resource path.
-     *
-     * @return ResourceBindingInterface[] The bindings for that resource path.
-     */
-    private function getBindingsByResourcePath($resourcePath)
-    {
-        if (!isset($this->resourcePathIndex[$resourcePath])) {
-            return array();
-        }
-
-        $bindings = array();
-
-        if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
-                $bindings[] = $this->bindings[$id];
-            }
-        }
-
-        return $bindings;
-    }
-
-    /**
-     * Returns the bindings for a resource path and type.
-     *
-     * @param string $resourcePath The resource path.
-     * @param string $typeName     The type name.
-     *
-     * @return ResourceBindingInterface[] The matching bindings.
-     */
-    private function getBindingsByResourcePathAndType($resourcePath, $typeName)
-    {
-        if (!isset($this->typeIndex[$typeName])) {
-            return array();
-        }
-
-        if (!isset($this->resourcePathIndex[$resourcePath])) {
-            return array();
-        }
-
-        $bindings = array();
-
-        if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
-                if ($typeName === $this->bindings[$id]->getType()->getName()) {
-                    $bindings[] = $this->bindings[$id];
-                }
-            }
-        }
-
-        return $bindings;
-    }
-
-    /**
-     * Removes bindings for a binding path.
-     *
-     * @param string $path The binding path.
-     */
-    private function removeBindingsByPath($path)
-    {
-        if (!isset($this->pathIndex[$path])) {
-            return;
-        }
-
-        foreach ($this->pathIndex[$path] as $id => $true) {
-            $binding = $this->bindings[$id];
-
-            unset($this->bindings[$id]);
-            unset($this->typeIndex[$binding->getType()->getName()][$id]);
-
-            foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$id]);
-            }
-        }
-
-        unset($this->pathIndex[$path]);
-    }
-
-    /**
-     * Removes bindings for a binding path and type.
-     *
-     * @param string $path     The binding path.
-     * @param string $typeName The name of the type.
-     */
-    private function removeBindingsByPathAndType($path, $typeName)
-    {
-        if (!isset($this->pathIndex[$path])) {
-            return;
-        }
-
-        if (!isset($this->typeIndex[$typeName])) {
-            return;
-        }
-
-        foreach ($this->pathIndex[$path] as $id => $true) {
-            $binding = $this->bindings[$id];
-
-            if ($typeName !== $binding->getType()->getName()) {
-                continue;
-            }
-
-            unset($this->bindings[$id]);
-            unset($this->pathIndex[$path][$id]);
-            unset($this->typeIndex[$typeName][$id]);
-
-            foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$id]);
-            }
-        }
-    }
+    public function undefine($typeName);
 }

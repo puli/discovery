@@ -11,8 +11,7 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
-use Puli\Repository\Resource\ResourceInterface;
+use Puli\Repository\Resource\Collection\ResourceCollection;
 
 /**
  * Binds one or more resources to a binding type.
@@ -20,7 +19,7 @@ use Puli\Repository\Resource\ResourceInterface;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface ResourceBindingInterface
+interface ResourceBinding
 {
     /**
      * Returns the path of the binding.
@@ -37,7 +36,7 @@ interface ResourceBindingInterface
      *
      * This method is mainly useful when only one resource is bound.
      *
-     * @return ResourceInterface The first bound resource.
+     * @return Resource The first bound resource.
      *
      * @see getResources()
      */
@@ -46,7 +45,7 @@ interface ResourceBindingInterface
     /**
      * Returns the bound resources.
      *
-     * @return ResourceCollectionInterface The bound resources.
+     * @return ResourceCollection The bound resources.
      *
      * @see getResource()
      */
@@ -89,9 +88,9 @@ interface ResourceBindingInterface
     /**
      * Returns whether two bindings are equal.
      *
-     * @param ResourceBindingInterface $binding A binding to compare.
+     * @param ResourceBinding $binding A binding to compare.
      *
      * @return bool Returns `true` if the two bindings are equal.
      */
-    public function equals(ResourceBindingInterface $binding);
+    public function equals(ResourceBinding $binding);
 }

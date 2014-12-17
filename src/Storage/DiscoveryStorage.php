@@ -11,7 +11,7 @@
 
 namespace Puli\Discovery\Storage;
 
-use Puli\Discovery\ResourceDiscoveryInterface;
+use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\ResourceRepository;
 
 /**
@@ -20,17 +20,17 @@ use Puli\Repository\ResourceRepository;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface DiscoveryStorageInterface
+interface DiscoveryStorage
 {
     /**
      * Persistently stores a resource discovery.
      *
-     * @param ResourceDiscoveryInterface $discovery The discovery to store.
+     * @param ResourceDiscovery $discovery The discovery to store.
      * @param array                      $options   Implementation specific
      *                                              options controlling how to
      *                                              store the discovery.
      */
-    public function storeDiscovery(ResourceDiscoveryInterface $discovery, array $options = array());
+    public function storeDiscovery(ResourceDiscovery $discovery, array $options = array());
 
     /**
      * Loads a discovery from persistent storage.
@@ -40,7 +40,7 @@ interface DiscoveryStorageInterface
      * @param array              $options Implementation specific options
      *                                    controlling how to load the discovery.
      *
-     * @return ResourceDiscoveryInterface The loaded discovery.
+     * @return ResourceDiscovery The loaded discovery.
      *
      * @throws LoadingException If the discovery could not be loaded.
      */

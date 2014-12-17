@@ -10,13 +10,13 @@
  */
 
 use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\ResourceBindingInterface;
+use Puli\Discovery\Binding\ResourceBinding;
 
 /**
  * @var string|null                $namespace         The namespace without trailing "\".
  * @var string                     $className         The simple class name.
  * @var BindingType[]              $types             All binding types.
- * @var ResourceBindingInterface[] $bindingsById      All bindings by ID.
+ * @var ResourceBinding[] $bindingsById      All bindings by ID.
  * @var int[][]                    $idsByType         All binding IDs by type.
  * @var int[][]                    $idsByResourcePath All binding IDs by resource path.
  */
@@ -32,10 +32,10 @@ use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\ResourceDiscoveryInterface;
+use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\ResourceRepository;
 
-class <?php echo $className ?> implements ResourceDiscoveryInterface
+class <?php echo $className ?> implements ResourceDiscovery
 {
     private $repo;
 

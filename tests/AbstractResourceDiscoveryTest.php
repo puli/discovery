@@ -13,8 +13,8 @@ namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\ResourceBindingInterface;
-use Puli\Discovery\ResourceDiscoveryInterface;
+use Puli\Discovery\Binding\ResourceBinding;
+use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
 
@@ -25,9 +25,9 @@ use Puli\Repository\Tests\Resource\TestFile;
 abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @param ResourceBindingInterface[] $bindings
+     * @param ResourceBinding[] $bindings
      *
-     * @return ResourceDiscoveryInterface
+     * @return ResourceDiscovery
      */
     abstract protected function createDiscovery(array $bindings = array());
 
@@ -158,7 +158,7 @@ abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param ResourceBindingInterface[] $expected
+     * @param ResourceBinding[] $expected
      * @param mixed                      $actual
      */
     private function assertBindingsEqual(array $expected, $actual)

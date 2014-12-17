@@ -11,8 +11,8 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
-use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
+use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\InMemoryRepository;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;

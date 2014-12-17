@@ -13,7 +13,7 @@ namespace Puli\Discovery;
 
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\Binding\ResourceBindingInterface;
+use Puli\Discovery\Binding\ResourceBinding;
 
 /**
  * Discovers resources for binding types.
@@ -50,14 +50,14 @@ use Puli\Discovery\Binding\ResourceBindingInterface;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface ResourceDiscoveryInterface
+interface ResourceDiscovery
 {
     /**
      * Returns all bindings bound to a binding type.
      *
      * @param string $typeName The name of the binding type.
      *
-     * @return ResourceBindingInterface[] The matching bindings.
+     * @return ResourceBinding[] The matching bindings.
      */
     public function find($typeName);
 
@@ -70,7 +70,7 @@ interface ResourceDiscoveryInterface
      * @param string|null $resourcePath The canonical path to a resource.
      * @param string|null $typeName     The name of a binding type.
      *
-     * @return ResourceBindingInterface[] The matching bindings.
+     * @return ResourceBinding[] The matching bindings.
      */
     public function getBindings($resourcePath = null, $typeName = null);
 
