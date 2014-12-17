@@ -38,7 +38,7 @@ use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 
 $binder->define(new BindingType('acme/xliff-messages', array(
-    new BindingParameter('translationDomain', null, 'messages'),
+    new BindingParameter('translationDomain'),
 )));
 
 $binder->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
