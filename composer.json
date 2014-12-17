@@ -1,6 +1,6 @@
 {
     "name": "puli/discovery",
-    "description": "Discovers Puli resources for predefined types.",
+    "description": "Discovers Puli resources bound to predefined types.",
     "license": "MIT",
     "authors": [
         {
