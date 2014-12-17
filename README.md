@@ -59,8 +59,8 @@ foreach ($bindings as $binding) {
 ```
 
 To optimize read performance, you should write the binder to a storage. The
-stored object is of type `ResourceDiscoveryInterface` which only features the
-methods `find()` and `getBindings()`:
+stored object is of type `ResourceDiscoveryInterface` which only supports read
+access:
 
 ```php
 use Puli\Discovery\Storage\PhpDiscoveryStorage;

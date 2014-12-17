@@ -304,37 +304,4 @@ class ResourceBinderTest extends AbstractResourceDiscoveryTest
 
         $binder->undefine(new \stdClass());
     }
-
-    public function testGetType()
-    {
-        $repo = new ResourceRepository();
-        $binder = new ResourceBinder($repo);
-        $binder->define($type1 = new BindingType('type1'));
-        $binder->define($type2 = new BindingType('type2'));
-
-        $this->assertSame($type1, $binder->getType('type1'));
-        $this->assertSame($type2, $binder->getType('type2'));
-    }
-
-    public function testGetTypes()
-    {
-        $repo = new ResourceRepository();
-        $binder = new ResourceBinder($repo);
-        $binder->define($type1 = new BindingType('type1'));
-        $binder->define($type2 = new BindingType('type2'));
-
-        $this->assertSame(array('type1' => $type1, 'type2' => $type2), $binder->getTypes());
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Binding\NoSuchTypeException
-     * @expectedExceptionMessage foobar
-     */
-    public function testGetTypeFailsIfUnknownType()
-    {
-        $repo = new ResourceRepository();
-        $binder = new ResourceBinder($repo);
-
-        $binder->getType('foobar');
-    }
 }

@@ -31,6 +31,7 @@ namespace <?php echo $namespace ?>;
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\LazyBinding;
+use Puli\Discovery\Binding\NoSuchTypeException;
 use Puli\Discovery\ResourceDiscoveryInterface;
 use Puli\Repository\ResourceRepositoryInterface;
 

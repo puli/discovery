@@ -100,6 +100,63 @@ abstract class AbstractResourceDiscoveryTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(array(), $discovery->getBindings(null, 'foo'));
     }
 
+    public function testGetType()
+    {
+        $type1 = new BindingType('type1');
+        $type2 = new BindingType('type2');
+
+        $resource1 = new TestFile('/file1');
+        $resource2 = new TestFile('/file2');
+
+        $discovery = $this->createDiscovery(array(
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding3 = new EagerBinding('/file2', $resource2, $type2),
+        ));
+
+        $this->assertEquals($type1, $discovery->getType('type1'));
+        $this->assertEquals($type2, $discovery->getType('type2'));
+    }
+
+    public function testGetTypes()
+    {
+        $type1 = new BindingType('type1');
+        $type2 = new BindingType('type2');
+
+        $resource1 = new TestFile('/file1');
+        $resource2 = new TestFile('/file2');
+
+        $discovery = $this->createDiscovery(array(
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding3 = new EagerBinding('/file2', $resource2, $type2),
+        ));
+
+        $this->assertEquals(array('type1' => $type1, 'type2' => $type2), $discovery->getTypes());
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Binding\NoSuchTypeException
+     * @expectedExceptionMessage foobar
+     */
+    public function testGetTypeFailsIfUnknownType()
+    {
+        $discovery = $this->createDiscovery();
+
+        $discovery->getType('foobar');
+    }
+
+    public function testIsDefined()
+    {
+        $type = new BindingType('type');
+        $resource = new TestFile('/file');
+
+        $discovery = $this->createDiscovery(array(
+            $binding1 = new EagerBinding('/file', $resource, $type),
+        ));
+
+        $this->assertTrue($discovery->isDefined('type'));
+        $this->assertFalse($discovery->isDefined('foo'));
+    }
+
     /**
      * @param ResourceBindingInterface[] $expected
      * @param mixed                      $actual
