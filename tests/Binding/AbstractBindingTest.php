@@ -117,4 +117,84 @@ abstract class AbstractBindingTest extends \PHPUnit_Framework_TestCase
 
         $binding->getParameter('foo');
     }
+
+    public function testEqual()
+    {
+        $type = new BindingType('type');
+
+        $binding1 = $this->createBinding('/path', $type);
+        $binding2 = $this->createBinding('/path', $type);
+
+        $this->assertTrue($binding1->equals($binding2));
+    }
+
+    public function testNotEqualIfDifferentTypeInstance()
+    {
+        $type1 = new BindingType('type');
+        $type2 = new BindingType('type');
+
+        $binding1 = $this->createBinding('/path', $type1);
+        $binding2 = $this->createBinding('/path', $type2);
+
+        $this->assertFalse($binding1->equals($binding2));
+    }
+
+    public function testNotEqualIfDifferentPath()
+    {
+        $type = new BindingType('type');
+
+        $binding1 = $this->createBinding('/path1', $type);
+        $binding2 = $this->createBinding('/path2', $type);
+
+        $this->assertFalse($binding1->equals($binding2));
+    }
+
+    public function testNotEqualIfDifferentParameters()
+    {
+        $type = new BindingType('type', array(
+            new BindingParameter('param'),
+        ));
+
+        $binding1 = $this->createBinding('/path', $type, array('param' => 'foo'));
+        $binding2 = $this->createBinding('/path', $type, array('param' => 'bar'));
+
+        $this->assertFalse($binding1->equals($binding2));
+    }
+
+    public function testNotEqualIfDifferentParameterTypes()
+    {
+        $type = new BindingType('type', array(
+            new BindingParameter('param'),
+        ));
+
+        $binding1 = $this->createBinding('/path', $type, array('param' => '2'));
+        $binding2 = $this->createBinding('/path', $type, array('param' => 2));
+
+        $this->assertFalse($binding1->equals($binding2));
+    }
+
+    public function testEqualIfDifferentParameterOrder()
+    {
+        $type = new BindingType('type', array(
+            new BindingParameter('foo'),
+            new BindingParameter('bar'),
+        ));
+
+        $binding1 = $this->createBinding('/path', $type, array('foo' => 'bar', 'bar' => 'foo'));
+        $binding2 = $this->createBinding('/path', $type, array('bar' => 'foo', 'foo' => 'bar'));
+
+        $this->assertTrue($binding1->equals($binding2));
+    }
+
+    public function testEqualIfDefaultValues()
+    {
+        $type = new BindingType('type', array(
+            new BindingParameter('param', null, 'default'),
+        ));
+
+        $binding1 = $this->createBinding('/path', $type, array('param' => 'default'));
+        $binding2 = $this->createBinding('/path', $type);
+
+        $this->assertTrue($binding1->equals($binding2));
+    }
 }

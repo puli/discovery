@@ -50,6 +50,9 @@ class BindingType
 
             $this->parameters[$parameter->getName()] = $parameter;
         }
+
+        // Sort to facilitate comparison
+        ksort($this->parameters);
     }
 
     /**

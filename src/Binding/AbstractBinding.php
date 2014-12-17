@@ -58,11 +58,11 @@ abstract class AbstractBinding implements ResourceBindingInterface
      */
     public function __construct($path, BindingType $type, array $parameters = array())
     {
-        $parameters = $this->validateParameters($type, $parameters);
+        $this->validateParameters($type, $parameters);
 
         $this->path = $path;
         $this->type = $type;
-        $this->parameters = $parameters;
+        $this->parameters = $this->normalizeParameters($type, $parameters);
     }
 
     /**
@@ -123,6 +123,34 @@ abstract class AbstractBinding implements ResourceBindingInterface
         return array_key_exists($parameter, $this->parameters);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function equals(ResourceBindingInterface $binding)
+    {
+        if (get_class($binding) !== get_class($this)) {
+            return false;
+        }
+
+        if ($this->path !== $binding->getPath()) {
+            return false;
+        }
+
+        if ($this->type !== $binding->getType()) {
+            return false;
+        }
+
+        // The local parameters are sorted by key
+        $comparedParameters = $binding->getParameters();
+        ksort($comparedParameters);
+
+        if ($this->parameters !== $comparedParameters) {
+            return false;
+        }
+
+        return true;
+    }
+
     private function validateParameters(BindingType $type, array $parameters)
     {
         foreach ($parameters as $name => $value) {
@@ -136,19 +164,28 @@ abstract class AbstractBinding implements ResourceBindingInterface
         }
 
         foreach ($type->getParameters() as $parameter) {
-            $parameterName = $parameter->getName();
-
-            if (!isset($parameters[$parameterName])) {
+            if (!isset($parameters[$parameter->getName()])) {
                 if ($parameter->isRequired()) {
                     throw new MissingParameterException(sprintf(
                         'The required binding parameter "%s" is missing.',
-                        $parameterName
+                        $parameter->getName()
                     ));
                 }
+            }
+        }
+    }
 
+    private function normalizeParameters(BindingType $type, array $parameters)
+    {
+        foreach ($type->getParameters() as $parameter) {
+            $parameterName = $parameter->getName();
+
+            if (!isset($parameters[$parameterName])) {
                 $parameters[$parameterName] = $parameter->getDefaultValue();
             }
         }
+
+        ksort($parameters);
 
         return $parameters;
     }

@@ -1,9 +1,9 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the puli/discovery package.
  *
- * (c) Fabien Potencier <fabien@symfony.com>
+ * (c) Bernhard Schussek <bschussek@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -85,4 +85,13 @@ interface ResourceBindingInterface
      * @return bool Whether that parameter exists.
      */
     public function hasParameter($parameter);
+
+    /**
+     * Returns whether two bindings are equal.
+     *
+     * @param ResourceBindingInterface $binding A binding to compare.
+     *
+     * @return bool Returns `true` if the two bindings are equal.
+     */
+    public function equals(ResourceBindingInterface $binding);
 }

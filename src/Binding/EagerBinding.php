@@ -54,7 +54,10 @@ class EagerBinding extends AbstractBinding
         }
 
         if (0 === count($resources)) {
-            throw new BindingException('Did not find any resources to bind.');
+            throw new BindingException(sprintf(
+                'Did not find any resources to bind for path "%s".',
+                $path
+            ));
         }
 
         parent::__construct($path, $type, $parameters);
