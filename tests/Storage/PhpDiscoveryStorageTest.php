@@ -13,7 +13,7 @@ namespace Puli\Discovery\Tests\Storage;
 
 use Puli\Discovery\Storage\PhpDiscoveryStorage;
 use Puli\Discovery\Tests\AbstractResourceDiscoveryTest;
-use Puli\Discovery\Tests\Binder\DefaultResourceBinderTest;
+use Puli\Discovery\Tests\Binder\InMemoryBinderTest;
 use Puli\Repository\InMemoryRepository;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -44,7 +44,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     protected function createDiscovery(array $bindings = array())
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo, $bindings);
+        $binder = InMemoryBinderTest::createBinder($repo, $bindings);
         $storage = new PhpDiscoveryStorage();
         $options = array('path' => $this->tempDir.'/discovery.php');
 
@@ -56,7 +56,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     public function testStoreWithCustomClassName()
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo);
+        $binder = InMemoryBinderTest::createBinder($repo);
         $storage = new PhpDiscoveryStorage();
         $options = array(
             'path' => $this->tempDir.'/discovery.php',
@@ -73,7 +73,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     public function testStoreWithCustomClassNameAndNamespace()
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo);
+        $binder = InMemoryBinderTest::createBinder($repo);
         $storage = new PhpDiscoveryStorage();
         $options = array(
             'path' => $this->tempDir.'/discovery.php',
@@ -91,7 +91,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     public function testCreateDirectoriesIfNecessary()
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo);
+        $binder = InMemoryBinderTest::createBinder($repo);
         $storage = new PhpDiscoveryStorage();
         $options = array(
             'path' => $this->tempDir.'/some/directory/discovery.php',
@@ -132,7 +132,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     public function testFailIfStoringWithoutPath()
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo);
+        $binder = InMemoryBinderTest::createBinder($repo);
         $storage = new PhpDiscoveryStorage();
 
         $storage->storeDiscovery($binder);
@@ -144,7 +144,7 @@ class PhpDiscoveryStorageTest extends AbstractResourceDiscoveryTest
     public function testFailIfLoadingWithoutPath()
     {
         $repo = new InMemoryRepository();
-        $binder = DefaultResourceBinderTest::createBinder($repo);
+        $binder = InMemoryBinderTest::createBinder($repo);
         $storage = new PhpDiscoveryStorage();
         $options = array('path' => $this->tempDir.'/discovery.php');
 

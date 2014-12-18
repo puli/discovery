@@ -13,13 +13,13 @@ Latest release: none
 PHP >= 5.3.9
 
 The Puli Discovery component supports binding of Puli resources to types. Types
-can be defined with the `define()` method of the [`DefaultResourceBinder`]:
+can be defined with the `define()` method of the [`InMemoryBinder`]:
 
 ```php
-use Puli\Discovery\Binder\DefaultResourceBinder;
+use Puli\Discovery\Binder\InMemoryBinder;
 
 // $repo is a Puli repository
-$binder = new DefaultResourceBinder($repo);
+$binder = new InMemoryBinder($repo);
 
 $binder->define('acme/xliff-messages');
 ```
@@ -110,5 +110,5 @@ All contents of this package are licensed under the [MIT license].
 [Git repository]: https://github.com/puli/discovery
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
-[`DefaultResourceBinder`]: src/Binder/DefaultResourceBinder.php
+[`InMemoryBinder`]: src/Binder/InMemoryBinder.php
 [`ResourceDiscovery`]: src/ResourceDiscovery.php

@@ -19,12 +19,12 @@ use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Repository\ResourceRepository;
 
 /**
- * A resource binder based on a Puli repository.
+ * A resource binder that holds the bindings in memory.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class DefaultResourceBinder implements ResourceBinder
+class InMemoryBinder implements ResourceBinder
 {
     /**
      * @var ResourceRepository
