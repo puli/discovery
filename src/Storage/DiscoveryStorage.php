@@ -26,9 +26,9 @@ interface DiscoveryStorage
      * Persistently stores a resource discovery.
      *
      * @param ResourceDiscovery $discovery The discovery to store.
-     * @param array                      $options   Implementation specific
-     *                                              options controlling how to
-     *                                              store the discovery.
+     * @param array             $options   Implementation specific options
+     *                                     controlling how to store the
+     *                                     discovery.
      */
     public function storeDiscovery(ResourceDiscovery $discovery, array $options = array());
 

@@ -22,9 +22,9 @@ use Puli\Repository\ResourceRepository;
  *
  *  * "path": The path of the stored file. This option is mandatory.
  *  * "namespace": The namespace of the generated class without trailing "\".
- *    This is option `null` by default, meaning that the class is generated in
+ *    This option is `null` by default, meaning that the class is generated in
  *    the global namespace.
- *  * "className" The class name (without namespace) of the generated class.
+ *  * "className": The class name (without namespace) of the generated class.
  *    The class name is "GeneratedPhpDiscovery" by default.
  *
  * @since  1.0
