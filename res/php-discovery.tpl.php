@@ -13,12 +13,12 @@ use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\ResourceBinding;
 
 /**
- * @var string|null                $namespace         The namespace without trailing "\".
- * @var string                     $className         The simple class name.
- * @var BindingType[]              $types             All binding types.
+ * @var string|null       $namespace         The namespace without trailing "\".
+ * @var string            $className         The simple class name.
+ * @var BindingType[]     $types             All binding types.
  * @var ResourceBinding[] $bindingsById      All bindings by ID.
- * @var int[][]                    $idsByType         All binding IDs by type.
- * @var int[][]                    $idsByResourcePath All binding IDs by resource path.
+ * @var int[][]           $idsByType         All binding IDs by type.
+ * @var int[][]           $idsByResourcePath All binding IDs by resource path.
  */
 
 ?>
