@@ -56,7 +56,7 @@ class PhpDiscoveryStorage implements DiscoveryStorage
         $vars = array_replace(
             self::$defaultOptions,
             $options,
-            $this->createVariables($discovery)
+            $this->generateVariables($discovery)
         );
 
         $template = $this->generateTemplate($vars);
@@ -109,7 +109,7 @@ class PhpDiscoveryStorage implements DiscoveryStorage
         return "<?php\n\n".ob_get_clean();
     }
 
-    private function createVariables(ResourceDiscovery $discovery)
+    private function generateVariables(ResourceDiscovery $discovery)
     {
         $vars = array(
             'bindingsById' => array(),
