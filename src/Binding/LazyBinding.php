@@ -12,10 +12,7 @@
 namespace Puli\Discovery\Binding;
 
 use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
-use Puli\Repository\Resource\ResourceInterface;
 use Puli\Repository\ResourceRepository;
-use Puli\Repository\ResourceRepositoryInterface;
 
 /**
  * Binds lazily resources loaded to a type.

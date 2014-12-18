@@ -11,9 +11,6 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Repository\Resource\Collection\ResourceCollectionInterface;
-use Puli\Repository\Resource\ResourceInterface;
-
 /**
  * Base class for resource bindings.
  *
