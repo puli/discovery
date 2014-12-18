@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Binder;
 
+use Assert\Assertion;
 use InvalidArgumentException;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
@@ -125,12 +126,7 @@ class InMemoryBinder implements ResourceBinder
      */
     public function undefine($typeName)
     {
-        if (!is_string($typeName)) {
-            throw new InvalidArgumentException(sprintf(
-                'Expected argument of type string. Got: %s',
-                is_object($typeName) ? get_class($typeName) : gettype($typeName)
-            ));
-        }
+        Assertion::string($typeName);
 
         unset($this->types[$typeName]);
     }

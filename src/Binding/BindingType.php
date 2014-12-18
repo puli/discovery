@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Binding;
 
+use Assert\Assertion;
 use InvalidArgumentException;
 
 /**
@@ -40,16 +41,11 @@ class BindingType
      */
     public function __construct($name, array $parameters = array())
     {
+        Assertion::allIsInstanceOf($parameters, 'Puli\Discovery\Binding\BindingParameter');
+
         $this->name = $name;
 
         foreach ($parameters as $parameter) {
-            if (!$parameter instanceof BindingParameter) {
-                throw new InvalidArgumentException(sprintf(
-                    'The parameters must be of type BindingParameter. Got: %s',
-                    is_object($parameter) ? get_class($parameter) : gettype($parameter)
-                ));
-            }
-
             $this->parameters[$parameter->getName()] = $parameter;
         }
 
