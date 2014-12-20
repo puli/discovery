@@ -1,6 +1,7 @@
 {
     "name": "puli/discovery",
     "description": "Discovers Puli resources bound to predefined types.",
+    "homepage": "http://puli.io",
     "license": "MIT",
     "authors": [
         {
