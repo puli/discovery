@@ -91,15 +91,17 @@ class InMemoryBinder implements ResourceBinder
     /**
      * {@inheritdoc}
      */
-    public function unbind($path, $typeName = null)
+    public function unbind($path, $typeName = null, $parameters = null)
     {
+        Assertion::nullOrIsArray($parameters);
+
         if (null !== $typeName) {
-            $this->removeBindingsByPathAndType($path, $typeName);
+            $this->removeBindingsByPathAndType($path, $typeName, $parameters);
 
             return;
         }
 
-        $this->removeBindingsByPath($path);
+        $this->removeBindingsByPath($path, $parameters);
     }
 
     /**
@@ -340,9 +342,10 @@ class InMemoryBinder implements ResourceBinder
     /**
      * Removes bindings for a binding path.
      *
-     * @param string $path The binding path.
+     * @param string     $path       The binding path.
+     * @param null|array $parameters The binding parameters to filter by.
      */
-    private function removeBindingsByPath($path)
+    private function removeBindingsByPath($path, $parameters = null)
     {
         if (!isset($this->pathIndex[$path])) {
             return;
@@ -350,6 +353,10 @@ class InMemoryBinder implements ResourceBinder
 
         foreach ($this->pathIndex[$path] as $id => $true) {
             $binding = $this->bindings[$id];
+
+            if (null !== $parameters && $parameters !== $binding->getParameters()) {
+                continue;
+            }
 
             unset($this->bindings[$id]);
             unset($this->typeIndex[$binding->getType()->getName()][$id]);
@@ -365,10 +372,11 @@ class InMemoryBinder implements ResourceBinder
     /**
      * Removes bindings for a binding path and type.
      *
-     * @param string $path     The binding path.
-     * @param string $typeName The name of the type.
+     * @param string     $path       The binding path.
+     * @param string     $typeName   The name of the type.
+     * @param null|array $parameters The binding parameters to filter by.
      */
-    private function removeBindingsByPathAndType($path, $typeName)
+    private function removeBindingsByPathAndType($path, $typeName, $parameters = null)
     {
         if (!isset($this->pathIndex[$path])) {
             return;
@@ -382,6 +390,10 @@ class InMemoryBinder implements ResourceBinder
             $binding = $this->bindings[$id];
 
             if ($typeName !== $binding->getType()->getName()) {
+                continue;
+            }
+
+            if (null !== $parameters && $parameters !== $binding->getParameters()) {
                 continue;
             }
 

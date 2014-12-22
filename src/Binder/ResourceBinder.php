@@ -83,26 +83,17 @@ interface ResourceBinder extends ResourceDiscovery
      *
      * Pass the parameter `$typeName` if you want to unbind bindings from a
      * specific binding type. If you don't pass this parameter or if you pass
-     * `null`, the bindings will be unbound from all types.
+     * `null`, all bindings for the binding path will be removed.
      *
-     * If you want to unbind a specific resource, you need to query the bindings
-     * matching the resource path first:
+     * You can restrict bindings to bindings with specific parameters by passing
+     * the parameters in `$parameters`. If you leave this parameter empty, the
+     * bindings will be removed regardless of their parameters.
      *
-     * ```php
-     * $bindings = $binder->getBindings('/path/to/resource');
-     *
-     * foreach ($bindings as $binding) {
-     *     $binder->unbind($binding->getPath(), $binding->getType()->getName());
-     * }
-     * ```
-     *
-     * Caution: This will remove the bindings for other resources matched by
-     * the same binding path as well.
-     *
-     * @param string      $path     The binding path.
-     * @param string|null $typeName The name of a binding type.
+     * @param string      $path       The binding path.
+     * @param string|null $typeName   The name of a binding type.
+     * @param array|null  $parameters The values of the binding parameters.
      */
-    public function unbind($path, $typeName = null);
+    public function unbind($path, $typeName = null, $parameters = null);
 
     /**
      * Defines a binding type.

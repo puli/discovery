@@ -176,6 +176,90 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $this->assertCount(1, $binder->getBindings('/file2'));
     }
 
+    public function testUnbindPathWithTypeAndParameters()
+    {
+        $repo = new InMemoryRepository();
+        $repo->add('/file1', new TestFile());
+        $repo->add('/file2', new TestFile());
+
+        $binder = new InMemoryBinder($repo);
+        $binder->define(new BindingType('type1', array(
+            new BindingParameter('param'),
+        )));
+        $binder->define(new BindingType('type2'));
+
+        $binder->bind('/file1', 'type1', array(
+            'param' => 'foo',
+        ));
+        $binder->bind('/file1', 'type1', array(
+            'param' => 'bar',
+        ));
+        $binder->bind('/file1', 'type2');
+        $binder->bind('/file2', 'type1', array(
+            'param' => 'foo',
+        ));
+
+        $this->assertCount(3, $binder->find('type1'));
+        $this->assertCount(1, $binder->find('type2'));
+        $this->assertCount(4, $binder->getBindings());
+        $this->assertCount(3, $binder->getBindings('/file1'));
+        $this->assertCount(1, $binder->getBindings('/file2'));
+
+        $binder->unbind('/file1', 'type1', array(
+            'param' => 'foo',
+        ));
+
+        $this->assertCount(2, $binder->find('type1'));
+        $this->assertCount(1, $binder->find('type2'));
+        $this->assertCount(3, $binder->getBindings());
+        $this->assertCount(2, $binder->getBindings('/file1'));
+        $this->assertCount(1, $binder->getBindings('/file2'));
+    }
+
+    public function testUnbindPathWithParameters()
+    {
+        $repo = new InMemoryRepository();
+        $repo->add('/file1', new TestFile());
+        $repo->add('/file2', new TestFile());
+
+        $binder = new InMemoryBinder($repo);
+        $binder->define(new BindingType('type1', array(
+            new BindingParameter('param'),
+        )));
+        $binder->define(new BindingType('type2', array(
+            new BindingParameter('param'),
+        )));
+
+        $binder->bind('/file1', 'type1', array(
+            'param' => 'foo',
+        ));
+        $binder->bind('/file1', 'type1', array(
+            'param' => 'bar',
+        ));
+        $binder->bind('/file1', 'type2', array(
+            'param' => 'foo',
+        ));
+        $binder->bind('/file2', 'type1', array(
+            'param' => 'foo',
+        ));
+
+        $this->assertCount(3, $binder->find('type1'));
+        $this->assertCount(1, $binder->find('type2'));
+        $this->assertCount(4, $binder->getBindings());
+        $this->assertCount(3, $binder->getBindings('/file1'));
+        $this->assertCount(1, $binder->getBindings('/file2'));
+
+        $binder->unbind('/file1', null, array(
+            'param' => 'foo',
+        ));
+
+        $this->assertCount(2, $binder->find('type1'));
+        $this->assertCount(0, $binder->find('type2'));
+        $this->assertCount(2, $binder->getBindings());
+        $this->assertCount(1, $binder->getBindings('/file1'));
+        $this->assertCount(1, $binder->getBindings('/file2'));
+    }
+
     public function testUnbindSelector()
     {
         $repo = new InMemoryRepository();
