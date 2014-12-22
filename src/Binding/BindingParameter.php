@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Binding;
 
+use Assert\Assertion;
 use RuntimeException;
 
 /**
@@ -22,19 +23,14 @@ use RuntimeException;
 class BindingParameter
 {
     /**
-     * Mode: the parameter must be set
-     */
-    const REQUIRED = 1;
-
-    /**
      * @var string
      */
     private $name;
 
     /**
-     * @var int
+     * @var bool
      */
-    private $mode;
+    private $required;
 
     /**
      * @var mixed
@@ -44,19 +40,24 @@ class BindingParameter
     /**
      * Creates a new parameter.
      *
-     * @param string   $name         The parameter name.
-     * @param int|null $mode         A bitwise combination of the parameter's
-     *                               mode constants.
-     * @param mixed    $defaultValue The parameter's default value.
+     * @param string $name         The parameter name.
+     * @param bool   $required     Whether the parameter is required.
+     * @param mixed  $defaultValue The parameter's default value.
      */
-    public function __construct($name, $mode = null, $defaultValue = null)
+    public function __construct($name, $required = false, $defaultValue = null)
     {
-        if (($mode & self::REQUIRED) && null !== $defaultValue) {
+        Assertion::string($name, 'The parameter name must be a string. Got: %2$s');
+        Assertion::notEmpty($name, 'The parameter name must not be empty.');
+        Assertion::alnum($name, 'The parameter name must contain letters and digits only and start with a letter.');
+        Assertion::boolean($required, 'The parameter "$required" must be a boolean. Got: %s');
+
+        if ($required && null !== $defaultValue) {
             throw new RuntimeException('Required parameters must not have default values.');
         }
 
+
         $this->name = $name;
-        $this->mode = (int) $mode;
+        $this->required = $required;
         $this->defaultValue = $defaultValue;
     }
 
@@ -71,16 +72,6 @@ class BindingParameter
     }
 
     /**
-     * Returns the parameter mode.
-     *
-     * @return int A bitwise combination of the parameter's mode constants.
-     */
-    public function getMode()
-    {
-        return $this->mode;
-    }
-
-    /**
      * Returns whether the parameter must be set.
      *
      * This method is the inverse of {@link isOptional()}.
@@ -89,7 +80,7 @@ class BindingParameter
      */
     public function isRequired()
     {
-        return (bool) ($this->mode & self::REQUIRED);
+        return $this->required;
     }
 
     /**
@@ -101,7 +92,7 @@ class BindingParameter
      */
     public function isOptional()
     {
-        return !$this->isRequired();
+        return !$this->required;
     }
 
     /**

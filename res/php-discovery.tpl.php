@@ -217,7 +217,7 @@ class <?php echo $className ?> implements ResourceDiscovery
             case '<?php echo $type->getName() ?>':
                 return new BindingType('<?php echo $type->getName() ?>'<?php if ($type->getParameters()): ?>, array(
 <?php foreach ($type->getParameters() as $parameter): ?>
-                    new BindingParameter('<?php echo $parameter->getName() ?>', <?php var_export($parameter->getMode()) ?>, <?php var_export($parameter->getDefaultValue()) ?>),
+                    new BindingParameter('<?php echo $parameter->getName() ?>', <?php var_export($parameter->isRequired()) ?>, <?php var_export($parameter->getDefaultValue()) ?>),
 <?php endforeach ?>
                 )<?php endif ?>);
 <?php endforeach ?>

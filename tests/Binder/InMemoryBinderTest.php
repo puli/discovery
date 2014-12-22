@@ -107,7 +107,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
 
         $binder = new InMemoryBinder($repo);
         $binder->define(new BindingType('type', array(
-            new BindingParameter('param', null, 'default')
+            new BindingParameter('param', false, 'default')
         )));
 
         // The parameter is the same both times

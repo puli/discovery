@@ -41,6 +41,8 @@ class BindingType
      */
     public function __construct($name, array $parameters = array())
     {
+        Assertion::string($name, 'The type name must be a string. Got: %2$s');
+        Assertion::notEmpty($name, 'The type name must not be empty.');
         Assertion::allIsInstanceOf($parameters, 'Puli\Discovery\Binding\BindingParameter');
 
         $this->name = $name;
