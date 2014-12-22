@@ -28,19 +28,17 @@ class BindingParameterTest extends PHPUnit_Framework_TestCase
         $this->assertNull($param->getDefaultValue());
     }
 
-    public function testIsOptionalByDefault()
+    public function testIsNotRequiredByDefault()
     {
         $param = new BindingParameter('name');
 
-        $this->assertTrue($param->isOptional());
         $this->assertFalse($param->isRequired());
     }
 
-    public function testIsNotOptionalIfRequired()
+    public function testRequired()
     {
         $param = new BindingParameter('name', true);
 
-        $this->assertFalse($param->isOptional());
         $this->assertTrue($param->isRequired());
     }
 

@@ -74,25 +74,11 @@ class BindingParameter
     /**
      * Returns whether the parameter must be set.
      *
-     * This method is the inverse of {@link isOptional()}.
-     *
      * @return bool Returns `true` if the parameter must be set.
      */
     public function isRequired()
     {
         return $this->required;
-    }
-
-    /**
-     * Returns whether the parameter is optional.
-     *
-     * This method is the inverse of {@link isRequired()}.
-     *
-     * @return bool Returns `true` if the parameter is optional.
-     */
-    public function isOptional()
-    {
-        return !$this->required;
     }
 
     /**
