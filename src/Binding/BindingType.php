@@ -43,6 +43,7 @@ class BindingType
     {
         Assertion::string($name, 'The type name must be a string. Got: %2$s');
         Assertion::notEmpty($name, 'The type name must not be empty.');
+        Assertion::true(ctype_alpha($name[0]), 'The type name must start with a letter.');
         Assertion::allIsInstanceOf($parameters, 'Puli\Discovery\Binding\BindingParameter');
 
         $this->name = $name;

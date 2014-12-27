@@ -16,15 +16,28 @@ use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\ResourceDiscovery;
+use Puli\Repository\InMemoryRepository;
+use Puli\Repository\ManageableRepository;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
+use Puli\Repository\ResourceRepository;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractResourceDiscoveryTest extends PHPUnit_Framework_TestCase
+abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ManageableRepository
+     */
+    protected $repo;
+
+    protected function setUp()
+    {
+        $this->repo = new InMemoryRepository();
+    }
+
     /**
      * @param ResourceBinding[] $bindings
      *
