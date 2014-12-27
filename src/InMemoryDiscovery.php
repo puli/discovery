@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Binder;
+namespace Puli\Discovery;
 
 use Assert\Assertion;
 use InvalidArgumentException;
@@ -20,12 +20,12 @@ use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Repository\ResourceRepository;
 
 /**
- * A resource binder that holds the bindings in memory.
+ * A resource discovery that holds the bindings in memory.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class InMemoryBinder implements ResourceBinder
+class InMemoryDiscovery implements ManageableDiscovery
 {
     /**
      * @var ResourceRepository

@@ -13,22 +13,22 @@ Latest release: none
 PHP >= 5.3.9
 
 The Puli Discovery component supports binding of Puli resources to types. Types
-can be defined with the `define()` method of the [`InMemoryBinder`]:
+can be defined with the `define()` method of the [`InMemoryDiscovery`]:
 
 ```php
-use Puli\Discovery\Binder\InMemoryBinder;
+use Puli\Discovery\Binder\InMemoryDiscovery;
 
 // $repo is a Puli repository
-$binder = new InMemoryBinder($repo);
+$discovery = new InMemoryDiscovery($repo);
 
-$binder->define('acme/xliff-messages');
+$discovery->define('acme/xliff-messages');
 ```
 
 Resources in the repository can be bound to defined types with the `bind()`
 method:
 
 ```php
-$binder->bind('/app/trans/*.xlf', 'acme/xliff-messages');
+$discovery->bind('/app/trans/*.xlf', 'acme/xliff-messages');
 ```
 
 You can define parameters for binding types:
@@ -37,11 +37,11 @@ You can define parameters for binding types:
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 
-$binder->define(new BindingType('acme/xliff-messages', array(
+$discovery->define(new BindingType('acme/xliff-messages', array(
     new BindingParameter('translationDomain'),
 )));
 
-$binder->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
+$discovery->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
     'translationDomain' => 'errors',
 ));
 ```
@@ -49,7 +49,7 @@ $binder->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
 The bindings can later be fetched with the `find()` method:
 
 ```php
-$bindings = $binder->find('acme/xliff-messages');
+$bindings = $discovery->find('acme/xliff-messages');
 
 foreach ($bindings as $binding) {
     foreach ($binding->getResources() as $resource) {
@@ -58,7 +58,7 @@ foreach ($bindings as $binding) {
 }
 ```
 
-To optimize read performance, you should write the binder to a storage. The
+To optimize read performance, you should write the discovery to a storage. The
 stored object is of type [`ResourceDiscovery`] which only supports read access:
 
 ```php
@@ -67,7 +67,7 @@ use Puli\Discovery\Storage\PhpDiscoveryStorage;
 $storage = new PhpDiscoveryStorage();
 
 // run once
-$storage->storeDiscovery($binder, array('path' => '/path/to/discovery.php'));
+$storage->storeDiscovery($discovery, array('path' => '/path/to/discovery.php'));
 
 // run whenever bindings need to be accessed
 $discovery = $storage->loadDiscovery($repo, array('path' => '/path/to/discovery.php'));
@@ -110,5 +110,5 @@ All contents of this package are licensed under the [MIT license].
 [Git repository]: https://github.com/puli/discovery
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
-[`InMemoryBinder`]: src/Binder/InMemoryBinder.php
+[`InMemoryDiscovery`]: src/InMemoryDiscovery.php
 [`ResourceDiscovery`]: src/ResourceDiscovery.php

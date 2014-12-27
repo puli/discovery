@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests\Binder;
+namespace Puli\Discovery\Tests;
 
-use Puli\Discovery\Binder\InMemoryBinder;
+use Puli\Discovery\InMemoryDiscovery;
 use Puli\Discovery\Binding\BindingParameter;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\ResourceBinding;
@@ -24,7 +24,7 @@ use Puli\Repository\Tests\Resource\TestFile;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class InMemoryBinderTest extends AbstractResourceDiscoveryTest
+class InMemoryDiscoveryTest extends AbstractResourceDiscoveryTest
 {
     /**
      * Creates a binder for a set of bindings.
@@ -32,7 +32,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
      * @param ManageableRepository       $repo     The repository to use.
      * @param ResourceBinding[] $bindings The bindings to store.
      *
-     * @return InMemoryBinder The created binder.
+     * @return InMemoryDiscovery The created binder.
      */
     public static function createBinder(ManageableRepository $repo, array $bindings = array())
     {
@@ -47,7 +47,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
             }
         }
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         foreach ($bindings as $binding) {
             $type = $binding->getType();
@@ -80,7 +80,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testBindFailsIfResourceNotFound()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define('type');
 
         $binder->bind('/foo', 'type');
@@ -95,7 +95,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo = new InMemoryRepository();
         $repo->add('/file', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $binder->bind('/file', 'foo');
     }
@@ -105,7 +105,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo = new InMemoryRepository();
         $repo->add('/file', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type', array(
             new BindingParameter('param', false, 'default')
         )));
@@ -124,7 +124,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo->add('/file1', new TestFile());
         $repo->add('/file2', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1'));
         $binder->define(new BindingType('type2'));
 
@@ -153,7 +153,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo->add('/file1', new TestFile());
         $repo->add('/file2', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1'));
         $binder->define(new BindingType('type2'));
 
@@ -182,7 +182,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo->add('/file1', new TestFile());
         $repo->add('/file2', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1', array(
             new BindingParameter('param'),
         )));
@@ -222,7 +222,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo->add('/file1', new TestFile());
         $repo->add('/file2', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1', array(
             new BindingParameter('param'),
         )));
@@ -266,7 +266,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo->add('/file1', new TestFile());
         $repo->add('/file2', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1'));
         $binder->define(new BindingType('type2'));
 
@@ -293,7 +293,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testUnbindIgnoresUnknownPath()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $binder->unbind('/foobar');
 
@@ -305,7 +305,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
         $repo = new InMemoryRepository();
         $repo->add('/file1', new TestFile());
 
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type1'));
 
         $binder->bind('/file1', 'type1');
@@ -320,7 +320,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testDefineTypeName()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $this->assertFalse($binder->isDefined('type'));
 
@@ -336,7 +336,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testDefineFailsIfInvalidType()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $binder->define(new \stdClass());
     }
@@ -344,7 +344,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testDefineTypeInstance()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $this->assertFalse($binder->isDefined('type'));
 
@@ -356,7 +356,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testUndefine()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type'));
 
         $this->assertTrue($binder->isDefined('type'));
@@ -369,7 +369,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testUndefineIgnoresUnknownTypes()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
         $binder->define(new BindingType('type'));
 
         $binder->undefine('foobar');
@@ -384,7 +384,7 @@ class InMemoryBinderTest extends AbstractResourceDiscoveryTest
     public function testUndefineFailsIfInvalidType()
     {
         $repo = new InMemoryRepository();
-        $binder = new InMemoryBinder($repo);
+        $binder = new InMemoryDiscovery($repo);
 
         $binder->undefine(new \stdClass());
     }

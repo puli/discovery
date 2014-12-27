@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Binder;
+namespace Puli\Discovery;
 
 use Puli\Discovery\Binding\BindingException;
 use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\ResourceDiscovery;
 
 /**
- * Binds resources to binding types.
+ * A discovery that supports the addition and removal of bindings and types.
  *
  * Binding types have a name and optionally one or more parameters. Binding
  * types can be defined with the {@link define()} method:
@@ -25,7 +25,7 @@ use Puli\Discovery\ResourceDiscovery;
  * use Puli\Discovery\Binding\BindingParameter;
  * use Puli\Discovery\Binding\BindingType;
  *
- * $binder->define(new BindingType('acme/xliff-messages', array(
+ * $discovery->define(new BindingType('acme/xliff-messages', array(
  *     new BindingParameter('translationDomain', null, 'messages'),
  * ));
  * ```
@@ -33,16 +33,15 @@ use Puli\Discovery\ResourceDiscovery;
  * Resources can be bound to these types with the {@link bind()} method:
  *
  * ```php
- * $binder->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
+ * $discovery->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
  *     'translationDomain' => 'errors',
  * ));
  * ```
  *
- * Use {@link find()} of {@link ResourceDiscovery} to retrieve
- * bindings for a given type:
+ * Use {@link find()} to retrieve bindings for a given type:
  *
  * ```php
- * $bindings = $binder->find('acme/xliff-messages');
+ * $bindings = $discovery->find('acme/xliff-messages');
  *
  * foreach ($bindings as $binding) {
  *     foreach ($binding->getResources() as $resource) {
@@ -57,7 +56,7 @@ use Puli\Discovery\ResourceDiscovery;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface ResourceBinder extends ResourceDiscovery
+interface ManageableDiscovery extends ResourceDiscovery
 {
     /**
      * Binds resources to a type.
