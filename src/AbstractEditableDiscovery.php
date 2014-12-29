@@ -14,11 +14,9 @@ namespace Puli\Discovery;
 use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\ResourceBinding;
-use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Api\UnsupportedLanguageException;
-use Puli\Repository\Assert\Assertion;
 use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;
 
@@ -358,6 +356,14 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         }
     }
 
+    /**
+     * Returns whether a resource path matches a query.
+     *
+     * @param string $resourcePath The resource path.
+     * @param string $query        The resource query of a binding.
+     *
+     * @return bool Returns `true` if the resource path matches the query.
+     */
     private function resourcePathMatchesQuery($resourcePath, $query)
     {
         if (false !== strpos($query, '*')) {
