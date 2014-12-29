@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests\Binding;
+namespace Puli\Discovery\Tests\Api;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Binding\BindingParameter;
-use Puli\Discovery\Binding\BindingType;
+use Puli\Discovery\Api\BindingParameter;
+use Puli\Discovery\Api\BindingType;
 
 /**
  * @since  1.0
@@ -53,7 +53,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Discovery\Binding\NoSuchParameterException
+     * @expectedException \Puli\Discovery\Api\NoSuchParameterException
      */
     public function testGetParameterFailsIfNotSet()
     {

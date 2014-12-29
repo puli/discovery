@@ -12,14 +12,13 @@
 namespace Puli\Discovery\Tests;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Binding\BindingType;
+use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\ResourceDiscovery;
 use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Discovery\ResourceDiscovery;
 use Puli\Repository\InMemoryRepository;
 use Puli\Repository\ManageableRepository;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
-use Puli\Repository\ResourceRepository;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
@@ -39,9 +38,9 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param ResourceBinding[] $bindings
+     * @param \Puli\Discovery\Api\ResourceBinding[] $bindings
      *
-     * @return ResourceDiscovery
+     * @return \Puli\Discovery\Api\ResourceDiscovery
      */
     abstract protected function createDiscovery(array $bindings = array());
 
@@ -148,7 +147,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Discovery\Binding\NoSuchTypeException
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
      * @expectedExceptionMessage foobar
      */
     public function testGetTypeFailsIfUnknownType()
@@ -172,7 +171,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param ResourceBinding[] $expected
+     * @param \Puli\Discovery\Api\ResourceBinding[] $expected
      * @param mixed                      $actual
      */
     private function assertBindingsEqual(array $expected, $actual)

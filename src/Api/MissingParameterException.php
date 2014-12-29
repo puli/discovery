@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Binding;
+namespace Puli\Discovery\Api;
 
 /**
- * Thrown when a binding type was not found.
+ * Thrown when a binding parameter is missing.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class NoSuchTypeException extends BindingException
+class MissingParameterException extends BindingException
 {
 }

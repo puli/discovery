@@ -13,11 +13,10 @@ namespace Puli\Discovery;
 
 use Assert\Assertion;
 use InvalidArgumentException;
-use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\EagerBinding;
+use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\NoSuchTypeException;
+use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\LazyBinding;
-use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Repository\ResourceRepository;
 use RuntimeException;
 use Webmozart\KeyValueStore\KeyValueStore;
@@ -28,7 +27,7 @@ use Webmozart\KeyValueStore\KeyValueStore;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class KeyValueStoreDiscovery extends AbstractManageableDiscovery
+class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 {
     /**
      * @var KeyValueStore
@@ -36,12 +35,12 @@ class KeyValueStoreDiscovery extends AbstractManageableDiscovery
     private $store;
 
     /**
-     * @var ResourceBinding[]
+     * @var \Puli\Discovery\Api\ResourceBinding[]
      */
     private $bindings = array();
 
     /**
-     * @var BindingType[]
+     * @var \Puli\Discovery\Api\BindingType[]
      */
     private $types;
 

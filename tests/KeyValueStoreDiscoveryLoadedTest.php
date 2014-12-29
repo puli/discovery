@@ -18,7 +18,7 @@ use Webmozart\KeyValueStore\Impl\ArrayStore;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class KeyValueStoreDiscoveryLoadedTest extends AbstractManageableDiscoveryTest
+class KeyValueStoreDiscoveryLoadedTest extends AbstractEditableDiscoveryTest
 {
     private $store;
 

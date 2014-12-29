@@ -11,26 +11,26 @@
 
 namespace Puli\Discovery\Tests;
 
-use Puli\Discovery\Binding\BindingParameter;
-use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Discovery\ManageableDiscovery;
-use Puli\Discovery\ResourceDiscovery;
+use Puli\Discovery\Api\BindingParameter;
+use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\EditableDiscovery;
+use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\ResourceDiscovery;
 use Puli\Repository\Tests\Resource\TestFile;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractManageableDiscoveryTest extends AbstractDiscoveryTest
+abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 {
     /**
-     * @return ManageableDiscovery
+     * @return EditableDiscovery
      */
     abstract protected function createManageableDiscovery();
 
     /**
-     * @param ResourceBinding[] $bindings
+     * @param \Puli\Discovery\Api\ResourceBinding[] $bindings
      *
      * @return ResourceDiscovery
      */
@@ -66,7 +66,7 @@ abstract class AbstractManageableDiscoveryTest extends AbstractDiscoveryTest
     }
 
     /**
-     * @expectedException \Puli\Discovery\Binding\BindingException
+     * @expectedException \Puli\Discovery\Api\BindingException
      * @expectedExceptionMessage /foo
      */
     public function testBindFailsIfResourceNotFound()
@@ -78,7 +78,7 @@ abstract class AbstractManageableDiscoveryTest extends AbstractDiscoveryTest
     }
 
     /**
-     * @expectedException \Puli\Discovery\Binding\NoSuchTypeException
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
      * @expectedExceptionMessage foo
      */
     public function testBindFailsIfTypeNotFound()

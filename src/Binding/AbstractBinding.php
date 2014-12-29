@@ -11,6 +11,12 @@
 
 namespace Puli\Discovery\Binding;
 
+use Puli\Discovery\Api\BindingException;
+use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\MissingParameterException;
+use Puli\Discovery\Api\NoSuchParameterException;
+use Puli\Discovery\Api\ResourceBinding;
+
 /**
  * Base class for resource bindings.
  *

@@ -11,8 +11,9 @@
 
 namespace Puli\Discovery\Binding;
 
-use Assert\Assertion;
 use InvalidArgumentException;
+use Puli\Discovery\Api\BindingException;
+use Puli\Discovery\Api\BindingType;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Resource\Collection\ResourceCollection;
 use Puli\Repository\Resource\Resource;

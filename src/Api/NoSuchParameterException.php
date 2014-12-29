@@ -9,16 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Binding;
-
-use RuntimeException;
+namespace Puli\Discovery\Api;
 
 /**
- * Thrown when an error occurs during binding.
+ * Thrown when a binding parameter was not found.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingException extends RuntimeException
+class NoSuchParameterException extends BindingException
 {
 }

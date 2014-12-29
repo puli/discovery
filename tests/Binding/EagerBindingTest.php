@@ -11,8 +11,9 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
+use Puli\Discovery\Api\BindingException;
+use Puli\Discovery\Api\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
-use Puli\Discovery\Binding\BindingType;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
@@ -76,7 +77,7 @@ class EagerBindingTest extends AbstractBindingTest
     }
 
     /**
-     * @expectedException \Puli\Discovery\Binding\BindingException
+     * @expectedException \Puli\Discovery\Api\BindingException
      */
     public function testCreateFailsIfNoResources()
     {

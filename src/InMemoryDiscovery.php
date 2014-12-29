@@ -13,10 +13,10 @@ namespace Puli\Discovery;
 
 use Assert\Assertion;
 use InvalidArgumentException;
-use Puli\Discovery\Binding\BindingType;
+use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\NoSuchTypeException;
+use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\Binding\ResourceBinding;
 use RuntimeException;
 
 /**
@@ -25,7 +25,7 @@ use RuntimeException;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class InMemoryDiscovery extends AbstractManageableDiscovery
+class InMemoryDiscovery extends AbstractEditableDiscovery
 {
     /**
      * @var BindingType[]

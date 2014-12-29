@@ -9,11 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery;
-
-use Puli\Discovery\Binding\BindingException;
-use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\ResourceDiscovery;
+namespace Puli\Discovery\Api;
 
 /**
  * A discovery that supports the addition and removal of bindings and types.
@@ -22,8 +18,8 @@ use Puli\Discovery\ResourceDiscovery;
  * types can be defined with the {@link define()} method:
  *
  * ```php
- * use Puli\Discovery\Binding\BindingParameter;
- * use Puli\Discovery\Binding\BindingType;
+ * use Puli\Discovery\Api\BindingParameter;
+ * use Puli\Discovery\Api\BindingType;
  *
  * $discovery->define(new BindingType('acme/xliff-messages', array(
  *     new BindingParameter('translationDomain', null, 'messages'),
@@ -56,7 +52,7 @@ use Puli\Discovery\ResourceDiscovery;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface ManageableDiscovery extends ResourceDiscovery
+interface EditableDiscovery extends ResourceDiscovery
 {
     /**
      * Binds resources to a type.
@@ -102,8 +98,8 @@ interface ManageableDiscovery extends ResourceDiscovery
      * need to construct an instance of {@link BindingType} manually:
      *
      * ```php
-     * use Puli\Discovery\Binding\BindingParameter;
-     * use Puli\Discovery\Binding\BindingType;
+     * use Puli\Discovery\Api\BindingParameter;
+     * use Puli\Discovery\Api\BindingType;
      *
      * $binder->define(new BindingType('acme/xliff-message', array(
      *     new BindingParameter('translationDomain', null, 'messages'),

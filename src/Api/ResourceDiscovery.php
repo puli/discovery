@@ -9,11 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery;
-
-use Puli\Discovery\Binding\BindingType;
-use Puli\Discovery\Binding\NoSuchTypeException;
-use Puli\Discovery\Binding\ResourceBinding;
+namespace Puli\Discovery\Api;
 
 /**
  * Discovers resources for binding types.

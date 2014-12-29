@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Binding;
+namespace Puli\Discovery\Api;
 
 use Puli\Repository\Resource\Collection\ResourceCollection;
 

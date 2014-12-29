@@ -11,18 +11,19 @@
 
 namespace Puli\Discovery;
 
+use Puli\Discovery\Api\EditableDiscovery;
+use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Repository\Assert\Assertion;
 use Puli\Repository\ResourceRepository;
 
 /**
- * Base class for manageable resource discoveries.
+ * Base class for editable resource discoveries.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractManageableDiscovery implements ManageableDiscovery
+abstract class AbstractEditableDiscovery implements EditableDiscovery
 {
     /**
      * @var ResourceRepository
@@ -142,7 +143,7 @@ abstract class AbstractManageableDiscovery implements ManageableDiscovery
      * An integer ID should be generated for the binding. You must call
      * {@link updateIndicesForId()} with that ID to update the indices.
      *
-     * @param ResourceBinding $binding The binding to insert.
+     * @param \Puli\Discovery\Api\ResourceBinding $binding The binding to insert.
      */
     abstract protected function insertBinding(ResourceBinding $binding);
 
@@ -158,7 +159,7 @@ abstract class AbstractManageableDiscovery implements ManageableDiscovery
      *
      * The {@link ResourceBinding::equals()} method is used to compare bindings.
      *
-     * @param ResourceBinding $binding A binding to search for.
+     * @param \Puli\Discovery\Api\ResourceBinding $binding A binding to search for.
      *
      * @return bool Returns `true` if an equal binding has been defined.
      */
@@ -186,7 +187,7 @@ abstract class AbstractManageableDiscovery implements ManageableDiscovery
      *
      * @param string $typeName The type name.
      *
-     * @return ResourceBinding[] The bindings for that type.
+     * @return \Puli\Discovery\Api\ResourceBinding[] The bindings for that type.
      */
     protected function getBindingsByType($typeName)
     {
@@ -235,7 +236,7 @@ abstract class AbstractManageableDiscovery implements ManageableDiscovery
      * @param string $resourcePath The resource path.
      * @param string $typeName     The type name.
      *
-     * @return ResourceBinding[] The matching bindings.
+     * @return \Puli\Discovery\Api\ResourceBinding[] The matching bindings.
      */
     protected function getBindingsByResourcePathAndType($resourcePath, $typeName)
     {
@@ -264,7 +265,7 @@ abstract class AbstractManageableDiscovery implements ManageableDiscovery
      * Inserts the given binding ID into the index structures.
      *
      * @param int             $id      The binding ID.
-     * @param ResourceBinding $binding The associated binding.
+     * @param \Puli\Discovery\Api\ResourceBinding $binding The associated binding.
      */
     protected function updateIndicesForId($id, ResourceBinding $binding)
     {

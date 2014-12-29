@@ -16,7 +16,7 @@ The Puli Discovery component supports binding of Puli resources to types. Types
 can be defined with the `define()` method of the [`InMemoryDiscovery`]:
 
 ```php
-use Puli\Discovery\Binder\InMemoryDiscovery;
+use Puli\Discovery\InMemoryDiscovery;
 
 // $repo is a Puli repository
 $discovery = new InMemoryDiscovery($repo);
@@ -34,8 +34,8 @@ $discovery->bind('/app/trans/*.xlf', 'acme/xliff-messages');
 You can define parameters for binding types:
 
 ```php
-use Puli\Discovery\Binding\BindingParameter;
-use Puli\Discovery\Binding\BindingType;
+use Puli\Discovery\Api\BindingParameter;
+use Puli\Discovery\Api\BindingType;
 
 $discovery->define(new BindingType('acme/xliff-messages', array(
     new BindingParameter('translationDomain'),
@@ -56,24 +56,6 @@ foreach ($bindings as $binding) {
         $translator->add($resource->getLocalPath(), $binding->getParameter('translationDomain'));
     }
 }
-```
-
-To optimize read performance, you should write the discovery to a storage. The
-stored object is of type [`ResourceDiscovery`] which only supports read access:
-
-```php
-use Puli\Discovery\Storage\PhpDiscoveryStorage;
-
-$storage = new PhpDiscoveryStorage();
-
-// run once
-$storage->storeDiscovery($discovery, array('path' => '/path/to/discovery.php'));
-
-// run whenever bindings need to be accessed
-$discovery = $storage->loadDiscovery($repo, array('path' => '/path/to/discovery.php'));
-
-$bindings = $discovery->find('acme/xliff-messages');
-// ...
 ```
 
 Read [Puli at a Glance] if you want to learn more about Puli.
@@ -111,4 +93,3 @@ All contents of this package are licensed under the [MIT license].
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
 [`InMemoryDiscovery`]: src/InMemoryDiscovery.php
-[`ResourceDiscovery`]: src/ResourceDiscovery.php
