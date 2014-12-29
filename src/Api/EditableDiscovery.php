@@ -87,7 +87,7 @@ interface EditableDiscovery extends ResourceDiscovery
      * @param string|null $typeName   The name of a binding type.
      * @param array|null  $parameters The values of the binding parameters.
      */
-    public function unbind($query, $typeName = null, $parameters = null);
+    public function unbind($query, $typeName = null, array $parameters = null);
 
     /**
      * Defines a binding type.

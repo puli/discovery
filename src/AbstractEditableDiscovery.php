@@ -86,10 +86,8 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function unbind($query, $typeName = null, $parameters = null)
+    public function unbind($query, $typeName = null, array $parameters = null)
     {
-        Assertion::nullOrIsArray($parameters);
-
         if (null !== $typeName) {
             $this->removeBindingsByQueryAndType($query, $typeName, $parameters);
 
@@ -303,9 +301,9 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      * Removes bindings for a query.
      *
      * @param string     $query      The resource query.
-     * @param null|array $parameters The binding parameters to filter by.
+     * @param array|null $parameters The binding parameters to filter by.
      */
-    protected function removeBindingsByQuery($query, $parameters = null)
+    protected function removeBindingsByQuery($query, array $parameters = null)
     {
         if (!isset($this->queryIndex[$query])) {
             return;
@@ -330,9 +328,9 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *
      * @param string     $query       The binding path.
      * @param string     $typeName   The name of the type.
-     * @param null|array $parameters The binding parameters to filter by.
+     * @param array|null $parameters The binding parameters to filter by.
      */
-    protected function removeBindingsByQueryAndType($query, $typeName, $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, array $parameters = null)
     {
         if (!isset($this->queryIndex[$query])) {
             return;

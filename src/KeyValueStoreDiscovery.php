@@ -194,7 +194,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByQuery($query, $parameters = null)
+    protected function removeBindingsByQuery($query, array $parameters = null)
     {
         parent::removeBindingsByQuery($query, $parameters);
 
@@ -205,7 +205,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByQueryAndType($query, $typeName, $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, array $parameters = null)
     {
         parent::removeBindingsByQueryAndType($query, $typeName, $parameters);
 
