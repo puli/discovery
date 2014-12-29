@@ -17,9 +17,9 @@ use Puli\Discovery\Api\BindingType;
 use Puli\Discovery\Api\NoSuchTypeException;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\LazyBinding;
-use Puli\Repository\ResourceRepository;
+use Puli\Repository\Api\ResourceRepository;
 use RuntimeException;
-use Webmozart\KeyValueStore\KeyValueStore;
+use Webmozart\KeyValueStore\Api\KeyValueStore;
 
 /**
  * A resource discovery that stores the bindings in a key-value store.

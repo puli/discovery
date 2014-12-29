@@ -14,8 +14,8 @@ namespace Puli\Discovery;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\EagerBinding;
+use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Assert\Assertion;
-use Puli\Repository\ResourceRepository;
 
 /**
  * Base class for editable resource discoveries.

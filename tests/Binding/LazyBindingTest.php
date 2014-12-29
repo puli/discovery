@@ -41,7 +41,7 @@ class LazyBindingTest extends AbstractBindingTest
 
     public function testDoNotLoadUponConstruction()
     {
-        $repo = $this->getMock('Puli\Repository\ResourceRepository');
+        $repo = $this->getMock('Puli\Repository\Api\ResourceRepository');
         $type = new BindingType('type');
 
         $repo->expects($this->never())
@@ -52,7 +52,7 @@ class LazyBindingTest extends AbstractBindingTest
 
     public function testLoadOnDemand()
     {
-        $repo = $this->getMock('Puli\Repository\ResourceRepository');
+        $repo = $this->getMock('Puli\Repository\Api\ResourceRepository');
         $type = new BindingType('type');
         $collection = new ArrayResourceCollection(array(
             $first = new TestFile('/file1'),

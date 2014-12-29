@@ -11,7 +11,6 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
-use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\EagerBinding;

@@ -13,8 +13,8 @@ namespace Puli\Discovery\Binding;
 
 use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\BindingType;
-use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\ResourceRepository;
+use Puli\Repository\Api\ResourceCollection;
+use Puli\Repository\Api\ResourceRepository;
 
 /**
  * Binds lazily resources loaded to a type.

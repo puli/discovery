@@ -12,7 +12,7 @@
 namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\KeyValueStoreDiscovery;
-use Webmozart\KeyValueStore\Impl\ArrayStore;
+use Webmozart\KeyValueStore\ArrayStore;
 
 /**
  * @since  1.0

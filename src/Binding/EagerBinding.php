@@ -14,9 +14,9 @@ namespace Puli\Discovery\Binding;
 use InvalidArgumentException;
 use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\BindingType;
+use Puli\Repository\Api\Resource\Resource;
+use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
-use Puli\Repository\Resource\Collection\ResourceCollection;
-use Puli\Repository\Resource\Resource;
 
 /**
  * Binds resources to a type.

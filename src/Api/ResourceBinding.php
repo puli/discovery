@@ -11,7 +11,7 @@
 
 namespace Puli\Discovery\Api;
 
-use Puli\Repository\Resource\Collection\ResourceCollection;
+use Puli\Repository\Api\ResourceCollection;
 
 /**
  * Binds one or more resources to a binding type.

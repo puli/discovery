@@ -17,7 +17,6 @@ use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Api\ResourceDiscovery;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Repository\InMemoryRepository;
-use Puli\Repository\ManageableRepository;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
 
@@ -28,7 +27,7 @@ use Puli\Repository\Tests\Resource\TestFile;
 abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var ManageableRepository
+     * @var InMemoryRepository
      */
     protected $repo;
 
