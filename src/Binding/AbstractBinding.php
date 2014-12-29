@@ -28,7 +28,12 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * @var string
      */
-    private $path;
+    private $query;
+
+    /**
+     * @var string
+     */
+    private $language;
 
     /**
      * @var BindingType
@@ -43,7 +48,8 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * Creates a new binding.
      *
-     * A binding has a path that matches all contained resources.
+     * A binding has a query that is used to retrieve the resources matched
+     * by the binding.
      *
      * You can pass parameters that have been defined for the type. If you pass
      * unknown parameters, or if a required parameter is missing, an exception
@@ -52,17 +58,19 @@ abstract class AbstractBinding implements ResourceBinding
      * All parameters that you do not set here will receive the default values
      * set for the parameter.
      *
-     * @param string      $path       The path of the binding.
+     * @param string      $query      The resource query.
+     * @param string      $language   The language of the resource query.
      * @param BindingType $type       The type to bind against.
      * @param array       $parameters Additional parameters.
      *
      * @throws BindingException If the binding fails.
      */
-    public function __construct($path, BindingType $type, array $parameters = array())
+    public function __construct($query, $language, BindingType $type, array $parameters = array())
     {
         $this->validateParameters($type, $parameters);
 
-        $this->path = $path;
+        $this->query = $query;
+        $this->language = $language;
         $this->type = $type;
         $this->parameters = $this->normalizeParameters($type, $parameters);
     }
@@ -70,9 +78,17 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * {@inheritdoc}
      */
-    public function getPath()
+    public function getQuery()
     {
-        return $this->path;
+        return $this->query;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getLanguage()
+    {
+        return $this->language;
     }
 
     /**
@@ -124,7 +140,7 @@ abstract class AbstractBinding implements ResourceBinding
             return false;
         }
 
-        if ($this->path !== $binding->getPath()) {
+        if ($this->query !== $binding->getQuery()) {
             return false;
         }
 

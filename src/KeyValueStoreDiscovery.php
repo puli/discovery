@@ -57,9 +57,8 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $this->store = $store;
         $this->types = array_flip($store->get('//types', array()));
-        $this->pathIndex = $store->get('//pathIndex', array());
+        $this->queryIndex = $store->get('//queryIndex', array());
         $this->typeIndex = $store->get('//typeIndex', array());
-        $this->resourcePathIndex = $store->get('//resourcePathIndex', array());
     }
 
     /**
@@ -171,15 +170,15 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $this->updateIndicesForId($id, $binding);
 
         $this->store->set($id, array(
-            $binding->getPath(),
+            $binding->getQuery(),
+            $binding->getLanguage(),
             $binding->getType()->getName(),
             $binding->getParameters()
         ));
 
         $this->store->set('//nextId', $id + 1);
-        $this->store->set('//pathIndex', $this->pathIndex);
+        $this->store->set('//queryIndex', $this->queryIndex);
         $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//resourcePathIndex', $this->resourcePathIndex);
     }
 
     /**
@@ -195,25 +194,23 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByPath($path, $parameters = null)
+    protected function removeBindingsByQuery($query, $parameters = null)
     {
-        parent::removeBindingsByPath($path, $parameters);
+        parent::removeBindingsByQuery($query, $parameters);
 
         $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//pathIndex', $this->pathIndex);
-        $this->store->set('//resourcePathIndex', $this->resourcePathIndex);
+        $this->store->set('//queryIndex', $this->queryIndex);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByPathAndType($path, $typeName, $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, $parameters = null)
     {
-        parent::removeBindingsByPathAndType($path, $typeName, $parameters);
+        parent::removeBindingsByQueryAndType($query, $typeName, $parameters);
 
         $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//pathIndex', $this->pathIndex);
-        $this->store->set('//resourcePathIndex', $this->resourcePathIndex);
+        $this->store->set('//queryIndex', $this->queryIndex);
     }
 
     private function loadBinding($id)
@@ -226,10 +223,11 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         }
 
         $this->bindings[$id] = new LazyBinding(
-            $data[0],
+            $data[0], // query
+            $data[1], // language
             $this->repo,
-            $this->getType($data[1]),
-            $data[2]
+            $this->getType($data[2]), // type name
+            $data[3] // parameters
         );
     }
 

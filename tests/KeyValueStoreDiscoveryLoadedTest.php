@@ -12,6 +12,7 @@
 namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\KeyValueStoreDiscovery;
+use Puli\Repository\Api\ResourceRepository;
 use Webmozart\KeyValueStore\ArrayStore;
 
 /**
@@ -29,8 +30,8 @@ class KeyValueStoreDiscoveryLoadedTest extends AbstractEditableDiscoveryTest
         $this->store = new ArrayStore();
     }
 
-    protected function createManageableDiscovery()
+    protected function createManageableDiscovery(ResourceRepository $repo)
     {
-        return new KeyValueStoreDiscovery($this->repo, $this->store);
+        return new KeyValueStoreDiscovery($repo, $this->store);
     }
 }

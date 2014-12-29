@@ -12,6 +12,7 @@
 namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\InMemoryDiscovery;
+use Puli\Repository\Api\ResourceRepository;
 
 /**
  * @since  1.0
@@ -19,8 +20,8 @@ use Puli\Discovery\InMemoryDiscovery;
  */
 class InMemoryDiscoveryTest extends AbstractEditableDiscoveryTest
 {
-    protected function createManageableDiscovery()
+    protected function createManageableDiscovery(ResourceRepository $repo)
     {
-        return new InMemoryDiscovery($this->repo);
+        return new InMemoryDiscovery($repo);
     }
 }

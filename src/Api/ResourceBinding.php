@@ -22,21 +22,23 @@ use Puli\Repository\Api\ResourceCollection;
 interface ResourceBinding
 {
     /**
-     * Returns the path of the binding.
+     * Returns the query for the resources of the binding.
      *
-     * The path can be used to obtain the bound resources from a resource
-     * repository.
-     *
-     * @return string The binding path.
+     * @return string The resource query.
      */
-    public function getPath();
+    public function getQuery();
+
+    /**
+     * Returns the language of the query.
+     *
+     * @return string The query language.
+     */
+    public function getLanguage();
 
     /**
      * Returns the bound resources.
      *
      * @return ResourceCollection The bound resources.
-     *
-     * @see getResource()
      */
     public function getResources();
 

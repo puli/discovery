@@ -24,17 +24,18 @@ use Puli\Repository\Tests\Resource\TestFile;
 class EagerBindingTest extends AbstractBindingTest
 {
     /**
-     * @param string      $path
+     * @param string      $query
+     * @param string      $language
      * @param BindingType $type
      * @param array       $parameters
      *
      * @return AbstractBinding
      */
-    protected function createBinding($path, BindingType $type, array $parameters = array())
+    protected function createBinding($query, $language, BindingType $type, array $parameters = array())
     {
-        $resource = new TestFile($path);
+        $resource = new TestFile($query);
 
-        return new EagerBinding($path, $resource, $type, $parameters);
+        return new EagerBinding($query, $language, $resource, $type, $parameters);
     }
 
     public function testCreateFromCollection()
@@ -45,9 +46,9 @@ class EagerBindingTest extends AbstractBindingTest
         ));
         $type = new BindingType('type');
 
-        $binding = new EagerBinding('/path/*', $resources, $type);
+        $binding = new EagerBinding('/path/*', 'glob', $resources, $type);
 
-        $this->assertSame('/path/*', $binding->getPath());
+        $this->assertSame('/path/*', $binding->getQuery());
         $this->assertSame($resources, $binding->getResources());
     }
 
@@ -56,9 +57,9 @@ class EagerBindingTest extends AbstractBindingTest
         $resource = new TestFile('/file1');
         $type = new BindingType('type');
 
-        $binding = new EagerBinding('/file1', $resource, $type);
+        $binding = new EagerBinding('/file1', 'glob', $resource, $type);
 
-        $this->assertSame('/file1', $binding->getPath());
+        $this->assertSame('/file1', $binding->getQuery());
         $this->assertEquals(new ArrayResourceCollection(array($resource)), $binding->getResources());
     }
 
@@ -70,7 +71,7 @@ class EagerBindingTest extends AbstractBindingTest
     {
         $type = new BindingType('type');
 
-        new EagerBinding('/path/*', new \stdClass(), $type);
+        new EagerBinding('/path/*', 'glob', new \stdClass(), $type);
     }
 
     /**
@@ -81,6 +82,6 @@ class EagerBindingTest extends AbstractBindingTest
         $resources = new ArrayResourceCollection();
         $type = new BindingType('type');
 
-        new EagerBinding('/path/*', $resources, $type);
+        new EagerBinding('/path/*', 'glob', $resources, $type);
     }
 }

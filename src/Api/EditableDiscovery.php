@@ -60,35 +60,34 @@ interface EditableDiscovery extends ResourceDiscovery
      * The type must have been defined. You can pass values for the parameters
      * defined for the type.
      *
-     * @param string $path       A resource path or a glob pattern. Must start
-     *                           with "/". "." and ".." segments in the path are
-     *                           supported.
+     * @param string $query      A query for resources in the repository.
      * @param string $typeName   The type name to bind to.
      * @param array  $parameters Values for the parameters defined for the type.
+     * @param string $language   The language of the resource query.
      *
-     * @throws BindingException If the path could not be bound.
+     * @throws BindingException If the query does not return any results.
      */
-    public function bind($path, $typeName, array $parameters = array());
+    public function bind($query, $typeName, array $parameters = array(), $language = 'glob');
 
     /**
-     * Unbinds a bound path.
+     * Unbinds a bound query.
      *
-     * You can pass any binding path that was previously passed to
-     * {@link bind()}. If the path was not bound, this method does nothing.
+     * You can pass any query that was previously passed to {@link bind()}. If
+     * the query was not bound, this method does nothing.
      *
      * Pass the parameter `$typeName` if you want to unbind bindings from a
      * specific binding type. If you don't pass this parameter or if you pass
-     * `null`, all bindings for the binding path will be removed.
+     * `null`, all bindings for the query will be removed.
      *
      * You can restrict bindings to bindings with specific parameters by passing
      * the parameters in `$parameters`. If you leave this parameter empty, the
      * bindings will be removed regardless of their parameters.
      *
-     * @param string      $path       The binding path.
+     * @param string      $query      The resource query.
      * @param string|null $typeName   The name of a binding type.
      * @param array|null  $parameters The values of the binding parameters.
      */
-    public function unbind($path, $typeName = null, $parameters = null);
+    public function unbind($query, $typeName = null, $parameters = null);
 
     /**
      * Defines a binding type.

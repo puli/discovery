@@ -37,7 +37,8 @@ class LazyBinding extends AbstractBinding
     /**
      * Creates a new binding.
      *
-     * @param string             $path       The path of the binding.
+     * @param string             $query      The resource query.
+     * @param string             $language   The language of the resource query.
      * @param ResourceRepository $repo       The repository to load the
      *                                       resources from.
      * @param BindingType        $type       The type to bind against.
@@ -45,9 +46,9 @@ class LazyBinding extends AbstractBinding
      *
      * @throws BindingException If the binding fails.
      */
-    public function __construct($path, ResourceRepository $repo, BindingType $type, array $parameters = array())
+    public function __construct($query, $language, ResourceRepository $repo, BindingType $type, array $parameters = array())
     {
-        parent::__construct($path, $type, $parameters);
+        parent::__construct($query, $language, $type, $parameters);
 
         $this->repo = $repo;
     }
@@ -58,7 +59,7 @@ class LazyBinding extends AbstractBinding
     public function getResources()
     {
         if (null === $this->resources) {
-            $this->resources = $this->repo->find($this->getPath());
+            $this->resources = $this->repo->find($this->getQuery());
         }
 
         return $this->resources;

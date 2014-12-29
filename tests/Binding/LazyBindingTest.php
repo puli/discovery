@@ -25,18 +25,19 @@ use Puli\Repository\Tests\Resource\TestFile;
 class LazyBindingTest extends AbstractBindingTest
 {
     /**
-     * @param string      $path
+     * @param string      $query
+     * @param string      $language
      * @param BindingType $type
      * @param array       $parameters
      *
      * @return AbstractBinding
      */
-    protected function createBinding($path, BindingType $type, array $parameters = array())
+    protected function createBinding($query, $language, BindingType $type, array $parameters = array())
     {
         $repo = new InMemoryRepository();
-        $repo->add($path, new TestFile($path));
+        $repo->add($query, new TestFile($query));
 
-        return new LazyBinding($path, $repo, $type, $parameters);
+        return new LazyBinding($query, $language, $repo, $type, $parameters);
     }
 
     public function testDoNotLoadUponConstruction()
@@ -47,7 +48,7 @@ class LazyBindingTest extends AbstractBindingTest
         $repo->expects($this->never())
             ->method('find');
 
-        new LazyBinding('/path', $repo, $type);
+        new LazyBinding('/path', 'glob', $repo, $type);
     }
 
     public function testLoadOnDemand()
@@ -61,10 +62,10 @@ class LazyBindingTest extends AbstractBindingTest
 
         $repo->expects($this->once())
             ->method('find')
-            ->with('/file*')
+            ->with('/file*', 'glob')
             ->will($this->returnValue($collection));
 
-        $binding = new LazyBinding('/file*', $repo, $type);
+        $binding = new LazyBinding('/file*', 'glob', $repo, $type);
 
         $this->assertSame($collection, $binding->getResources());
 

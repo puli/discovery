@@ -11,11 +11,16 @@
 
 namespace Puli\Discovery;
 
+use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\EagerBinding;
+use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
+use Puli\Repository\Api\UnsupportedLanguageException;
 use Puli\Repository\Assert\Assertion;
+use Webmozart\Glob\Glob;
+use Webmozart\PathUtil\Path;
 
 /**
  * Base class for editable resource discoveries.
@@ -33,17 +38,12 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * @var bool[][]
      */
-    protected $pathIndex;
+    protected $queryIndex = array();
 
     /**
      * @var bool[][]
      */
-    protected $typeIndex;
-
-    /**
-     * @var bool[][]
-     */
-    protected $resourcePathIndex;
+    protected $typeIndex = array();
 
     /**
      * Creates a new resource discovery.
@@ -58,11 +58,23 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function bind($path, $typeName, array $parameters = array())
+    public function bind($query, $typeName, array $parameters = array(), $language = 'glob')
     {
+        if ('glob' !== $language) {
+            throw UnsupportedLanguageException::forLanguage($language);
+        }
+
         $type = $this->getType($typeName);
-        $resources = $this->repo->find($path);
-        $binding = new EagerBinding($path, $resources, $type, $parameters);
+
+        if (!$this->repo->contains($query, $language)) {
+            throw new BindingException(sprintf(
+                'Did not find any resources to bind for query "%s".',
+                $query
+            ));
+        }
+
+        // Use a lazy binding, because the resources in the repository may change
+        $binding = new LazyBinding($query, $language, $this->repo, $type, $parameters);
 
         if ($this->containsBinding($binding)) {
             return;
@@ -74,17 +86,17 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function unbind($path, $typeName = null, $parameters = null)
+    public function unbind($query, $typeName = null, $parameters = null)
     {
         Assertion::nullOrIsArray($parameters);
 
         if (null !== $typeName) {
-            $this->removeBindingsByPathAndType($path, $typeName, $parameters);
+            $this->removeBindingsByQueryAndType($query, $typeName, $parameters);
 
             return;
         }
 
-        $this->removeBindingsByPath($path, $parameters);
+        $this->removeBindingsByQuery($query, $parameters);
     }
 
     /**
@@ -143,7 +155,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      * An integer ID should be generated for the binding. You must call
      * {@link updateIndicesForId()} with that ID to update the indices.
      *
-     * @param \Puli\Discovery\Api\ResourceBinding $binding The binding to insert.
+     * @param ResourceBinding $binding The binding to insert.
      */
     abstract protected function insertBinding(ResourceBinding $binding);
 
@@ -159,7 +171,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *
      * The {@link ResourceBinding::equals()} method is used to compare bindings.
      *
-     * @param \Puli\Discovery\Api\ResourceBinding $binding A binding to search for.
+     * @param ResourceBinding $binding A binding to search for.
      *
      * @return bool Returns `true` if an equal binding has been defined.
      */
@@ -169,11 +181,11 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
             return false;
         }
 
-        if (!isset($this->pathIndex[$binding->getPath()])) {
+        if (!isset($this->queryIndex[$binding->getQuery()])) {
             return false;
         }
 
-        foreach ($this->pathIndex[$binding->getPath()] as $id => $true) {
+        foreach ($this->queryIndex[$binding->getQuery()] as $id => $true) {
             if ($this->getBinding($id)->equals($binding)) {
                 return true;
             }
@@ -187,7 +199,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *
      * @param string $typeName The type name.
      *
-     * @return \Puli\Discovery\Api\ResourceBinding[] The bindings for that type.
+     * @return ResourceBinding[] The bindings for that type.
      */
     protected function getBindingsByType($typeName)
     {
@@ -215,19 +227,19 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      */
     protected function getBindingsByResourcePath($resourcePath)
     {
-        if (!isset($this->resourcePathIndex[$resourcePath])) {
-            return array();
-        }
-
         $bindings = array();
 
-        if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
-                $bindings[] = $this->getBinding($id);
+        foreach ($this->queryIndex as $query => $ids) {
+            if (!$this->resourcePathMatchesQuery($resourcePath, $query)) {
+                continue;
+            }
+
+            foreach ($ids as $id => $true) {
+                $bindings[$id] = $this->getBinding($id);
             }
         }
 
-        return $bindings;
+        return array_values($bindings);
     }
 
     /**
@@ -236,7 +248,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      * @param string $resourcePath The resource path.
      * @param string $typeName     The type name.
      *
-     * @return \Puli\Discovery\Api\ResourceBinding[] The matching bindings.
+     * @return ResourceBinding[] The matching bindings.
      */
     protected function getBindingsByResourcePathAndType($resourcePath, $typeName)
     {
@@ -244,93 +256,85 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
             return array();
         }
 
-        if (!isset($this->resourcePathIndex[$resourcePath])) {
-            return array();
-        }
-
         $bindings = array();
 
-        if (isset($this->resourcePathIndex[$resourcePath])) {
-            foreach ($this->resourcePathIndex[$resourcePath] as $id => $true) {
-                if ($typeName === $this->getBinding($id)->getType()->getName()) {
-                    $bindings[] = $this->getBinding($id);
+        foreach ($this->queryIndex as $query => $ids) {
+            if (!$this->resourcePathMatchesQuery($resourcePath, $query)) {
+                continue;
+            }
+
+            foreach ($ids as $id => $true) {
+                // Prevent duplicate type comparisons
+                if (isset($bindings[$id])) {
+                    continue;
+                }
+
+                $binding = $this->getBinding($id);
+
+                if ($typeName === $binding->getType()->getName()) {
+                    $bindings[$id] = $this->getBinding($id);
                 }
             }
         }
 
-        return $bindings;
+        return array_values($bindings);
     }
 
     /**
      * Inserts the given binding ID into the index structures.
      *
      * @param int             $id      The binding ID.
-     * @param \Puli\Discovery\Api\ResourceBinding $binding The associated binding.
+     * @param ResourceBinding $binding The associated binding.
      */
     protected function updateIndicesForId($id, ResourceBinding $binding)
     {
         $typeName = $binding->getType()->getName();
 
-        $this->pathIndex[$binding->getPath()][$id] = true;
+        $this->queryIndex[$binding->getQuery()][$id] = true;
 
         if (!isset($this->typeIndex[$typeName])) {
             $this->typeIndex[$typeName] = array();
         }
 
         $this->typeIndex[$typeName][$id] = true;
-
-        foreach ($binding->getResources() as $resource) {
-            $resourcePath = $resource->getPath();
-
-            if (!isset($this->resourcePathIndex[$resourcePath])) {
-                $this->resourcePathIndex[$resourcePath] = array();
-            }
-
-            $this->resourcePathIndex[$resourcePath][$id] = true;
-        }
     }
 
     /**
-     * Removes bindings for a binding path.
+     * Removes bindings for a query.
      *
-     * @param string     $path       The binding path.
+     * @param string     $query      The resource query.
      * @param null|array $parameters The binding parameters to filter by.
      */
-    protected function removeBindingsByPath($path, $parameters = null)
+    protected function removeBindingsByQuery($query, $parameters = null)
     {
-        if (!isset($this->pathIndex[$path])) {
+        if (!isset($this->queryIndex[$query])) {
             return;
         }
 
-        foreach ($this->pathIndex[$path] as $id => $true) {
+        foreach ($this->queryIndex[$query] as $id => $true) {
             $binding = $this->getBinding($id);
 
             if (null !== $parameters && $parameters !== $binding->getParameters()) {
                 continue;
             }
 
+            unset($this->queryIndex[$query][$id]);
             unset($this->typeIndex[$binding->getType()->getName()][$id]);
-
-            foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$id]);
-            }
 
             $this->removeBinding($id);
         }
-
-        unset($this->pathIndex[$path]);
     }
 
     /**
      * Removes bindings for a binding path and type.
      *
-     * @param string     $path       The binding path.
+     * @param string     $query       The binding path.
      * @param string     $typeName   The name of the type.
      * @param null|array $parameters The binding parameters to filter by.
      */
-    protected function removeBindingsByPathAndType($path, $typeName, $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, $parameters = null)
     {
-        if (!isset($this->pathIndex[$path])) {
+        if (!isset($this->queryIndex[$query])) {
             return;
         }
 
@@ -338,7 +342,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
             return;
         }
 
-        foreach ($this->pathIndex[$path] as $id => $true) {
+        foreach ($this->queryIndex[$query] as $id => $true) {
             $binding = $this->getBinding($id);
 
             if ($typeName !== $binding->getType()->getName()) {
@@ -349,14 +353,19 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
                 continue;
             }
 
-            unset($this->pathIndex[$path][$id]);
+            unset($this->queryIndex[$query][$id]);
             unset($this->typeIndex[$typeName][$id]);
-
-            foreach ($binding->getResources() as $resource) {
-                unset($this->resourcePathIndex[$resource->getPath()][$id]);
-            }
 
             $this->removeBinding($id);
         }
+    }
+
+    private function resourcePathMatchesQuery($resourcePath, $query)
+    {
+        if (false !== strpos($query, '*')) {
+            return Glob::match($resourcePath, $query);
+        }
+
+        return $query === $resourcePath || Path::isBasePath($query, $resourcePath);
     }
 }
