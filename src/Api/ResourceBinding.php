@@ -32,17 +32,6 @@ interface ResourceBinding
     public function getPath();
 
     /**
-     * Returns the first bound resource.
-     *
-     * This method is mainly useful when only one resource is bound.
-     *
-     * @return Resource The first bound resource.
-     *
-     * @see getResources()
-     */
-    public function getResource();
-
-    /**
      * Returns the bound resources.
      *
      * @return ResourceCollection The bound resources.

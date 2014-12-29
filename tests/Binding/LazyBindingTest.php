@@ -55,7 +55,7 @@ class LazyBindingTest extends AbstractBindingTest
         $repo = $this->getMock('Puli\Repository\Api\ResourceRepository');
         $type = new BindingType('type');
         $collection = new ArrayResourceCollection(array(
-            $first = new TestFile('/file1'),
+            new TestFile('/file1'),
             new TestFile('/file2'),
         ));
 
@@ -67,7 +67,6 @@ class LazyBindingTest extends AbstractBindingTest
         $binding = new LazyBinding('/file*', $repo, $type);
 
         $this->assertSame($collection, $binding->getResources());
-        $this->assertSame($first, $binding->getResource());
 
         // access again, no more repository calls
         $this->assertSame($collection, $binding->getResources());

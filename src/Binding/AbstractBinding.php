@@ -78,16 +78,6 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * {@inheritdoc}
      */
-    public function getResource()
-    {
-        $resources = $this->getResources()->toArray();
-
-        return reset($resources);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getType()
     {
         return $this->type;

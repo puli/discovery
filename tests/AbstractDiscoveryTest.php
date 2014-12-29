@@ -185,7 +185,6 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $this->assertSame($expectedBinding->getPath(), $actualBinding->getPath());
             $this->assertEquals($expectedBinding->getType(), $actualBinding->getType());
             $this->assertEquals($expectedBinding->getParameters(), $actualBinding->getParameters());
-            $this->assertEquals($expectedBinding->getResource(), $actualBinding->getResource());
             $this->assertEquals($expectedBinding->getResources(), $actualBinding->getResources());
         }
     }

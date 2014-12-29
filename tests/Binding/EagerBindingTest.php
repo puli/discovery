@@ -40,7 +40,7 @@ class EagerBindingTest extends AbstractBindingTest
     public function testCreateFromCollection()
     {
         $resources = new ArrayResourceCollection(array(
-            $first = new TestFile('/path/file1'),
+            new TestFile('/path/file1'),
             new TestFile('/path/file2'),
         ));
         $type = new BindingType('type');
@@ -49,7 +49,6 @@ class EagerBindingTest extends AbstractBindingTest
 
         $this->assertSame('/path/*', $binding->getPath());
         $this->assertSame($resources, $binding->getResources());
-        $this->assertSame($first, $binding->getResource());
     }
 
     public function testCreateFromSingleResource()
@@ -61,7 +60,6 @@ class EagerBindingTest extends AbstractBindingTest
 
         $this->assertSame('/file1', $binding->getPath());
         $this->assertEquals(new ArrayResourceCollection(array($resource)), $binding->getResources());
-        $this->assertSame($resource, $binding->getResource());
     }
 
     /**
