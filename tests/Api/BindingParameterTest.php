@@ -57,4 +57,46 @@ class BindingParameterTest extends PHPUnit_Framework_TestCase
     {
         new BindingParameter('name', true, 'default');
     }
+
+    public function getValidNames()
+    {
+        return array(
+            array('my-param'),
+            array('myParam'),
+            array('my_param'),
+            array('my123param'),
+            array('my/param'),
+            array('my@param'),
+            array('my:param'),
+        );
+    }
+
+    /**
+     * @dataProvider getValidNames
+     */
+    public function testValidName($name)
+    {
+        $descriptor = new BindingParameter($name);
+
+        $this->assertSame($name, $descriptor->getName());
+    }
+
+    public function getInvalidNames()
+    {
+        return array(
+            array(1234),
+            array(''),
+            array('123digits-first'),
+            array('@special-char-first'),
+        );
+    }
+
+    /**
+     * @dataProvider getInvalidNames
+     * @expectedException \InvalidArgumentException
+     */
+    public function testFailIfInvalidName($name)
+    {
+        new BindingParameter($name);
+    }
 }

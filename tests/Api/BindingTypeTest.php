@@ -21,13 +21,6 @@ use Puli\Discovery\Api\BindingType;
  */
 class BindingTypeTest extends PHPUnit_Framework_TestCase
 {
-    public function testGetName()
-    {
-        $type = new BindingType('name');
-
-        $this->assertSame('name', $type->getName());
-    }
-
     public function testSetParameters()
     {
         $type = new BindingType('name', array(
@@ -60,5 +53,47 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
         $type = new BindingType('name');
 
         $type->getParameter('foo');
+    }
+
+    public function getValidNames()
+    {
+        return array(
+            array('my-type'),
+            array('myTypeName'),
+            array('my_type_name'),
+            array('my123Type'),
+            array('my/type'),
+            array('my@type'),
+            array('my:type'),
+        );
+    }
+
+    /**
+     * @dataProvider getValidNames
+     */
+    public function testValidName($name)
+    {
+        $descriptor = new BindingType($name);
+
+        $this->assertSame($name, $descriptor->getName());
+    }
+
+    public function getInvalidNames()
+    {
+        return array(
+            array(1234),
+            array(''),
+            array('123digits-first'),
+            array('@special-char-first'),
+        );
+    }
+
+    /**
+     * @dataProvider getInvalidNames
+     * @expectedException \InvalidArgumentException
+     */
+    public function testFailIfInvalidName($name)
+    {
+        new BindingType($name);
     }
 }
