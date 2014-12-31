@@ -239,10 +239,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     private function loadType($typeName)
     {
         if (!($type = $this->store->get($typeName))) {
-            throw new NoSuchTypeException(sprintf(
-                'The binding type "%s" has not been defined.',
-                $typeName
-            ));
+            throw NoSuchTypeException::forTypeName($typeName);
         }
 
         $this->types[$typeName] = $type;

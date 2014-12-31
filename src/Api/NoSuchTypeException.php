@@ -11,6 +11,8 @@
 
 namespace Puli\Discovery\Api;
 
+use Exception;
+
 /**
  * Thrown when a binding type was not found.
  *
@@ -19,4 +21,20 @@ namespace Puli\Discovery\Api;
  */
 class NoSuchTypeException extends BindingException
 {
+    /**
+     * Creates an exception for a type name.
+     *
+     * @param string    $typeName The name of the type.
+     * @param int       $code     The exception code.
+     * @param Exception $cause    The exception that caused this exception.
+     *
+     * @return static The created exception.
+     */
+    public static function forTypeName($typeName, $code = 0, Exception $cause = null)
+    {
+        return new static(sprintf(
+            'The type "%s" does not exist.',
+            $typeName
+        ), $code, $cause);
+    }
 }

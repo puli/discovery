@@ -82,10 +82,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     public function getType($typeName)
     {
         if (!isset($this->types[$typeName])) {
-            throw new NoSuchTypeException(sprintf(
-                'The binding type "%s" has not been defined.',
-                $typeName
-            ));
+            throw NoSuchTypeException::forTypeName($typeName);
         }
 
         return $this->types[$typeName];
