@@ -322,6 +322,18 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertTrue($discovery->isDefined('type'));
     }
 
+    public function testDefineTypeInstance()
+    {
+        $repo = $this->createRepository();
+        $discovery = $this->createManageableDiscovery($repo);
+
+        $this->assertFalse($discovery->isDefined('type'));
+
+        $discovery->define(new BindingType('type'));
+
+        $this->assertTrue($discovery->isDefined('type'));
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage stdClass
@@ -334,16 +346,17 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->define(new \stdClass());
     }
 
-    public function testDefineTypeInstance()
+    /**
+     * @expectedException \Puli\Discovery\Api\DuplicateTypeException
+     * @expectedExceptionMessage type
+     */
+    public function testDefineFailsIfAlreadyDefined()
     {
         $repo = $this->createRepository();
         $discovery = $this->createManageableDiscovery($repo);
 
-        $this->assertFalse($discovery->isDefined('type'));
-
-        $discovery->define(new BindingType('type'));
-
-        $this->assertTrue($discovery->isDefined('type'));
+        $discovery->define('type');
+        $discovery->define('type');
     }
 
     public function testUndefine()

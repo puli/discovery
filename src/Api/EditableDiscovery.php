@@ -11,6 +11,8 @@
 
 namespace Puli\Discovery\Api;
 
+use InvalidArgumentException;
+
 /**
  * A discovery that supports the addition and removal of bindings and types.
  *
@@ -106,6 +108,9 @@ interface EditableDiscovery extends ResourceDiscovery
      * ```
      *
      * @param string|BindingType $type The type name or instance.
+     *
+     * @throws DuplicateTypeException If the type is already defined.
+     * @throws InvalidArgumentException If the type is invalid.
      */
     public function define($type);
 

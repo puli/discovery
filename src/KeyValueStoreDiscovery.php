@@ -14,6 +14,7 @@ namespace Puli\Discovery;
 use Assert\Assertion;
 use InvalidArgumentException;
 use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\DuplicateTypeException;
 use Puli\Discovery\Api\NoSuchTypeException;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\LazyBinding;
@@ -75,6 +76,10 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
                 'Expected argument of type string or BindingType. Got: %s',
                 is_object($type) ? get_class($type) : gettype($type)
             ));
+        }
+
+        if (isset($this->types[$type->getName()])) {
+            throw DuplicateTypeException::forTypeName($type->getName());
         }
 
         $this->types[$type->getName()] = $type;
