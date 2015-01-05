@@ -59,13 +59,13 @@ abstract class AbstractBinding implements ResourceBinding
      * set for the parameter.
      *
      * @param string      $query      The resource query.
-     * @param string      $language   The language of the resource query.
      * @param BindingType $type       The type to bind against.
      * @param array       $parameters Additional parameters.
+     * @param string      $language   The language of the resource query.
      *
      * @throws BindingException If the binding fails.
      */
-    public function __construct($query, $language, BindingType $type, array $parameters = array())
+    public function __construct($query, BindingType $type, array $parameters = array(), $language = 'glob')
     {
         $this->validateParameters($type, $parameters);
 
@@ -145,6 +145,10 @@ abstract class AbstractBinding implements ResourceBinding
         }
 
         if ($this->type !== $binding->getType()) {
+            return false;
+        }
+
+        if ($this->language !== $binding->getLanguage()) {
             return false;
         }
 

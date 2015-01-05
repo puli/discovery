@@ -38,17 +38,17 @@ class LazyBinding extends AbstractBinding
      * Creates a new binding.
      *
      * @param string             $query      The resource query.
-     * @param string             $language   The language of the resource query.
      * @param ResourceRepository $repo       The repository to load the
      *                                       resources from.
      * @param BindingType        $type       The type to bind against.
      * @param array              $parameters Additional parameters.
+     * @param string             $language   The language of the resource query.
      *
      * @throws BindingException If the binding fails.
      */
-    public function __construct($query, $language, ResourceRepository $repo, BindingType $type, array $parameters = array())
+    public function __construct($query, ResourceRepository $repo, BindingType $type, array $parameters = array(), $language = 'glob')
     {
-        parent::__construct($query, $language, $type, $parameters);
+        parent::__construct($query, $type, $parameters, $language);
 
         $this->repo = $repo;
     }

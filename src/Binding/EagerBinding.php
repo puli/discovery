@@ -35,15 +35,15 @@ class EagerBinding extends AbstractBinding
      * Creates a new binding.
      *
      * @param string                      $query      The resource query.
-     * @param string                      $language   The language of the resource query.
      * @param Resource|ResourceCollection $resources  The resources to bind.
      * @param BindingType                 $type       The type to bind against.
      * @param array                       $parameters Additional parameters.
+     * @param string                      $language   The language of the resource query.
      *
      * @throws BindingException If the binding fails.
      * @throws InvalidArgumentException If the resources are invalid.
      */
-    public function __construct($query, $language, $resources, BindingType $type, array $parameters = array())
+    public function __construct($query, $resources, BindingType $type, array $parameters = array(), $language = 'glob')
     {
         if ($resources instanceof Resource) {
             $resources = new ArrayResourceCollection(array($resources));
@@ -64,7 +64,7 @@ class EagerBinding extends AbstractBinding
             ));
         }
 
-        parent::__construct($query, $language, $type, $parameters);
+        parent::__construct($query, $type, $parameters, $language);
 
         $this->resources = $resources;
     }

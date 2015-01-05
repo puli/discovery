@@ -62,9 +62,9 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', 'glob', $resource1, $type1),
-            $binding2 = new EagerBinding('/file2', 'glob', $resource2, $type1),
-            $binding3 = new EagerBinding('/file2', 'glob', $resource2, $type2),
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding2 = new EagerBinding('/file2', $resource2, $type1),
+            $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
         $this->assertBindingsEqual(array($binding1, $binding2), $discovery->find('type1'));
@@ -93,9 +93,9 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $coll = new ArrayResourceCollection(array($resource2, $resource3));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', 'glob', $resource1, $type1),
-            $binding2 = new EagerBinding('/data/file2', 'glob', $resource2, $type1),
-            $binding3 = new EagerBinding('/data/*', 'glob', $coll, $type2),
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding2 = new EagerBinding('/data/file2', $resource2, $type1),
+            $binding3 = new EagerBinding('/data/*', $coll, $type2),
         ));
 
         $this->assertBindingsEqual(array($binding1, $binding2, $binding3), $discovery->getBindings());
@@ -113,7 +113,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding = new LazyBinding('/data/*', 'glob', $repo, $type),
+            $binding = new LazyBinding('/data/*', $repo, $type),
         ));
 
         $repo->add('/data/file2', new TestFile());
@@ -159,8 +159,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', 'glob', $resource1, $type1),
-            $binding3 = new EagerBinding('/file2', 'glob', $resource2, $type2),
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
         $this->assertEquals($type1, $discovery->getType('type1'));
@@ -178,8 +178,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', 'glob', $resource1, $type1),
-            $binding3 = new EagerBinding('/file2', 'glob', $resource2, $type2),
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
         $this->assertEquals(array('type1' => $type1, 'type2' => $type2), $discovery->getTypes());
@@ -206,7 +206,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file', 'glob', $resource, $type),
+            $binding1 = new EagerBinding('/file', $resource, $type),
         ));
 
         $this->assertTrue($discovery->isDefined('type'));

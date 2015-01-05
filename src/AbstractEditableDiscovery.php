@@ -72,7 +72,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         }
 
         // Use a lazy binding, because the resources in the repository may change
-        $binding = new LazyBinding($query, $language, $this->repo, $type, $parameters);
+        $binding = new LazyBinding($query, $this->repo, $type, $parameters, $language);
 
         if ($this->containsBinding($binding)) {
             return;

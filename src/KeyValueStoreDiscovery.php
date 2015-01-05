@@ -176,9 +176,9 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $this->store->set($id, array(
             $binding->getQuery(),
-            $binding->getLanguage(),
             $binding->getType()->getName(),
-            $binding->getParameters()
+            $binding->getParameters(),
+            $binding->getLanguage()
         ));
 
         $this->store->set('//nextId', $id + 1);
@@ -229,11 +229,12 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $this->bindings[$id] = new LazyBinding(
             $data[0], // query
-            $data[1], // language
             $this->repo,
-            $this->getType($data[2]), // type name
-            $data[3] // parameters
+            $this->getType($data[1]), // type name
+            $data[2], // parameters
+            $data[3] // language
         );
+
     }
 
     private function loadType($typeName)

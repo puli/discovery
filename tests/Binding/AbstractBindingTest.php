@@ -23,20 +23,20 @@ use Puli\Discovery\Binding\AbstractBinding;
 abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @param string      $language
      * @param string      $query
      * @param BindingType $type
      * @param array       $parameters
+     * @param string      $language
      *
      * @return AbstractBinding
      */
-    abstract protected function createBinding($query, $language, BindingType $type, array $parameters = array());
+    abstract protected function createBinding($query, BindingType $type, array $parameters = array(), $language = 'glob');
 
     public function testCreate()
     {
         $type = new BindingType('type');
 
-        $binding = $this->createBinding('/path/*', 'glob', $type);
+        $binding = $this->createBinding('/path/*', $type);
 
         $this->assertSame('/path/*', $binding->getQuery());
         $this->assertSame($type, $binding->getType());
@@ -51,7 +51,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param2'),
         ));
 
-        $binding = $this->createBinding('/path/*', 'glob', $type, array(
+        $binding = $this->createBinding('/path/*', $type, array(
             'param1' => 'value',
         ));
 
@@ -73,7 +73,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param', false, 'default'),
         ));
 
-        $binding = $this->createBinding('/path/*', 'glob', $type);
+        $binding = $this->createBinding('/path/*', $type);
 
         $this->assertSame($type, $binding->getType());
         $this->assertSame(array('param' => 'default'), $binding->getParameters());
@@ -91,7 +91,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param', true),
         ));
 
-        $this->createBinding('/file1', 'glob', $type);
+        $this->createBinding('/file1', $type);
     }
 
     /**
@@ -102,7 +102,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     {
         $type = new BindingType('type');
 
-        $this->createBinding('/file1', 'glob', $type, array(
+        $this->createBinding('/file1', $type, array(
             'foo' => 'bar',
         ));
     }
@@ -115,7 +115,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     {
         $type = new BindingType('type');
 
-        $binding = $this->createBinding('/file1', 'glob', $type);
+        $binding = $this->createBinding('/file1', $type);
 
         $binding->getParameter('foo');
     }
@@ -124,8 +124,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     {
         $type = new BindingType('type');
 
-        $binding1 = $this->createBinding('/path', 'glob', $type);
-        $binding2 = $this->createBinding('/path', 'glob', $type);
+        $binding1 = $this->createBinding('/path', $type);
+        $binding2 = $this->createBinding('/path', $type);
 
         $this->assertTrue($binding1->equals($binding2));
     }
@@ -135,8 +135,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
         $type1 = new BindingType('type');
         $type2 = new BindingType('type');
 
-        $binding1 = $this->createBinding('/path', 'glob', $type1);
-        $binding2 = $this->createBinding('/path', 'glob', $type2);
+        $binding1 = $this->createBinding('/path', $type1);
+        $binding2 = $this->createBinding('/path', $type2);
 
         $this->assertFalse($binding1->equals($binding2));
     }
@@ -145,8 +145,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     {
         $type = new BindingType('type');
 
-        $binding1 = $this->createBinding('/path1', 'glob', $type);
-        $binding2 = $this->createBinding('/path2', 'glob', $type);
+        $binding1 = $this->createBinding('/path1', $type);
+        $binding2 = $this->createBinding('/path2', $type);
 
         $this->assertFalse($binding1->equals($binding2));
     }
@@ -157,8 +157,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param'),
         ));
 
-        $binding1 = $this->createBinding('/path', 'glob', $type, array('param' => 'foo'));
-        $binding2 = $this->createBinding('/path', 'glob', $type, array('param' => 'bar'));
+        $binding1 = $this->createBinding('/path', $type, array('param' => 'foo'));
+        $binding2 = $this->createBinding('/path', $type, array('param' => 'bar'));
 
         $this->assertFalse($binding1->equals($binding2));
     }
@@ -169,8 +169,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param'),
         ));
 
-        $binding1 = $this->createBinding('/path', 'glob', $type, array('param' => '2'));
-        $binding2 = $this->createBinding('/path', 'glob', $type, array('param' => 2));
+        $binding1 = $this->createBinding('/path', $type, array('param' => '2'));
+        $binding2 = $this->createBinding('/path', $type, array('param' => 2));
 
         $this->assertFalse($binding1->equals($binding2));
     }
@@ -182,8 +182,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('bar'),
         ));
 
-        $binding1 = $this->createBinding('/path', 'glob', $type, array('foo' => 'bar', 'bar' => 'foo'));
-        $binding2 = $this->createBinding('/path', 'glob', $type, array('bar' => 'foo', 'foo' => 'bar'));
+        $binding1 = $this->createBinding('/path', $type, array('foo' => 'bar', 'bar' => 'foo'));
+        $binding2 = $this->createBinding('/path', $type, array('bar' => 'foo', 'foo' => 'bar'));
 
         $this->assertTrue($binding1->equals($binding2));
     }
@@ -194,9 +194,21 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param', false, 'default'),
         ));
 
-        $binding1 = $this->createBinding('/path', 'glob', $type, array('param' => 'default'));
-        $binding2 = $this->createBinding('/path', 'glob', $type);
+        $binding1 = $this->createBinding('/path', $type, array('param' => 'default'));
+        $binding2 = $this->createBinding('/path', $type);
 
         $this->assertTrue($binding1->equals($binding2));
+    }
+
+    public function testNotEqualIfDifferentLanguage()
+    {
+        $type = new BindingType('type', array(
+            new BindingParameter('param'),
+        ));
+
+        $binding1 = $this->createBinding('/path', $type, array(), 'glob');
+        $binding2 = $this->createBinding('/path', $type, array(), 'xpath');
+
+        $this->assertFalse($binding1->equals($binding2));
     }
 }

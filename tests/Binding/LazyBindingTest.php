@@ -26,18 +26,18 @@ class LazyBindingTest extends AbstractBindingTest
 {
     /**
      * @param string      $query
-     * @param string      $language
      * @param BindingType $type
      * @param array       $parameters
+     * @param string      $language
      *
      * @return AbstractBinding
      */
-    protected function createBinding($query, $language, BindingType $type, array $parameters = array())
+    protected function createBinding($query, BindingType $type, array $parameters = array(), $language = 'glob')
     {
         $repo = new InMemoryRepository();
         $repo->add($query, new TestFile($query));
 
-        return new LazyBinding($query, $language, $repo, $type, $parameters);
+        return new LazyBinding($query, $repo, $type, $parameters, $language);
     }
 
     public function testDoNotLoadUponConstruction()
@@ -48,7 +48,7 @@ class LazyBindingTest extends AbstractBindingTest
         $repo->expects($this->never())
             ->method('find');
 
-        new LazyBinding('/path', 'glob', $repo, $type);
+        new LazyBinding('/path', $repo, $type);
     }
 
     public function testLoadOnDemand()
@@ -65,7 +65,7 @@ class LazyBindingTest extends AbstractBindingTest
             ->with('/file*', 'glob')
             ->will($this->returnValue($collection));
 
-        $binding = new LazyBinding('/file*', 'glob', $repo, $type);
+        $binding = new LazyBinding('/file*', $repo, $type);
 
         $this->assertSame($collection, $binding->getResources());
 
