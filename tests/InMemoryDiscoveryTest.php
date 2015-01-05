@@ -20,7 +20,7 @@ use Puli\Repository\Api\ResourceRepository;
  */
 class InMemoryDiscoveryTest extends AbstractEditableDiscoveryTest
 {
-    protected function createManageableDiscovery(ResourceRepository $repo)
+    protected function createEditableDiscovery(ResourceRepository $repo)
     {
         return new InMemoryDiscovery($repo);
     }

@@ -30,7 +30,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
      *
      * @return EditableDiscovery
      */
-    abstract protected function createManageableDiscovery(ResourceRepository $repo);
+    abstract protected function createEditableDiscovery(ResourceRepository $repo);
 
     /**
      * @param ResourceRepository $repo
@@ -40,7 +40,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
      */
     protected function createDiscovery(ResourceRepository $repo, array $bindings = array())
     {
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         foreach ($bindings as $binding) {
             $type = $binding->getType();
@@ -65,7 +65,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testBindFailsIfResourceNotFound()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define('type');
 
         $discovery->bind('/foo', 'type');
@@ -81,7 +81,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $discovery->bind('/file', 'foo');
     }
@@ -92,7 +92,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type', array(
             new BindingParameter('param', false, 'default')
         )));
@@ -112,7 +112,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file2'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type1'));
         $discovery->define(new BindingType('type2'));
 
@@ -142,7 +142,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file2'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type1'));
         $discovery->define(new BindingType('type2'));
 
@@ -172,7 +172,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file2'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type1', array(
             new BindingParameter('param'),
         )));
@@ -213,7 +213,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file2'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type1', array(
             new BindingParameter('param'),
         )));
@@ -258,7 +258,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file2'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type1'));
         $discovery->define(new BindingType('type2'));
 
@@ -285,7 +285,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testUnbindIgnoresUnknownPath()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $discovery->unbind('/foobar');
 
@@ -298,7 +298,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             new TestFile('/file'),
         ));
 
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type'));
 
         $discovery->bind('/file', 'type');
@@ -313,7 +313,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testDefineTypeName()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $this->assertFalse($discovery->isDefined('type'));
 
@@ -325,7 +325,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testDefineTypeInstance()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $this->assertFalse($discovery->isDefined('type'));
 
@@ -341,7 +341,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testDefineFailsIfInvalidType()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $discovery->define(new \stdClass());
     }
@@ -353,7 +353,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testDefineFailsIfAlreadyDefined()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $discovery->define('type');
         $discovery->define('type');
@@ -362,7 +362,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testUndefine()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type'));
 
         $this->assertTrue($discovery->isDefined('type'));
@@ -375,7 +375,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testUndefineIgnoresUnknownTypes()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
         $discovery->define(new BindingType('type'));
 
         $discovery->undefine('foobar');
@@ -390,8 +390,26 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testUndefineFailsIfInvalidType()
     {
         $repo = $this->createRepository();
-        $discovery = $this->createManageableDiscovery($repo);
+        $discovery = $this->createEditableDiscovery($repo);
 
         $discovery->undefine(new \stdClass());
+    }
+
+    public function testClear()
+    {
+        $repo = $this->createRepository(array(
+            new TestFile('/file'),
+        ));
+
+        $discovery = $this->createEditableDiscovery($repo);
+        $discovery->define(new BindingType('type'));
+        $discovery->bind('/file', 'type');
+
+        $discovery->clear();
+
+        $this->assertSame(array(), $discovery->getBindings());
+        $this->assertSame(array(), $discovery->find('type'));
+        $this->assertSame(array(), $discovery->getTypes());
+
     }
 }

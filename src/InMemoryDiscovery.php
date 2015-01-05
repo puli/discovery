@@ -18,6 +18,7 @@ use Puli\Discovery\Api\DuplicateTypeException;
 use Puli\Discovery\Api\NoSuchTypeException;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\EagerBinding;
+use Puli\Repository\Api\ResourceRepository;
 use RuntimeException;
 
 /**
@@ -31,17 +32,27 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * @var BindingType[]
      */
-    private $types = array();
+    private $types;
 
     /**
      * @var EagerBinding[]
      */
-    private $bindings = array();
+    private $bindings;
 
     /**
      * @var int
      */
-    private $nextId = 0;
+    private $nextId;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct(ResourceRepository $repo)
+    {
+        parent::__construct($repo);
+
+        $this->clear();
+    }
 
     /**
      * {@inheritdoc}
@@ -102,6 +113,18 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     public function getTypes()
     {
         return $this->types;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        parent::clear();
+
+        $this->types = array();
+        $this->bindings = array();
+        $this->nextId = 0;
     }
 
     /**

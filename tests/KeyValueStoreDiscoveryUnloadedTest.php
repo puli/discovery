@@ -30,7 +30,7 @@ class KeyValueStoreDiscoveryUnloadedTest extends AbstractEditableDiscoveryTest
         $this->store = new ArrayStore();
     }
 
-    protected function createManageableDiscovery(ResourceRepository $repo)
+    protected function createEditableDiscovery(ResourceRepository $repo)
     {
         return new KeyValueStoreDiscovery($repo, $this->store);
     }

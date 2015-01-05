@@ -36,12 +36,12 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     private $store;
 
     /**
-     * @var \Puli\Discovery\Api\ResourceBinding[]
+     * @var ResourceBinding[]
      */
     private $bindings = array();
 
     /**
-     * @var \Puli\Discovery\Api\BindingType[]
+     * @var BindingType[]
      */
     private $types;
 
@@ -133,6 +133,19 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         }
 
         return $this->types;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        parent::clear();
+
+        $this->types = array();
+        $this->bindings = array();
+
+        $this->store->clear();
     }
 
     /**

@@ -124,6 +124,15 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->queryIndex = array();
+        $this->typeIndex = array();
+    }
+
+    /**
      * Returns the binding with the given ID.
      *
      * IDs are simple integers that are used to reference bindings in the

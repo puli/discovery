@@ -122,4 +122,9 @@ interface EditableDiscovery extends ResourceDiscovery
      * @param string $typeName The name of a binding type.
      */
     public function undefine($typeName);
+
+    /**
+     * Removes all defined types and bindings.
+     */
+    public function clear();
 }
