@@ -331,9 +331,35 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     }
 
     /**
+     * Removes bindings for a type.
+     *
+     * @param string     $typeName   The name of the type.
+     * @param array|null $parameters The binding parameters to filter by.
+     */
+    protected function removeBindingsByType($typeName, array $parameters = null)
+    {
+        if (!isset($this->typeIndex[$typeName])) {
+            return;
+        }
+
+        foreach ($this->typeIndex[$typeName] as $id => $true) {
+            $binding = $this->getBinding($id);
+
+            if (null !== $parameters && $parameters !== $binding->getParameters()) {
+                continue;
+            }
+
+            unset($this->typeIndex[$typeName][$id]);
+            unset($this->queryIndex[$binding->getQuery()][$id]);
+
+            $this->removeBinding($id);
+        }
+    }
+
+    /**
      * Removes bindings for a binding path and type.
      *
-     * @param string     $query       The binding path.
+     * @param string     $query      The resource query.
      * @param string     $typeName   The name of the type.
      * @param array|null $parameters The binding parameters to filter by.
      */

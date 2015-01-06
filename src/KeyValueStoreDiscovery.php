@@ -99,6 +99,8 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $this->store->set('//types', array_keys($this->types));
         $this->store->remove($typeName);
+
+        $this->removeBindingsByType($typeName);
     }
 
     /**
@@ -215,6 +217,17 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     protected function removeBindingsByQuery($query, array $parameters = null)
     {
         parent::removeBindingsByQuery($query, $parameters);
+
+        $this->store->set('//typeIndex', $this->typeIndex);
+        $this->store->set('//queryIndex', $this->queryIndex);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function removeBindingsByType($typeName, array $parameters = null)
+    {
+        parent::removeBindingsByType($typeName, $parameters);
 
         $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->set('//queryIndex', $this->queryIndex);

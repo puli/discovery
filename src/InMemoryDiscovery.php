@@ -85,6 +85,8 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
         Assertion::string($typeName);
 
         unset($this->types[$typeName]);
+
+        $this->removeBindingsByType($typeName);
     }
 
     /**

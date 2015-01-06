@@ -395,6 +395,21 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->undefine(new \stdClass());
     }
 
+    public function testUndefineRemovesCorrespondingBindings()
+    {
+        $repo = $this->createRepository(array(
+            new TestFile('/file'),
+        ));
+
+        $discovery = $this->createEditableDiscovery($repo);
+        $discovery->define(new BindingType('type'));
+        $discovery->bind('/file', 'type');
+        $discovery->undefine('type');
+
+        $this->assertFalse($discovery->isDefined('type'));
+        $this->assertCount(0, $discovery->getBindings('/file'));
+    }
+
     public function testClear()
     {
         $repo = $this->createRepository(array(
