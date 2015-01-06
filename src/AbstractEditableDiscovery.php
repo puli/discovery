@@ -11,8 +11,8 @@
 
 namespace Puli\Discovery;
 
-use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\EditableDiscovery;
+use Puli\Discovery\Api\NoQueryMatchesException;
 use Puli\Discovery\Api\ResourceBinding;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
@@ -65,7 +65,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         $type = $this->getType($typeName);
 
         if (!$this->repo->contains($query, $language)) {
-            throw new BindingException(sprintf(
+            throw new NoQueryMatchesException(sprintf(
                 'Did not find any resources to bind for query "%s".',
                 $query
             ));

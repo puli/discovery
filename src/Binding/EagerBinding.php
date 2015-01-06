@@ -12,8 +12,10 @@
 namespace Puli\Discovery\Binding;
 
 use InvalidArgumentException;
-use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\MissingParameterException;
+use Puli\Discovery\Api\NoQueryMatchesException;
+use Puli\Discovery\Api\NoSuchParameterException;
 use Puli\Repository\Api\Resource\Resource;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
@@ -40,7 +42,9 @@ class EagerBinding extends AbstractBinding
      * @param array                       $parameters Additional parameters.
      * @param string                      $language   The language of the resource query.
      *
-     * @throws BindingException If the binding fails.
+     * @throws NoSuchParameterException If an invalid parameter was passed.
+     * @throws MissingParameterException If a required parameter was not passed.
+     * @throws NoQueryMatchesException If the query did not return any results.
      * @throws InvalidArgumentException If the resources are invalid.
      */
     public function __construct($query, $resources, BindingType $type, array $parameters = array(), $language = 'glob')
@@ -58,7 +62,7 @@ class EagerBinding extends AbstractBinding
         }
 
         if (0 === count($resources)) {
-            throw new BindingException(sprintf(
+            throw new NoQueryMatchesException(sprintf(
                 'Did not find any resources to bind for query "%s".',
                 $query
             ));

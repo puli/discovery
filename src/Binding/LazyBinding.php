@@ -11,8 +11,9 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Discovery\Api\BindingException;
 use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\MissingParameterException;
+use Puli\Discovery\Api\NoSuchParameterException;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Api\ResourceRepository;
 
@@ -44,7 +45,8 @@ class LazyBinding extends AbstractBinding
      * @param array              $parameters Additional parameters.
      * @param string             $language   The language of the resource query.
      *
-     * @throws BindingException If the binding fails.
+     * @throws NoSuchParameterException If an invalid parameter was passed.
+     * @throws MissingParameterException If a required parameter was not passed.
      */
     public function __construct($query, ResourceRepository $repo, BindingType $type, array $parameters = array(), $language = 'glob')
     {

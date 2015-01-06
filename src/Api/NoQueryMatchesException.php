@@ -14,11 +14,11 @@ namespace Puli\Discovery\Api;
 use RuntimeException;
 
 /**
- * Thrown when an error occurs during binding.
+ * Thrown when a resource query did not return any matches.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingException extends RuntimeException
+class NoQueryMatchesException extends RuntimeException
 {
 }

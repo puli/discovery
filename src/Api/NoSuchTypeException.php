@@ -12,6 +12,7 @@
 namespace Puli\Discovery\Api;
 
 use Exception;
+use RuntimeException;
 
 /**
  * Thrown when a binding type was not found.
@@ -19,7 +20,7 @@ use Exception;
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class NoSuchTypeException extends BindingException
+class NoSuchTypeException extends RuntimeException
 {
     /**
      * Creates an exception for a type name.

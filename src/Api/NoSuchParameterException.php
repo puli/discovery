@@ -11,12 +11,14 @@
 
 namespace Puli\Discovery\Api;
 
+use RuntimeException;
+
 /**
  * Thrown when a binding parameter was not found.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class NoSuchParameterException extends BindingException
+class NoSuchParameterException extends RuntimeException
 {
 }

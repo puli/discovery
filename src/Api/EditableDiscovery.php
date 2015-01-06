@@ -12,6 +12,7 @@
 namespace Puli\Discovery\Api;
 
 use InvalidArgumentException;
+use Puli\Repository\Api\UnsupportedLanguageException;
 
 /**
  * A discovery that supports the addition and removal of bindings and types.
@@ -67,7 +68,11 @@ interface EditableDiscovery extends ResourceDiscovery
      * @param array  $parameters Values for the parameters defined for the type.
      * @param string $language   The language of the resource query.
      *
-     * @throws BindingException If the query does not return any results.
+     * @throws NoSuchParameterException If an invalid parameter was passed.
+     * @throws MissingParameterException If a required parameter was not passed.
+     * @throws NoQueryMatchesException If the query did not return any results.
+     * @throws NoSuchTypeException If the passed type does not exist.
+     * @throws UnsupportedLanguageException If the passed language is not supported.
      */
     public function bind($query, $typeName, array $parameters = array(), $language = 'glob');
 

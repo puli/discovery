@@ -69,7 +69,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\BindingException
+     * @expectedException \Puli\Discovery\Api\NoQueryMatchesException
      * @expectedExceptionMessage /foo
      */
     public function testBindFailsIfResourceNotFound()

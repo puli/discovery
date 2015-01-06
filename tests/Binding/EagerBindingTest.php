@@ -75,7 +75,7 @@ class EagerBindingTest extends AbstractBindingTest
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\BindingException
+     * @expectedException \Puli\Discovery\Api\NoQueryMatchesException
      */
     public function testCreateFailsIfNoResources()
     {
