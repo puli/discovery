@@ -95,12 +95,12 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     {
         Assertion::string($typeName);
 
+        $this->removeBindingsByType($typeName);
+
         unset($this->types[$typeName]);
 
         $this->store->set('//types', array_keys($this->types));
         $this->store->remove($typeName);
-
-        $this->removeBindingsByType($typeName);
     }
 
     /**

@@ -11,6 +11,7 @@
 
 namespace Puli\Discovery\Tests;
 
+use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\KeyValueStoreDiscovery;
 use Puli\Repository\Api\ResourceRepository;
 use Webmozart\KeyValueStore\ArrayStore;
@@ -32,15 +33,16 @@ class KeyValueStoreDiscoveryUnloadedTest extends AbstractEditableDiscoveryTest
 
     protected function createEditableDiscovery(ResourceRepository $repo)
     {
-        return new KeyValueStoreDiscovery($repo, $this->store);
+        $discovery = new KeyValueStoreDiscovery($repo, $this->store);
+        $discovery->attachedRepo = $repo;
+
+        return $discovery;
     }
 
-    protected function createDiscovery(ResourceRepository $repo, array $bindings = array())
+    protected function getDiscoveryUnderTest(EditableDiscovery $discovery)
     {
-        parent::createDiscovery($repo, $bindings);
-
         // Create a new instance which reads from the store instead of from
         // memory
-        return new KeyValueStoreDiscovery($repo, $this->store);
+        return new KeyValueStoreDiscovery($discovery->attachedRepo, $this->store);
     }
 }
