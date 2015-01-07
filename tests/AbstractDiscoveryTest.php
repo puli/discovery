@@ -163,8 +163,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
-        $this->assertEquals($type1, $discovery->getType('type1'));
-        $this->assertEquals($type2, $discovery->getType('type2'));
+        $this->assertEquals($type1, $discovery->getDefinedType('type1'));
+        $this->assertEquals($type2, $discovery->getDefinedType('type2'));
     }
 
     public function testGetTypes()
@@ -182,7 +182,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
-        $this->assertEquals(array('type1' => $type1, 'type2' => $type2), $discovery->getTypes());
+        $this->assertEquals(array('type1' => $type1, 'type2' => $type2), $discovery->getDefinedTypes());
     }
 
     /**
@@ -194,7 +194,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
 
-        $discovery->getType('foobar');
+        $discovery->getDefinedType('foobar');
     }
 
     public function testIsDefined()
@@ -209,8 +209,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $binding1 = new EagerBinding('/file', $resource, $type),
         ));
 
-        $this->assertTrue($discovery->isDefined('type'));
-        $this->assertFalse($discovery->isDefined('foo'));
+        $this->assertTrue($discovery->isTypeDefined('type'));
+        $this->assertFalse($discovery->isTypeDefined('foo'));
     }
 
     /**
@@ -229,7 +229,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $this->assertSame($expectedBinding->getQuery(), $actualBinding->getQuery());
             $this->assertSame($expectedBinding->getLanguage(), $actualBinding->getLanguage());
             $this->assertEquals($expectedBinding->getType(), $actualBinding->getType());
-            $this->assertEquals($expectedBinding->getParameters(), $actualBinding->getParameters());
+            $this->assertEquals($expectedBinding->getParameterValues(), $actualBinding->getParameterValues());
             $this->assertEquals($expectedBinding->getResources(), $actualBinding->getResources());
         }
     }

@@ -80,7 +80,7 @@ interface ResourceDiscovery
      *
      * @return bool Returns `true` if the binding type has been defined.
      */
-    public function isDefined($typeName);
+    public function isTypeDefined($typeName);
 
     /**
      * Returns the binding type with a given name.
@@ -91,12 +91,12 @@ interface ResourceDiscovery
      *
      * @throws NoSuchTypeException If a type with that name has not been defined.
      */
-    public function getType($typeName);
+    public function getDefinedType($typeName);
 
     /**
      * Returns all defined binding types.
      *
      * @return BindingType[] The defined binding types.
      */
-    public function getTypes();
+    public function getDefinedTypes();
 }

@@ -40,8 +40,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame('/path/*', $binding->getQuery());
         $this->assertSame($type, $binding->getType());
-        $this->assertSame(array(), $binding->getParameters());
-        $this->assertFalse($binding->hasParameter('param'));
+        $this->assertSame(array(), $binding->getParameterValues());
+        $this->assertFalse($binding->hasParameterValue('param'));
     }
 
     public function testCreateWithParameters()
@@ -59,12 +59,12 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
         $this->assertSame(array(
             'param1' => 'value',
             'param2' => null,
-        ), $binding->getParameters());
-        $this->assertTrue($binding->hasParameter('param1'));
-        $this->assertTrue($binding->hasParameter('param2'));
-        $this->assertFalse($binding->hasParameter('foo'));
-        $this->assertSame('value', $binding->getParameter('param1'));
-        $this->assertNull($binding->getParameter('param2'));
+        ), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param1'));
+        $this->assertTrue($binding->hasParameterValue('param2'));
+        $this->assertFalse($binding->hasParameterValue('foo'));
+        $this->assertSame('value', $binding->getParameterValue('param1'));
+        $this->assertNull($binding->getParameterValue('param2'));
     }
 
     public function testCreateWithParameterDefaults()
@@ -76,9 +76,9 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
         $binding = $this->createBinding('/path/*', $type);
 
         $this->assertSame($type, $binding->getType());
-        $this->assertSame(array('param' => 'default'), $binding->getParameters());
-        $this->assertTrue($binding->hasParameter('param'));
-        $this->assertSame('default', $binding->getParameter('param'));
+        $this->assertSame(array('param' => 'default'), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param'));
+        $this->assertSame('default', $binding->getParameterValue('param'));
     }
 
     /**
@@ -117,7 +117,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
         $binding = $this->createBinding('/file1', $type);
 
-        $binding->getParameter('foo');
+        $binding->getParameterValue('foo');
     }
 
     public function testEqual()

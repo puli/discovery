@@ -56,13 +56,13 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function bind($query, $typeName, array $parameters = array(), $language = 'glob')
+    public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob')
     {
         if ('glob' !== $language) {
             throw UnsupportedLanguageException::forLanguage($language);
         }
 
-        $type = $this->getType($typeName);
+        $type = $this->getDefinedType($typeName);
 
         if (!$this->repo->contains($query, $language)) {
             throw new NoQueryMatchesException(sprintf(
@@ -72,7 +72,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         }
 
         // Use a lazy binding, because the resources in the repository may change
-        $binding = new LazyBinding($query, $this->repo, $type, $parameters, $language);
+        $binding = new LazyBinding($query, $this->repo, $type, $parameterValues, $language);
 
         if ($this->containsBinding($binding)) {
             return;
@@ -84,15 +84,15 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function unbind($query, $typeName = null, array $parameters = null)
+    public function unbind($query, $typeName = null, array $parameterValues = null)
     {
         if (null !== $typeName) {
-            $this->removeBindingsByQueryAndType($query, $typeName, $parameters);
+            $this->removeBindingsByQueryAndType($query, $typeName, $parameterValues);
 
             return;
         }
 
-        $this->removeBindingsByQuery($query, $parameters);
+        $this->removeBindingsByQuery($query, $parameterValues);
     }
 
     /**
@@ -307,10 +307,10 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * Removes bindings for a query.
      *
-     * @param string     $query      The resource query.
-     * @param array|null $parameters The binding parameters to filter by.
+     * @param string     $query           The resource query.
+     * @param array|null $parameterValues The parameters values to filter by.
      */
-    protected function removeBindingsByQuery($query, array $parameters = null)
+    protected function removeBindingsByQuery($query, array $parameterValues = null)
     {
         if (!isset($this->queryIndex[$query])) {
             return;
@@ -319,7 +319,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         foreach ($this->queryIndex[$query] as $id => $true) {
             $binding = $this->getBinding($id);
 
-            if (null !== $parameters && $parameters !== $binding->getParameters()) {
+            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
                 continue;
             }
 
@@ -333,10 +333,10 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * Removes bindings for a type.
      *
-     * @param string     $typeName   The name of the type.
-     * @param array|null $parameters The binding parameters to filter by.
+     * @param string     $typeName        The name of the type.
+     * @param array|null $parameterValues The parameters values to filter by.
      */
-    protected function removeBindingsByType($typeName, array $parameters = null)
+    protected function removeBindingsByType($typeName, array $parameterValues = null)
     {
         if (!isset($this->typeIndex[$typeName])) {
             return;
@@ -345,7 +345,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
         foreach ($this->typeIndex[$typeName] as $id => $true) {
             $binding = $this->getBinding($id);
 
-            if (null !== $parameters && $parameters !== $binding->getParameters()) {
+            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
                 continue;
             }
 
@@ -359,11 +359,11 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * Removes bindings for a binding path and type.
      *
-     * @param string     $query      The resource query.
-     * @param string     $typeName   The name of the type.
-     * @param array|null $parameters The binding parameters to filter by.
+     * @param string     $query           The resource query.
+     * @param string     $typeName        The name of the type.
+     * @param array|null $parameterValues The parameters values to filter by.
      */
-    protected function removeBindingsByQueryAndType($query, $typeName, array $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, array $parameterValues = null)
     {
         if (!isset($this->queryIndex[$query])) {
             return;
@@ -380,7 +380,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
                 continue;
             }
 
-            if (null !== $parameters && $parameters !== $binding->getParameters()) {
+            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
                 continue;
             }
 

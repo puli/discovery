@@ -106,4 +106,36 @@ class BindingType
     {
         return isset($this->parameters[$name]);
     }
+
+    /**
+     * Returns the default values of the parameters.
+     *
+     * @return array The default values of the parameters.
+     */
+    public function getParameterValues()
+    {
+        $values = array();
+
+        foreach ($this->parameters as $name => $parameter) {
+            if (!$parameter->isRequired()) {
+                $values[$name] = $parameter->getDefaultValue();
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Returns the default value of a parameter.
+     *
+     * @param string $name The parameter name.
+     *
+     * @return mixed The default value.
+     *
+     * @throws NoSuchParameterException If the parameter was not found.
+     */
+    public function getParameterValue($name)
+    {
+        return $this->getParameter($name)->getDefaultValue();
+    }
 }

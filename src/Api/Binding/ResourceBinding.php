@@ -54,34 +54,34 @@ interface ResourceBinding
      *
      * @return array The parameter values of the binding.
      */
-    public function getParameters();
+    public function getParameterValues();
 
     /**
      * Returns a parameter with a given name.
      *
-     * @param string $parameter The parameter name.
+     * @param string $parameterName The parameter name.
      *
      * @return mixed The value of the parameter.
      *
      * @throws NoSuchParameterException If the parameter does not exist.
      */
-    public function getParameter($parameter);
+    public function getParameterValue($parameterName);
 
     /**
      * Returns whether the parameter with the given name exists.
      *
-     * @param string $parameter The parameter name.
+     * @param string $parameterName The parameter name.
      *
      * @return bool Whether that parameter exists.
      */
-    public function hasParameter($parameter);
+    public function hasParameterValue($parameterName);
 
     /**
      * Returns whether two bindings are equal.
      *
-     * @param ResourceBinding $binding A binding to compare.
+     * @param ResourceBinding $other A binding to compare.
      *
      * @return bool Returns `true` if the two bindings are equal.
      */
-    public function equals(ResourceBinding $binding);
+    public function equals(ResourceBinding $other);
 }

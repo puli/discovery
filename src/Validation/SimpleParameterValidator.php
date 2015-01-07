@@ -26,11 +26,11 @@ class SimpleParameterValidator implements ParameterValidator
     /**
      * {@inheritdoc}
      */
-    public function validate(array $parameters, BindingType $type)
+    public function validate(array $parameterValues, BindingType $type)
     {
         $violations = array();
 
-        foreach ($parameters as $name => $value) {
+        foreach ($parameterValues as $name => $value) {
             if (!$type->hasParameter($name)) {
                 $violations[] = new ConstraintViolation(
                     ConstraintViolation::NO_SUCH_PARAMETER,
@@ -42,11 +42,11 @@ class SimpleParameterValidator implements ParameterValidator
         }
 
         foreach ($type->getParameters() as $parameter) {
-            if (!isset($parameters[$parameter->getName()])) {
+            if (!isset($parameterValues[$parameter->getName()])) {
                 if ($parameter->isRequired()) {
                     $violations[] = new ConstraintViolation(
                         ConstraintViolation::MISSING_PARAMETER,
-                        $parameters,
+                        $parameterValues,
                         $type->getName(),
                         $parameter->getName()
                     );

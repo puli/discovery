@@ -57,7 +57,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function define($type)
+    public function defineType($type)
     {
         if (is_string($type)) {
             $type = new BindingType($type);
@@ -80,7 +80,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function undefine($typeName)
+    public function undefineType($typeName)
     {
         Assertion::string($typeName);
 
@@ -92,7 +92,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getType($typeName)
+    public function getDefinedType($typeName)
     {
         if (!isset($this->types[$typeName])) {
             throw NoSuchTypeException::forTypeName($typeName);
@@ -104,7 +104,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function isDefined($typeName)
+    public function isTypeDefined($typeName)
     {
         return isset($this->types[$typeName]);
     }
@@ -112,7 +112,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getTypes()
+    public function getDefinedTypes()
     {
         return $this->types;
     }

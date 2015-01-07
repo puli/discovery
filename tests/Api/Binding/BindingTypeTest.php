@@ -96,4 +96,50 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     {
         new BindingType($name);
     }
+
+    public function testGetParameterValues()
+    {
+        $type = new BindingType('name', array(
+            new BindingParameter('param', false, 'default'),
+        ));
+
+        $this->assertSame(array('param' => 'default'), $type->getParameterValues());
+    }
+
+    public function testGetParameterValuesDoesNotIncludeRequiredParameters()
+    {
+        $type = new BindingType('name', array(
+            new BindingParameter('param', true),
+        ));
+
+        $this->assertSame(array(), $type->getParameterValues());
+    }
+
+    public function testGetParameterValue()
+    {
+        $type = new BindingType('name', array(
+            new BindingParameter('param', false, 'default'),
+        ));
+
+        $this->assertSame('default', $type->getParameterValue('param'));
+    }
+
+    public function testGetParameterValueReturnsNullForRequired()
+    {
+        $type = new BindingType('name', array(
+            new BindingParameter('param', true),
+        ));
+
+        $this->assertNull($type->getParameterValue('param'));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\Binding\NoSuchParameterException
+     */
+    public function testGetParameterValueFailsIfNotSet()
+    {
+        $type = new BindingType('name');
+
+        $type->getParameterValue('foo');
+    }
 }

@@ -65,7 +65,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function define($type)
+    public function defineType($type)
     {
         if (is_string($type)) {
             $type = new BindingType($type);
@@ -91,7 +91,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function undefine($typeName)
+    public function undefineType($typeName)
     {
         Assertion::string($typeName);
 
@@ -106,7 +106,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getType($typeName)
+    public function getDefinedType($typeName)
     {
         if (!isset($this->types[$typeName]) || !$this->types[$typeName] instanceof BindingType) {
             $this->loadType($typeName);
@@ -118,7 +118,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function isDefined($typeName)
+    public function isTypeDefined($typeName)
     {
         return array_key_exists($typeName, $this->types);
     }
@@ -126,7 +126,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getTypes()
+    public function getDefinedTypes()
     {
         foreach ($this->types as $typeName => $type) {
             if (is_int($type)) {
@@ -192,7 +192,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $this->store->set($id, array(
             $binding->getQuery(),
             $binding->getType()->getName(),
-            $binding->getParameters(),
+            $binding->getParameterValues(),
             $binding->getLanguage()
         ));
 
@@ -214,9 +214,9 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByQuery($query, array $parameters = null)
+    protected function removeBindingsByQuery($query, array $parameterValues = null)
     {
-        parent::removeBindingsByQuery($query, $parameters);
+        parent::removeBindingsByQuery($query, $parameterValues);
 
         $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->set('//queryIndex', $this->queryIndex);
@@ -225,9 +225,9 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByType($typeName, array $parameters = null)
+    protected function removeBindingsByType($typeName, array $parameterValues = null)
     {
-        parent::removeBindingsByType($typeName, $parameters);
+        parent::removeBindingsByType($typeName, $parameterValues);
 
         $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->set('//queryIndex', $this->queryIndex);
@@ -236,9 +236,9 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsByQueryAndType($query, $typeName, array $parameters = null)
+    protected function removeBindingsByQueryAndType($query, $typeName, array $parameterValues = null)
     {
-        parent::removeBindingsByQueryAndType($query, $typeName, $parameters);
+        parent::removeBindingsByQueryAndType($query, $typeName, $parameterValues);
 
         $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->set('//queryIndex', $this->queryIndex);
@@ -256,7 +256,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $this->bindings[$id] = new LazyBinding(
             $data[0], // query
             $this->repo,
-            $this->getType($data[1]), // type name
+            $this->getDefinedType($data[1]), // type name
             $data[2], // parameters
             $data[3] // language
         );

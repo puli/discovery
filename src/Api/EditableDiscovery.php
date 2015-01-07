@@ -66,10 +66,11 @@ interface EditableDiscovery extends ResourceDiscovery
      * The type must have been defined. You can pass values for the parameters
      * defined for the type.
      *
-     * @param string $query      A query for resources in the repository.
-     * @param string $typeName   The type name to bind to.
-     * @param array  $parameters Values for the parameters defined for the type.
-     * @param string $language   The language of the resource query.
+     * @param string $query           A query for resources in the repository.
+     * @param string $typeName        The type name to bind to.
+     * @param array  $parameterValues Values for the parameters defined for the
+     *                                type.
+     * @param string $language        The language of the resource query.
      *
      * @throws NoSuchParameterException If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
@@ -77,7 +78,7 @@ interface EditableDiscovery extends ResourceDiscovery
      * @throws NoSuchTypeException If the passed type does not exist.
      * @throws UnsupportedLanguageException If the passed language is not supported.
      */
-    public function bind($query, $typeName, array $parameters = array(), $language = 'glob');
+    public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob');
 
     /**
      * Unbinds a bound query.
@@ -90,14 +91,14 @@ interface EditableDiscovery extends ResourceDiscovery
      * `null`, all bindings for the query will be removed.
      *
      * You can restrict bindings to bindings with specific parameters by passing
-     * the parameters in `$parameters`. If you leave this parameter empty, the
-     * bindings will be removed regardless of their parameters.
+     * the parameter values in `$parameterValues`. If you leave this parameter
+     * empty, the bindings will be removed regardless of their parameter values.
      *
-     * @param string      $query      The resource query.
-     * @param string|null $typeName   The name of a binding type.
-     * @param array|null  $parameters The values of the binding parameters.
+     * @param string      $query           The resource query.
+     * @param string|null $typeName        The name of a binding type.
+     * @param array|null  $parameterValues The values of the binding parameters.
      */
-    public function unbind($query, $typeName = null, array $parameters = null);
+    public function unbind($query, $typeName = null, array $parameterValues = null);
 
     /**
      * Defines a binding type.
@@ -120,7 +121,7 @@ interface EditableDiscovery extends ResourceDiscovery
      * @throws DuplicateTypeException If the type is already defined.
      * @throws InvalidArgumentException If the type is invalid.
      */
-    public function define($type);
+    public function defineType($type);
 
     /**
      * Undefines a binding type.
@@ -129,7 +130,7 @@ interface EditableDiscovery extends ResourceDiscovery
      *
      * @param string $typeName The name of a binding type.
      */
-    public function undefine($typeName);
+    public function undefineType($typeName);
 
     /**
      * Removes all defined types and bindings.

@@ -44,7 +44,7 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * @var array
      */
-    private $parameters = array();
+    private $parameterValues = array();
 
     /**
      * Creates a new binding.
@@ -59,22 +59,27 @@ abstract class AbstractBinding implements ResourceBinding
      * All parameters that you do not set here will receive the default values
      * set for the parameter.
      *
-     * @param string      $query      The resource query.
-     * @param BindingType $type       The type to bind against.
-     * @param array       $parameters Additional parameters.
-     * @param string      $language   The language of the resource query.
+     * @param string      $query           The resource query.
+     * @param BindingType $type            The type to bind against.
+     * @param array       $parameterValues The values of the parameters defined
+     *                                     for the type.
+     * @param string      $language        The language of the resource query.
      *
      * @throws NoSuchParameterException If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
-    public function __construct($query, BindingType $type, array $parameters = array(), $language = 'glob')
+    public function __construct($query, BindingType $type, array $parameterValues = array(), $language = 'glob')
     {
-        $this->assertParametersValid($parameters, $type);
+        $this->assertParametersValid($parameterValues, $type);
+
+        $parameterValues = array_replace($type->getParameterValues(), $parameterValues);
+
+        ksort($parameterValues);
 
         $this->query = $query;
         $this->language = $language;
         $this->type = $type;
-        $this->parameters = $this->normalizeParameters($type, $parameters);
+        $this->parameterValues = $parameterValues;
     }
 
     /**
@@ -104,71 +109,68 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * {@inheritdoc}
      */
-    public function getParameters()
+    public function getParameterValues()
     {
-        return $this->parameters;
+        return $this->parameterValues;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParameter($parameter)
+    public function getParameterValue($parameterName)
     {
-        if (!array_key_exists($parameter, $this->parameters)) {
-            throw new NoSuchParameterException(sprintf(
-                'The parameter "%s" does not exist on type "%s".',
-                $parameter,
-                $this->type->getName()
-            ));
+        if (!array_key_exists($parameterName, $this->parameterValues)) {
+            throw NoSuchParameterException::forParameterName($parameterName, $this->type->getName());
         }
 
-        return $this->parameters[$parameter];
+        return $this->parameterValues[$parameterName];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasParameter($parameter)
+    public function hasParameterValue($parameterName)
     {
-        return array_key_exists($parameter, $this->parameters);
+        return array_key_exists($parameterName, $this->parameterValues);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function equals(ResourceBinding $binding)
+    public function equals(ResourceBinding $other)
     {
-        if (get_class($binding) !== get_class($this)) {
+        if (get_class($other) !== get_class($this)) {
             return false;
         }
 
-        if ($this->query !== $binding->getQuery()) {
+        if ($this->query !== $other->getQuery()) {
             return false;
         }
 
-        if ($this->type !== $binding->getType()) {
+        if ($this->type !== $other->getType()) {
             return false;
         }
 
-        if ($this->language !== $binding->getLanguage()) {
+        if ($this->language !== $other->getLanguage()) {
             return false;
         }
 
-        // The local parameters are sorted by key
-        $comparedParameters = $binding->getParameters();
-        ksort($comparedParameters);
+        // The local parameters are sorted by key. Sort before comparing to
+        // prevent false negatives.
+        $otherParameterValues = $other->getParameterValues();
+        ksort($otherParameterValues);
 
-        if ($this->parameters !== $comparedParameters) {
+        if ($this->parameterValues !== $otherParameterValues) {
             return false;
         }
 
         return true;
     }
 
-    private function assertParametersValid(array $parameters, BindingType $type)
+    private function assertParametersValid(array $parameterValues, BindingType $type)
     {
         $validator = new SimpleParameterValidator();
-        $violations = $validator->validate($parameters, $type);
+        $violations = $validator->validate($parameterValues, $type);
 
         foreach ($violations as $violation) {
             switch ($violation->getCode()) {
@@ -178,20 +180,5 @@ abstract class AbstractBinding implements ResourceBinding
                     throw MissingParameterException::forParameterName($violation->getParameterName(), $violation->getTypeName());
             }
         }
-    }
-
-    private function normalizeParameters(BindingType $type, array $parameters)
-    {
-        foreach ($type->getParameters() as $parameter) {
-            $parameterName = $parameter->getName();
-
-            if (!isset($parameters[$parameterName])) {
-                $parameters[$parameterName] = $parameter->getDefaultValue();
-            }
-        }
-
-        ksort($parameters);
-
-        return $parameters;
     }
 }

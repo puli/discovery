@@ -24,12 +24,12 @@ interface ParameterValidator
     /**
      * Returns whether the given parameter values are valid.
      *
-     * @param array       $parameters The parameter values to validate.
-     * @param BindingType $type       The type to validate the values for.
+     * @param array       $parameterValues The parameter values to validate.
+     * @param BindingType $type            The type to validate the values for.
      *
      * @return ConstraintViolation[] The found violations. If no violations were
      *                               found, an empty array is returned.
      */
-    public function validate(array $parameters, BindingType $type);
+    public function validate(array $parameterValues, BindingType $type);
 
 }
