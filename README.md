@@ -34,8 +34,8 @@ $discovery->bind('/app/trans/*.xlf', 'acme/xliff-messages');
 You can define parameters for binding types:
 
 ```php
-use Puli\Discovery\Api\BindingParameter;
-use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\Binding\BindingParameter;
+use Puli\Discovery\Api\Binding\BindingType;
 
 $discovery->define(new BindingType('acme/xliff-messages', array(
     new BindingParameter('translationDomain'),

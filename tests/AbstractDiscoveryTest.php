@@ -12,8 +12,8 @@
 namespace Puli\Discovery\Tests;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Api\BindingType;
-use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\ResourceDiscovery;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Discovery\Binding\LazyBinding;
@@ -214,8 +214,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param \Puli\Discovery\Api\ResourceBinding[] $expected
-     * @param mixed                      $actual
+     * @param ResourceBinding[] $expected
+     * @param mixed             $actual
      */
     private function assertBindingsEqual(array $expected, $actual)
     {

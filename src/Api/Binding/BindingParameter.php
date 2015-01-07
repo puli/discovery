@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Api;
+namespace Puli\Discovery\Api\Binding;
 
-use Assert\Assertion;
+use Puli\Discovery\Assert\Assert;
 use RuntimeException;
 
 /**
@@ -46,10 +46,8 @@ class BindingParameter
      */
     public function __construct($name, $required = false, $defaultValue = null)
     {
-        Assertion::string($name, 'The parameter name must be a string. Got: %2$s');
-        Assertion::notEmpty($name, 'The parameter name must not be empty.');
-        Assertion::true(ctype_alpha($name[0]), 'The parameter name must start with a letter.');
-        Assertion::boolean($required, 'The parameter "$required" must be a boolean. Got: %s');
+        Assert::parameterName($name);
+        Assert::boolean($required, 'The parameter "$required" must be a boolean. Got: %s');
 
         if ($required && null !== $defaultValue) {
             throw new RuntimeException('Required parameters must not have default values.');

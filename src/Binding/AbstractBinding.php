@@ -11,10 +11,12 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Discovery\Api\BindingType;
-use Puli\Discovery\Api\MissingParameterException;
-use Puli\Discovery\Api\NoSuchParameterException;
-use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\MissingParameterException;
+use Puli\Discovery\Api\Binding\NoSuchParameterException;
+use Puli\Discovery\Api\Binding\ResourceBinding;
+use Puli\Discovery\Api\Validation\ConstraintViolation;
+use Puli\Discovery\Validation\SimpleParameterValidator;
 
 /**
  * Base class for resource bindings.
@@ -67,7 +69,7 @@ abstract class AbstractBinding implements ResourceBinding
      */
     public function __construct($query, BindingType $type, array $parameters = array(), $language = 'glob')
     {
-        $this->validateParameters($type, $parameters);
+        $this->assertParametersValid($parameters, $type);
 
         $this->query = $query;
         $this->language = $language;
@@ -163,26 +165,17 @@ abstract class AbstractBinding implements ResourceBinding
         return true;
     }
 
-    private function validateParameters(BindingType $type, array $parameters)
+    private function assertParametersValid(array $parameters, BindingType $type)
     {
-        foreach ($parameters as $name => $value) {
-            if (!$type->hasParameter($name)) {
-                throw new NoSuchParameterException(sprintf(
-                    'The parameter "%s" does not exist on type "%s".',
-                    $name,
-                    $type->getName()
-                ));
-            }
-        }
+        $validator = new SimpleParameterValidator();
+        $violations = $validator->validate($parameters, $type);
 
-        foreach ($type->getParameters() as $parameter) {
-            if (!isset($parameters[$parameter->getName()])) {
-                if ($parameter->isRequired()) {
-                    throw new MissingParameterException(sprintf(
-                        'The required binding parameter "%s" is missing.',
-                        $parameter->getName()
-                    ));
-                }
+        foreach ($violations as $violation) {
+            switch ($violation->getCode()) {
+                case ConstraintViolation::NO_SUCH_PARAMETER:
+                    throw NoSuchParameterException::forParameterName($violation->getParameterName(), $violation->getTypeName());
+                case ConstraintViolation::MISSING_PARAMETER:
+                    throw MissingParameterException::forParameterName($violation->getParameterName(), $violation->getTypeName());
             }
         }
     }

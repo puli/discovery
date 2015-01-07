@@ -1,0 +1,45 @@
+<?php
+
+/*
+ * This file is part of the puli/discovery package.
+ *
+ * (c) Bernhard Schussek <bschussek@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Puli\Discovery\Api\Binding;
+
+use Exception;
+use RuntimeException;
+
+/**
+ * Thrown when a binding parameter was not found.
+ *
+ * @since  1.0
+ * @author Bernhard Schussek <bschussek@gmail.com>
+ */
+class NoSuchParameterException extends RuntimeException
+{
+    /**
+     * Creates a new exception for the given parameter name.
+     *
+     * @param string    $parameterName The name of the parameter that was not
+     *                                 found.
+     * @param string    $typeName      The name of the type that the parameter
+     *                                 was searched on.
+     * @param int       $code          The exception code.
+     * @param Exception $cause         The exception that caused this exception.
+     *
+     * @return static The created exception.
+     */
+    public static function forParameterName($parameterName, $typeName, $code = 0, Exception $cause = null)
+    {
+        return new static(sprintf(
+            'The parameter "%s" does not exist for type "%s".',
+            $parameterName,
+            $typeName
+        ), $code, $cause);
+    }
+}

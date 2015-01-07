@@ -11,6 +11,9 @@
 
 namespace Puli\Discovery\Api;
 
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\ResourceBinding;
+
 /**
  * Discovers resources for binding types.
  *

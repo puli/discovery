@@ -11,11 +11,12 @@
 
 namespace Puli\Discovery\Tests\Binding;
 
-use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
 use Puli\Repository\Tests\Resource\TestFile;
+use stdClass;
 
 /**
  * @since  1.0
@@ -71,7 +72,7 @@ class EagerBindingTest extends AbstractBindingTest
     {
         $type = new BindingType('type');
 
-        new EagerBinding('/path/*', new \stdClass(), $type);
+        new EagerBinding('/path/*', new stdClass(), $type);
     }
 
     /**

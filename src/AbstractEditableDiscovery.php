@@ -13,7 +13,7 @@ namespace Puli\Discovery;
 
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\NoQueryMatchesException;
-use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Api\UnsupportedLanguageException;

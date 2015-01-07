@@ -12,8 +12,8 @@
 namespace Puli\Discovery\Tests\Binding;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Api\BindingParameter;
-use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\Binding\BindingParameter;
+use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
 
 /**
@@ -82,7 +82,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\MissingParameterException
+     * @expectedException \Puli\Discovery\Api\Binding\MissingParameterException
      * @expectedExceptionMessage param
      */
     public function testCreateFailsIfMissingRequiredParameter()
@@ -95,7 +95,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchParameterException
+     * @expectedException \Puli\Discovery\Api\Binding\NoSuchParameterException
      * @expectedExceptionMessage foo
      */
     public function testCreateFailsIfUnknownParameter()
@@ -108,7 +108,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchParameterException
+     * @expectedException \Puli\Discovery\Api\Binding\NoSuchParameterException
      * @expectedExceptionMessage foo
      */
     public function testGetParameterFailsIfNotFound()

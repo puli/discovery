@@ -12,10 +12,10 @@
 namespace Puli\Discovery\Binding;
 
 use InvalidArgumentException;
-use Puli\Discovery\Api\BindingType;
-use Puli\Discovery\Api\MissingParameterException;
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\MissingParameterException;
 use Puli\Discovery\Api\NoQueryMatchesException;
-use Puli\Discovery\Api\NoSuchParameterException;
+use Puli\Discovery\Api\Binding\NoSuchParameterException;
 use Puli\Repository\Api\Resource\Resource;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;

@@ -12,6 +12,9 @@
 namespace Puli\Discovery\Api;
 
 use InvalidArgumentException;
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\MissingParameterException;
+use Puli\Discovery\Api\Binding\NoSuchParameterException;
 use Puli\Repository\Api\UnsupportedLanguageException;
 
 /**
@@ -21,8 +24,8 @@ use Puli\Repository\Api\UnsupportedLanguageException;
  * types can be defined with the {@link define()} method:
  *
  * ```php
- * use Puli\Discovery\Api\BindingParameter;
- * use Puli\Discovery\Api\BindingType;
+ * use Puli\Discovery\Api\Binding\BindingParameter;
+ * use Puli\Discovery\Api\Binding\BindingType;
  *
  * $discovery->define(new BindingType('acme/xliff-messages', array(
  *     new BindingParameter('translationDomain', null, 'messages'),
@@ -104,8 +107,8 @@ interface EditableDiscovery extends ResourceDiscovery
      * need to construct an instance of {@link BindingType} manually:
      *
      * ```php
-     * use Puli\Discovery\Api\BindingParameter;
-     * use Puli\Discovery\Api\BindingType;
+     * use Puli\Discovery\Api\Binding\BindingParameter;
+     * use Puli\Discovery\Api\Binding\BindingType;
      *
      * $binder->define(new BindingType('acme/xliff-message', array(
      *     new BindingParameter('translationDomain', null, 'messages'),

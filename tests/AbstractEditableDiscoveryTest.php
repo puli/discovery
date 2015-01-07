@@ -11,10 +11,10 @@
 
 namespace Puli\Discovery\Tests;
 
-use Puli\Discovery\Api\BindingParameter;
-use Puli\Discovery\Api\BindingType;
+use Puli\Discovery\Api\Binding\BindingParameter;
+use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\EditableDiscovery;
-use Puli\Discovery\Api\ResourceBinding;
+use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\ResourceDiscovery;
 use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Tests\Resource\TestFile;

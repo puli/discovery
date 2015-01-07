@@ -11,9 +11,9 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Discovery\Api\BindingType;
-use Puli\Discovery\Api\MissingParameterException;
-use Puli\Discovery\Api\NoSuchParameterException;
+use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Binding\MissingParameterException;
+use Puli\Discovery\Api\Binding\NoSuchParameterException;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Api\ResourceRepository;
 
