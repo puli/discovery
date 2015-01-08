@@ -98,6 +98,23 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->bind('/file', 'foo');
     }
 
+    /**
+     * @expectedException \Puli\Repository\Api\UnsupportedLanguageException
+     * @expectedExceptionMessage foo
+     */
+    public function testBindFailsIfUnsupportedLanguage()
+    {
+        $repo = $this->createRepository(array(
+            new TestFile('/file'),
+        ));
+
+        $discovery = $this->createEditableDiscovery($repo);
+
+        $discovery = $this->getDiscoveryUnderTest($discovery);
+        $discovery->defineType(new BindingType('type'));
+        $discovery->bind('/file', 'type', array(), 'foo');
+    }
+
     public function testBindIgnoresDuplicates()
     {
         $repo = $this->createRepository(array(
@@ -268,7 +285,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
-    public function testUnbindSelector()
+    public function testUnbindQuery()
     {
         $repo = $this->createRepository(array(
             new TestFile('/file1'),
@@ -298,6 +315,26 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertCount(2, $discovery->getBindings());
         $this->assertCount(1, $discovery->getBindings('/file1'));
         $this->assertCount(1, $discovery->getBindings('/file2'));
+    }
+
+    /**
+     * @expectedException \Puli\Repository\Api\UnsupportedLanguageException
+     * @expectedExceptionMessage foo
+     */
+    public function testUnbindFailsIfUnsupportedLanguage()
+    {
+        $repo = $this->createRepository(array(
+            new TestFile('/file1'),
+            new TestFile('/file2'),
+        ));
+
+        $discovery = $this->createEditableDiscovery($repo);
+        $discovery->defineType(new BindingType('type'));
+        $discovery->bind('/file*', 'type');
+
+        // Only the binding for "/file*" is removed, not the others
+        $discovery = $this->getDiscoveryUnderTest($discovery);
+        $discovery->unbind('/file*', null, null, 'foo');
     }
 
     public function testUnbindIgnoresUnknownPath()

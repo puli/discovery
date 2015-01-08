@@ -84,8 +84,12 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function unbind($query, $typeName = null, array $parameterValues = null)
+    public function unbind($query, $typeName = null, array $parameterValues = null, $language = null)
     {
+        if (null !== $language && 'glob' !== $language) {
+            throw UnsupportedLanguageException::forLanguage($language);
+        }
+
         if (null !== $typeName) {
             $this->removeBindingsByQueryAndType($query, $typeName, $parameterValues);
 
@@ -399,7 +403,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *
      * @return bool Returns `true` if the resource path matches the query.
      */
-    private function resourcePathMatchesQuery($resourcePath, $query)
+    protected function resourcePathMatchesQuery($resourcePath, $query)
     {
         if (false !== strpos($query, '*')) {
             return Glob::match($resourcePath, $query);
