@@ -12,8 +12,8 @@ Latest release: none
 
 PHP >= 5.3.9
 
-The Puli Discovery component supports binding of Puli resources to types. Types
-can be defined with the `define()` method of the [`InMemoryDiscovery`]:
+The Puli Discovery component supports binding of [Puli] resources to types.
+Types can be defined with the `define()` method of the [`InMemoryDiscovery`]:
 
 ```php
 use Puli\Discovery\InMemoryDiscovery;
@@ -85,10 +85,11 @@ License
 
 All contents of this package are licensed under the [MIT license].
 
+[Puli]: http://puli.io
 [Bernhard Schussek]: http://webmozarts.com
 [The Community Contributors]: https://github.com/puli/discovery/graphs/contributors
 [Puli at a Glance]: http://docs.puli.io/en/latest/at-a-glance.html
-[issue tracker]: https://github.com/puli/puli/issues
+[issue tracker]: https://github.com/puli/issues/issues
 [Git repository]: https://github.com/puli/discovery
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
