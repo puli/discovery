@@ -25,7 +25,7 @@ use Puli\Discovery\Api\Binding\ResourceBinding;
  * foreach ($bindings as $binding) {
  *     foreach ($binding->getResources() as $resource) {
  *         $translator->addXlfCatalog(
- *             $resource->getLocalPath(),
+ *             $resource->getFilesystemPath(),
  *             $binding->getParameter('translationDomain')
  *         );
  *     }
