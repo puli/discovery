@@ -1,5 +1,5 @@
-Puli Resource Discovery
-=======================
+The Puli Discovery Component
+============================
 
 [![Build Status](https://travis-ci.org/puli/discovery.svg?branch=master)](https://travis-ci.org/puli/discovery)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/discovery/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/discovery/?branch=master)
@@ -12,8 +12,9 @@ Latest release: none
 
 PHP >= 5.3.9
 
-The Puli Discovery component supports binding of [Puli] resources to types.
-Types can be defined with the `define()` method of the [`InMemoryDiscovery`]:
+The [Puli] Discovery Component supports binding of Puli resources to *binding
+types*. Binding types can be defined with the `define()` method of the 
+[`EditableDiscovery`] interface:
 
 ```php
 use Puli\Discovery\InMemoryDiscovery;
@@ -21,50 +22,48 @@ use Puli\Discovery\InMemoryDiscovery;
 // $repo is a Puli repository
 $discovery = new InMemoryDiscovery($repo);
 
-$discovery->define('acme/xliff-messages');
+$discovery->define('doctrine/xml-mapping');
 ```
 
-Resources in the repository can be bound to defined types with the `bind()`
-method:
+Resources in the repository can then be bound to the defined type with `bind()`:
 
 ```php
-$discovery->bind('/app/trans/*.xlf', 'acme/xliff-messages');
+$discovery->bind('/app/config/doctrine/*.xml', 'doctrine/xml-mapping');
 ```
 
-You can define parameters for binding types:
+With `find()`, you can later retrieve all the bindings for the type:
 
 ```php
-use Puli\Discovery\Api\Binding\BindingParameter;
-use Puli\Discovery\Api\Binding\BindingType;
-
-$discovery->define(new BindingType('acme/xliff-messages', array(
-    new BindingParameter('translationDomain'),
-)));
-
-$discovery->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
-    'translationDomain' => 'errors',
-));
-```
-
-The bindings can later be fetched with the `find()` method:
-
-```php
-$bindings = $discovery->find('acme/xliff-messages');
-
-foreach ($bindings as $binding) {
+foreach ($discovery->find('doctrine/xml-mapping') as $binding) {
     foreach ($binding->getResources() as $resource) {
-        $translator->add($resource->getLocalPath(), $binding->getParameter('translationDomain'));
+        // do something...
     }
 }
 ```
 
-Read [Puli at a Glance] if you want to learn more about Puli.
+The following [`ResourceDiscovery`] implementations are currently supported:
+
+* [`InMemoryDiscovery`]
+* [`KeyValueStoreDiscovery`]
+
+Read the [Resource Discovery] guide in the Puli documentation to learn more
+about resource discovery.
 
 Authors
 -------
 
 * [Bernhard Schussek] a.k.a. [@webmozart]
 * [The Community Contributors]
+
+Installation
+------------
+
+Follow the [Getting Started] guide to install Puli in your project.
+
+Documentation
+-------------
+
+Read the [Puli Documentation] to learn more about Puli.
 
 Contribute
 ----------
@@ -88,9 +87,14 @@ All contents of this package are licensed under the [MIT license].
 [Puli]: http://puli.io
 [Bernhard Schussek]: http://webmozarts.com
 [The Community Contributors]: https://github.com/puli/discovery/graphs/contributors
-[Puli at a Glance]: http://docs.puli.io/en/latest/at-a-glance.html
+[Resource Discovery]: http://docs.puli.io/en/latest/discovery.html
+[Getting Started]: http://docs.puli.io/en/latest/getting-started.html
+[Puli Documentation]: http://docs.puli.io/en/latest/index.html
 [issue tracker]: https://github.com/puli/issues/issues
 [Git repository]: https://github.com/puli/discovery
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
-[`InMemoryDiscovery`]: src/InMemoryDiscovery.php
+[`EditableDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.EditableDiscovery.html
+[`ResourceDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.ResourceDiscovery.html
+[`InMemoryDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.InMemoryDiscovery.html
+[`KeyValueStoreDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.KeyValueStoreDiscovery.html
