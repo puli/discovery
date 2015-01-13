@@ -11,12 +11,12 @@
 
 namespace Puli\Discovery;
 
-use Assert\Assertion;
 use InvalidArgumentException;
 use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\DuplicateTypeException;
 use Puli\Discovery\Api\NoSuchTypeException;
+use Puli\Discovery\Assert\Assert;
 use Puli\Discovery\Binding\EagerBinding;
 use Puli\Repository\Api\ResourceRepository;
 use RuntimeException;
@@ -82,7 +82,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     public function undefineType($typeName)
     {
-        Assertion::string($typeName);
+        Assert::typeName($typeName);
 
         $this->removeBindingsByType($typeName);
 

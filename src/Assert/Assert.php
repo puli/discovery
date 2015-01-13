@@ -14,6 +14,11 @@ namespace Puli\Discovery\Assert;
 /**
  * Domain-specific assertions.
  *
+ * @method static void nullOrTypeName($value)
+ * @method static void nullOrParameterName($value)
+ * @method static void allTypeName($values)
+ * @method static void allParameterName($values)
+ *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
@@ -31,13 +36,6 @@ class Assert extends \Puli\Repository\Assert\Assert
         self::string($value, 'The parameter name must be a string. Got: %s');
         self::notEmpty($value, 'The parameter name must not be empty.');
         self::true(ctype_alpha($value[0]), 'The parameter name must start with a letter.');
-    }
-
-    public static function nullOrParameterName($value)
-    {
-        if (null !== $value) {
-            self::parameterName($value);
-        }
     }
 
     private function __construct()

@@ -11,12 +11,12 @@
 
 namespace Puli\Discovery;
 
-use Assert\Assertion;
 use InvalidArgumentException;
 use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\DuplicateTypeException;
 use Puli\Discovery\Api\NoSuchTypeException;
+use Puli\Discovery\Assert\Assert;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
 use RuntimeException;
@@ -93,7 +93,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
      */
     public function undefineType($typeName)
     {
-        Assertion::string($typeName);
+        Assert::string($typeName);
 
         $this->removeBindingsByType($typeName);
 
