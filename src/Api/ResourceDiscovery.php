@@ -57,6 +57,8 @@ interface ResourceDiscovery
      * @param string $typeName The name of the binding type.
      *
      * @return ResourceBinding[] The matching bindings.
+     *
+     * @throws NoSuchTypeException If the type has not been defined.
      */
     public function find($typeName);
 
@@ -70,6 +72,8 @@ interface ResourceDiscovery
      * @param string|null $typeName     The name of a binding type.
      *
      * @return ResourceBinding[] The matching bindings.
+     *
+     * @throws NoSuchTypeException If a type is passed that has not been defined.
      */
     public function getBindings($resourcePath = null, $typeName = null);
 

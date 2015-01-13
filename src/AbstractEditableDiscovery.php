@@ -14,6 +14,7 @@ namespace Puli\Discovery;
 use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\NoQueryMatchesException;
+use Puli\Discovery\Api\NoSuchTypeException;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Api\UnsupportedLanguageException;
@@ -213,7 +214,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     protected function getBindingsByType($typeName)
     {
         if (!isset($this->typeIndex[$typeName])) {
-            return array();
+            throw NoSuchTypeException::forTypeName($typeName);
         }
 
         $bindings = array();
@@ -262,7 +263,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     protected function getBindingsByResourcePathAndType($resourcePath, $typeName)
     {
         if (!isset($this->typeIndex[$typeName])) {
-            return array();
+            throw NoSuchTypeException::forTypeName($typeName);
         }
 
         $bindings = array();

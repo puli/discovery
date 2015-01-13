@@ -71,12 +71,16 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertBindingsEqual(array($binding3), $discovery->find('type2'));
     }
 
-    public function testFindIgnoresUnknownType()
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage foo
+     */
+    public function testFindFailsIfUnknownType()
     {
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
 
-        $this->assertSame(array(), $discovery->find('foo'));
+        $discovery->find('foo');
     }
 
     public function testGetBindings()
@@ -132,7 +136,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertSame(array(), $discovery->getBindings());
     }
 
-    public function testGetNoBindingsIgnoresUnknownPath()
+    public function testGetBindingsIgnoresUnknownPath()
     {
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
@@ -140,12 +144,28 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertSame(array(), $discovery->getBindings('foo'));
     }
 
-    public function testGetNoBindingsIgnoresUnknownType()
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage foo
+     */
+    public function testGetBindingsFailsIfUnknownType()
     {
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
 
         $this->assertSame(array(), $discovery->getBindings(null, 'foo'));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage bar
+     */
+    public function testGetBindingsWithPathFailsIfUnknownType()
+    {
+        $repo = $this->createRepository();
+        $discovery = $this->createDiscovery($repo);
+
+        $this->assertSame(array(), $discovery->getBindings('foo', 'bar'));
     }
 
     public function testGetType()

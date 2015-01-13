@@ -37,7 +37,6 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->discovery->bind('/path', 'type');
 
         $this->assertFalse($this->discovery->isTypeDefined('type'));
-        $this->assertCount(0, $this->discovery->find('type'));
         $this->assertCount(0, $this->discovery->getBindings());
     }
 
@@ -48,7 +47,6 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->discovery->unbind('/path');
 
         $this->assertFalse($this->discovery->isTypeDefined('type'));
-        $this->assertCount(0, $this->discovery->find('type'));
         $this->assertCount(0, $this->discovery->getBindings());
     }
 
@@ -63,11 +61,34 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage type
      */
     public function testGetDefinedTypeAlwaysThrowsException()
     {
         $this->discovery->defineType('type');
 
         $this->discovery->getDefinedType('type');
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage type
+     */
+    public function testFindAlwaysThrowsException()
+    {
+        $this->discovery->defineType('type');
+
+        $this->discovery->find('type');
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage type
+     */
+    public function testGetBindingsAlwaysThrowsExceptionIfTypeIsPassed()
+    {
+        $this->discovery->defineType('type');
+
+        $this->discovery->getBindings(null, 'type');
     }
 }

@@ -490,7 +490,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->clear();
 
         $this->assertSame(array(), $discovery->getBindings());
-        $this->assertSame(array(), $discovery->find('type'));
         $this->assertSame(array(), $discovery->getDefinedTypes());
 
     }

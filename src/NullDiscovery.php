@@ -66,7 +66,7 @@ class NullDiscovery implements EditableDiscovery
      */
     public function find($typeName)
     {
-        return array();
+        throw NoSuchTypeException::forTypeName($typeName);
     }
 
     /**
@@ -74,6 +74,10 @@ class NullDiscovery implements EditableDiscovery
      */
     public function getBindings($resourcePath = null, $typeName = null)
     {
+        if (null !== $typeName) {
+            throw NoSuchTypeException::forTypeName($typeName);
+        }
+
         return array();
     }
 
