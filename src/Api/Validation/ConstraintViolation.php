@@ -75,7 +75,7 @@ class ConstraintViolation
      */
     public function __construct($code, $invalidValue, $typeName, $parameterName = null)
     {
-        Assert::choice($code, self::$codes, 'The violation code "%s" is not valid.');
+        Assert::oneOf($code, self::$codes, 'The violation code %s is not valid.');
         Assert::typeName($typeName);
         Assert::nullOrParameterName($parameterName);
 

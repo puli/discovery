@@ -11,33 +11,33 @@
 
 namespace Puli\Discovery\Assert;
 
-use Assert\Assertion;
-
 /**
- * Contains domain-specific assertions.
+ * Domain-specific assertions.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @method static void nullOrTypeName($value, $message = null, $propertyPath = null)
- * @method static void nullOrParameterName($value, $message = null, $propertyPath = null)
- * @method static void allTypeName($value, $message = null, $propertyPath = null)
- * @method static void allParameterName($value, $message = null, $propertyPath = null)
  */
-class Assert extends Assertion
+class Assert extends \Puli\Repository\Assert\Assert
 {
-    public static function typeName($typeName)
+    public static function typeName($value)
     {
-        Assert::string($typeName, 'The type name must be a string. Got: %2$s');
-        Assert::notEmpty($typeName, 'The type name must not be empty.');
-        Assert::true(ctype_alpha($typeName[0]), 'The type name must start with a letter.');
+        self::string($value, 'The type name must be a string. Got: %s');
+        self::notEmpty($value, 'The type name must not be empty.');
+        self::true(ctype_alpha($value[0]), 'The type name must start with a letter.');
     }
 
-    public static function parameterName($parameterName)
+    public static function parameterName($value)
     {
-        Assertion::string($parameterName, 'The parameter name must be a string. Got: %2$s');
-        Assertion::notEmpty($parameterName, 'The parameter name must not be empty.');
-        Assertion::true(ctype_alpha($parameterName[0]), 'The parameter name must start with a letter.');
+        self::string($value, 'The parameter name must be a string. Got: %s');
+        self::notEmpty($value, 'The parameter name must not be empty.');
+        self::true(ctype_alpha($value[0]), 'The parameter name must start with a letter.');
+    }
+
+    public static function nullOrParameterName($value)
+    {
+        if (null !== $value) {
+            self::parameterName($value);
+        }
     }
 
     private function __construct()
