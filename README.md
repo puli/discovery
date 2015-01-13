@@ -45,6 +45,7 @@ The following [`ResourceDiscovery`] implementations are currently supported:
 
 * [`InMemoryDiscovery`]
 * [`KeyValueStoreDiscovery`]
+* [`NullDiscovery`]
 
 Read the [Resource Discovery] guide in the Puli documentation to learn more
 about resource discovery.
@@ -98,3 +99,4 @@ All contents of this package are licensed under the [MIT license].
 [`ResourceDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.ResourceDiscovery.html
 [`InMemoryDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.InMemoryDiscovery.html
 [`KeyValueStoreDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.KeyValueStoreDiscovery.html
+[`NullDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.NullDiscovery.html
