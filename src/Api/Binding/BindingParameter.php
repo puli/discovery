@@ -11,8 +11,8 @@
 
 namespace Puli\Discovery\Api\Binding;
 
-use Puli\Discovery\Assert\Assert;
 use RuntimeException;
+use Webmozart\Assert\Assert;
 
 /**
  * A parameter that can be set during binding.
@@ -46,7 +46,8 @@ class BindingParameter
      */
     public function __construct($name, $required = false, $defaultValue = null)
     {
-        Assert::parameterName($name);
+        Assert::stringNotEmpty($name, 'The parameter name must be a non-empty string. Got: %s');
+        Assert::startsWithLetter($name, 'The parameter name must start with a letter. Got: %s');
         Assert::boolean($required, 'The parameter "$required" must be a boolean. Got: %s');
 
         if ($required && null !== $defaultValue) {

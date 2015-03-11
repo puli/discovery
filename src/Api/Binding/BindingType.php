@@ -11,7 +11,7 @@
 
 namespace Puli\Discovery\Api\Binding;
 
-use Puli\Discovery\Assert\Assert;
+use Webmozart\Assert\Assert;
 
 /**
  * A type that a resource can be bound to.
@@ -40,7 +40,8 @@ class BindingType
      */
     public function __construct($name, array $parameters = array())
     {
-        Assert::typeName($name);
+        Assert::stringNotEmpty($name, 'The type name must be a non-empty string. Got: %s');
+        Assert::startsWithLetter($name, 'The type name must start with a letter. Got: %s');
         Assert::allIsInstanceOf($parameters, 'Puli\Discovery\Api\Binding\BindingParameter');
 
         $this->name = $name;

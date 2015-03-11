@@ -12,7 +12,7 @@
 namespace Puli\Discovery\Api\Validation;
 
 use InvalidArgumentException;
-use Puli\Discovery\Assert\Assert;
+use Webmozart\Assert\Assert;
 
 /**
  * A violation detected during parameter validation.
@@ -76,8 +76,8 @@ class ConstraintViolation
     public function __construct($code, $invalidValue, $typeName, $parameterName = null)
     {
         Assert::oneOf($code, self::$codes, 'The violation code %s is not valid.');
-        Assert::typeName($typeName);
-        Assert::nullOrParameterName($parameterName);
+        Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
+        Assert::nullOrStringNotEmpty($parameterName, 'The parameter name must be a non-empty string or null. Got: %s');
 
         $this->code = $code;
         $this->typeName = $typeName;

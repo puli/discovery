@@ -16,10 +16,10 @@ use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\DuplicateTypeException;
 use Puli\Discovery\Api\NoSuchTypeException;
-use Puli\Discovery\Assert\Assert;
 use Puli\Discovery\Binding\LazyBinding;
 use Puli\Repository\Api\ResourceRepository;
 use RuntimeException;
+use Webmozart\Assert\Assert;
 use Webmozart\KeyValueStore\Api\KeyValueStore;
 
 /**
@@ -93,7 +93,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
      */
     public function undefineType($typeName)
     {
-        Assert::string($typeName);
+        Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
 
         $this->removeBindingsByType($typeName);
 
