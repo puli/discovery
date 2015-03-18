@@ -131,7 +131,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->bind('/file', 'type');
 
-        $this->assertCount(1, $discovery->find('type'));
+        $this->assertCount(1, $discovery->findByType('type'));
         $this->assertCount(1, $discovery->getBindings());
     }
 
@@ -150,20 +150,20 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->bind('/file1', 'type2');
         $discovery->bind('/file2', 'type1');
 
-        $this->assertCount(2, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(2, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(2, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(3, $discovery->getBindings());
-        $this->assertCount(2, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
 
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file1');
 
-        $this->assertCount(1, $discovery->find('type1'));
-        $this->assertCount(0, $discovery->find('type2'));
+        $this->assertCount(1, $discovery->findByType('type1'));
+        $this->assertCount(0, $discovery->findByType('type2'));
+        $this->assertCount(0, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(1, $discovery->getBindings());
-        $this->assertCount(0, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
     public function testUnbindPathWithType()
@@ -181,20 +181,20 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->bind('/file1', 'type2');
         $discovery->bind('/file2', 'type1');
 
-        $this->assertCount(2, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(2, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(2, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(3, $discovery->getBindings());
-        $this->assertCount(2, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
 
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file1', 'type1');
 
-        $this->assertCount(1, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(1, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(1, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(2, $discovery->getBindings());
-        $this->assertCount(1, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
     public function testUnbindPathWithTypeAndParameters()
@@ -221,22 +221,22 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             'param' => 'foo',
         ));
 
-        $this->assertCount(3, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(3, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(3, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(4, $discovery->getBindings());
-        $this->assertCount(3, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
 
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file1', 'type1', array(
             'param' => 'foo',
         ));
 
-        $this->assertCount(2, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(2, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(2, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(3, $discovery->getBindings());
-        $this->assertCount(2, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
     public function testUnbindPathWithParameters()
@@ -267,22 +267,22 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             'param' => 'foo',
         ));
 
-        $this->assertCount(3, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(3, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(3, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(4, $discovery->getBindings());
-        $this->assertCount(3, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
 
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file1', null, array(
             'param' => 'foo',
         ));
 
-        $this->assertCount(2, $discovery->find('type1'));
-        $this->assertCount(0, $discovery->find('type2'));
+        $this->assertCount(2, $discovery->findByType('type1'));
+        $this->assertCount(0, $discovery->findByType('type2'));
+        $this->assertCount(1, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(2, $discovery->getBindings());
-        $this->assertCount(1, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
     public function testUnbindQuery()
@@ -300,21 +300,21 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->bind('/file2', 'type2');
         $discovery->bind('/file*', 'type1');
 
-        $this->assertCount(2, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(2, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(2, $discovery->findByPath('/file1'));
+        $this->assertCount(2, $discovery->findByPath('/file2'));
         $this->assertCount(3, $discovery->getBindings());
-        $this->assertCount(2, $discovery->getBindings('/file1'));
-        $this->assertCount(2, $discovery->getBindings('/file2'));
 
         // Only the binding for "/file*" is removed, not the others
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file*');
 
-        $this->assertCount(1, $discovery->find('type1'));
-        $this->assertCount(1, $discovery->find('type2'));
+        $this->assertCount(1, $discovery->findByType('type1'));
+        $this->assertCount(1, $discovery->findByType('type2'));
+        $this->assertCount(1, $discovery->findByPath('/file1'));
+        $this->assertCount(1, $discovery->findByPath('/file2'));
         $this->assertCount(2, $discovery->getBindings());
-        $this->assertCount(1, $discovery->getBindings('/file1'));
-        $this->assertCount(1, $discovery->getBindings('/file2'));
     }
 
     /**
@@ -362,9 +362,9 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery = $this->getDiscoveryUnderTest($discovery);
         $discovery->unbind('/file', 'foobar');
 
-        $this->assertCount(1, $discovery->find('type'));
+        $this->assertCount(1, $discovery->findByType('type'));
+        $this->assertCount(1, $discovery->findByPath('/file'));
         $this->assertCount(1, $discovery->getBindings());
-        $this->assertCount(1, $discovery->getBindings('/file'));
     }
 
     public function testDefineTypeName()
@@ -473,7 +473,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->undefineType('type');
 
         $this->assertFalse($discovery->isTypeDefined('type'));
-        $this->assertCount(0, $discovery->getBindings('/file'));
+        $this->assertCount(0, $discovery->findByPath('/file'));
     }
 
     public function testClear()

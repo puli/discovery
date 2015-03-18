@@ -103,29 +103,33 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function find($typeName)
+    public function findByType($typeName)
     {
-        return $this->getBindingsByType($typeName);
+        if (!isset($this->typeIndex[$typeName])) {
+            throw NoSuchTypeException::forTypeName($typeName);
+        }
+
+        $bindings = array();
+
+        if (isset($this->typeIndex[$typeName])) {
+            foreach ($this->typeIndex[$typeName] as $id => $true) {
+                $bindings[] = $this->getBinding($id);
+            }
+        }
+
+        return $bindings;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBindings($resourcePath = null, $typeName = null)
+    public function findByPath($resourcePath, $typeName = null)
     {
-        if (null === $resourcePath && null === $typeName) {
-            return $this->getAllBindings();
-        }
-
-        if (null === $resourcePath) {
-            return $this->getBindingsByType($typeName);
-        }
-
         if (null === $typeName) {
-            return $this->getBindingsByResourcePath($resourcePath);
+            return $this->findAllForPath($resourcePath);
         }
 
-        return $this->getBindingsByResourcePathAndType($resourcePath, $typeName);
+        return $this->findByPathAndType($resourcePath, $typeName);
     }
 
     /**
@@ -151,13 +155,6 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      * @return ResourceBinding The binding with the ID.
      */
     abstract protected function getBinding($id);
-
-    /**
-     * Returns all bindings.
-     *
-     * @return ResourceBinding[] The bindings.
-     */
-    abstract protected function getAllBindings();
 
     /**
      * Inserts a binding.
@@ -205,37 +202,13 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     }
 
     /**
-     * Returns the bindings for a type.
-     *
-     * @param string $typeName The type name.
-     *
-     * @return ResourceBinding[] The bindings for that type.
-     */
-    protected function getBindingsByType($typeName)
-    {
-        if (!isset($this->typeIndex[$typeName])) {
-            throw NoSuchTypeException::forTypeName($typeName);
-        }
-
-        $bindings = array();
-
-        if (isset($this->typeIndex[$typeName])) {
-            foreach ($this->typeIndex[$typeName] as $id => $true) {
-                $bindings[] = $this->getBinding($id);
-            }
-        }
-
-        return $bindings;
-    }
-
-    /**
      * Returns the bindings for a resource path.
      *
      * @param string $resourcePath The resource path.
      *
      * @return ResourceBinding[] The bindings for that resource path.
      */
-    protected function getBindingsByResourcePath($resourcePath)
+    protected function findAllForPath($resourcePath)
     {
         $bindings = array();
 
@@ -260,7 +233,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *
      * @return ResourceBinding[] The matching bindings.
      */
-    protected function getBindingsByResourcePathAndType($resourcePath, $typeName)
+    protected function findByPathAndType($resourcePath, $typeName)
     {
         if (!isset($this->typeIndex[$typeName])) {
             throw NoSuchTypeException::forTypeName($typeName);

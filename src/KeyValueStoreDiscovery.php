@@ -153,19 +153,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function getBinding($id)
-    {
-        if (!isset($this->bindings[$id])) {
-            $this->loadBinding($id);
-        }
-
-        return $this->bindings[$id];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getAllBindings()
+    public function getBindings()
     {
         $nextId = $this->store->get('//nextId');
 
@@ -176,6 +164,18 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         }
 
         return array_values($this->bindings);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getBinding($id)
+    {
+        if (!isset($this->bindings[$id])) {
+            $this->loadBinding($id);
+        }
+
+        return $this->bindings[$id];
     }
 
     /**

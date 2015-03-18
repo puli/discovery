@@ -17,10 +17,10 @@ use Puli\Discovery\Api\Binding\ResourceBinding;
 /**
  * Discovers resources for binding types.
  *
- * Use {@link find()} to query all bindings bound to a binding type:
+ * Use {@link findByType()} to query all bindings bound to a binding type:
  *
  * ```php
- * $bindings = $binder->find('acme/xliff-messages');
+ * $bindings = $discovery->findByType('acme/xliff-messages');
  *
  * foreach ($bindings as $binding) {
  *     foreach ($binding->getResources() as $resource) {
@@ -32,18 +32,18 @@ use Puli\Discovery\Api\Binding\ResourceBinding;
  * }
  * ```
  *
- * Use {@link getBindings()} if you want to retrieve all bindings for a
+ * Use {@link findByPath()} if you want to retrieve all bindings for a
  * specific resource:
  *
  * ```php
- * $bindings = $binder->getBindings('/app/trans/errors.fr.xlf');
+ * $bindings = $discovery->findByPath('/app/trans/errors.fr.xlf');
  * ```
  *
  * That method optionally lets you filter the bindings for that resource by
  * their binding type:
  *
  * ```php
- * $bindings = $binder->getBindings('/app/trans/errors.fr.xlf', 'acme/xliff-messages');
+ * $bindings = $discovery->findByPath('/app/trans/errors.fr.xlf', 'acme/xliff-messages');
  * ```
  *
  * @since  1.0
@@ -60,22 +60,28 @@ interface ResourceDiscovery
      *
      * @throws NoSuchTypeException If the type has not been defined.
      */
-    public function find($typeName);
+    public function findByType($typeName);
 
     /**
-     * Returns all bindings.
+     * Returns all bindings for the given resource path.
      *
-     * You can filter the returned bindings by resource path and type name.
-     * Both arguments are optional.
+     * You can optionally filter the bindings by binding type.
      *
-     * @param string|null $resourcePath The canonical path to a resource.
+     * @param string      $resourcePath The canonical path to a resource.
      * @param string|null $typeName     The name of a binding type.
      *
      * @return ResourceBinding[] The matching bindings.
      *
-     * @throws NoSuchTypeException If a type is passed that has not been defined.
+     * @throws NoSuchTypeException If the type has not been defined.
      */
-    public function getBindings($resourcePath = null, $typeName = null);
+    public function findByPath($resourcePath, $typeName = null);
+
+    /**
+     * Returns all bindings.
+     *
+     * @return ResourceBinding[] The bindings.
+     */
+    public function getBindings();
 
     /**
      * Returns whether a binding type has been defined.

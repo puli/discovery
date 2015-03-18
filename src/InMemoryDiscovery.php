@@ -132,7 +132,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function getAllBindings()
+    public function getBindings()
     {
         return array_values($this->bindings);
     }

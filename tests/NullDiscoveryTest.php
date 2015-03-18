@@ -74,21 +74,21 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
      * @expectedException \Puli\Discovery\Api\NoSuchTypeException
      * @expectedExceptionMessage type
      */
-    public function testFindAlwaysThrowsException()
+    public function testFindByTypeAlwaysThrowsException()
     {
         $this->discovery->defineType('type');
 
-        $this->discovery->find('type');
+        $this->discovery->findByType('type');
     }
 
     /**
      * @expectedException \Puli\Discovery\Api\NoSuchTypeException
      * @expectedExceptionMessage type
      */
-    public function testGetBindingsAlwaysThrowsExceptionIfTypeIsPassed()
+    public function testFindByPathAlwaysThrowsExceptionIfTypeIsPassed()
     {
         $this->discovery->defineType('type');
 
-        $this->discovery->getBindings(null, 'type');
+        $this->discovery->findByPath('/path', 'type');
     }
 }

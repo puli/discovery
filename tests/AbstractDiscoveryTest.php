@@ -51,7 +51,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
      */
     abstract protected function createDiscovery(ResourceRepository $repo, array $bindings = array());
 
-    public function testFind()
+    public function testFindByType()
     {
         $type1 = new BindingType('type1');
         $type2 = new BindingType('type2');
@@ -67,20 +67,82 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             $binding3 = new EagerBinding('/file2', $resource2, $type2),
         ));
 
-        $this->assertBindingsEqual(array($binding1, $binding2), $discovery->find('type1'));
-        $this->assertBindingsEqual(array($binding3), $discovery->find('type2'));
+        $this->assertBindingsEqual(array($binding1, $binding2), $discovery->findByType('type1'));
+        $this->assertBindingsEqual(array($binding3), $discovery->findByType('type2'));
     }
 
     /**
      * @expectedException \Puli\Discovery\Api\NoSuchTypeException
      * @expectedExceptionMessage foo
      */
-    public function testFindFailsIfUnknownType()
+    public function testFindByTypeFailsIfUnknownType()
     {
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
 
-        $discovery->find('foo');
+        $discovery->findByType('foo');
+    }
+
+    public function testFindByPath()
+    {
+        $type1 = new BindingType('type1');
+        $type2 = new BindingType('type2');
+
+        $repo = $this->createRepository(array(
+            $resource1 = new TestFile('/file1'),
+            $resource2 = new TestFile('/data/file2'),
+            $resource3 = new TestFile('/data/file3'),
+        ));
+
+        $coll = new ArrayResourceCollection(array($resource2, $resource3));
+
+        $discovery = $this->createDiscovery($repo, array(
+            $binding1 = new EagerBinding('/file1', $resource1, $type1),
+            $binding2 = new EagerBinding('/data/file2', $resource2, $type1),
+            $binding3 = new EagerBinding('/data/*', $coll, $type2),
+        ));
+
+        $this->assertBindingsEqual(array($binding2, $binding3), $discovery->findByPath('/data/file2'));
+        $this->assertBindingsEqual(array($binding3), $discovery->findByPath('/data/file2', 'type2'));
+    }
+
+    public function testFindByPathForResourceAddedAfterCreation()
+    {
+        $type = new BindingType('type');
+
+        $repo = $this->createRepository(array(
+            new TestFile('/data/file1'),
+        ));
+
+        $discovery = $this->createDiscovery($repo, array(
+            $binding = new LazyBinding('/data/*', $repo, $type),
+        ));
+
+        $repo->add('/data/file2', new TestFile());
+
+        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file1'));
+        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file2'));
+        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file2', 'type'));
+    }
+
+    public function testFindByPathIgnoresUnknownPath()
+    {
+        $repo = $this->createRepository();
+        $discovery = $this->createDiscovery($repo);
+
+        $this->assertSame(array(), $discovery->findByPath('foo'));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
+     * @expectedExceptionMessage foo
+     */
+    public function testFindByPathFailsIfUnknownType()
+    {
+        $repo = $this->createRepository();
+        $discovery = $this->createDiscovery($repo);
+
+        $this->assertSame(array(), $discovery->findByPath('/data/file1', 'foo'));
     }
 
     public function testGetBindings()
@@ -103,9 +165,6 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         ));
 
         $this->assertBindingsEqual(array($binding1, $binding2, $binding3), $discovery->getBindings());
-        $this->assertBindingsEqual(array($binding2, $binding3), $discovery->getBindings('/data/file2'));
-        $this->assertBindingsEqual(array($binding3), $discovery->getBindings('/data/file2', 'type2'));
-        $this->assertBindingsEqual(array($binding1, $binding2), $discovery->getBindings(null, 'type1'));
     }
 
     public function testGetBindingsForResourceAddedAfterCreation()
@@ -123,9 +182,6 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $repo->add('/data/file2', new TestFile());
 
         $this->assertBindingsEqual(array($binding), $discovery->getBindings());
-        $this->assertBindingsEqual(array($binding), $discovery->getBindings('/data/file1'));
-        $this->assertBindingsEqual(array($binding), $discovery->getBindings('/data/file2'));
-        $this->assertBindingsEqual(array($binding), $discovery->getBindings('/data/file2', 'type'));
     }
 
     public function testGetNoBindings()
@@ -134,38 +190,6 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $discovery = $this->createDiscovery($repo);
 
         $this->assertSame(array(), $discovery->getBindings());
-    }
-
-    public function testGetBindingsIgnoresUnknownPath()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->getBindings('foo'));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage foo
-     */
-    public function testGetBindingsFailsIfUnknownType()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->getBindings(null, 'foo'));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage bar
-     */
-    public function testGetBindingsWithPathFailsIfUnknownType()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->getBindings('foo', 'bar'));
     }
 
     public function testGetType()
