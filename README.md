@@ -31,10 +31,10 @@ Resources in the repository can then be bound to the defined type with `bind()`:
 $discovery->bind('/app/config/doctrine/*.xml', 'doctrine/xml-mapping');
 ```
 
-With `find()`, you can later retrieve all the bindings for the type:
+With `findByType()`, you can later retrieve all the bindings for the type:
 
 ```php
-foreach ($discovery->find('doctrine/xml-mapping') as $binding) {
+foreach ($discovery->findByType('doctrine/xml-mapping') as $binding) {
     foreach ($binding->getResources() as $resource) {
         // do something...
     }
