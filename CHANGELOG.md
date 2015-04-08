@@ -1,6 +1,11 @@
 Changelog
 =========
 
+* 1.0.0-next (@release_date@)
+
+ * `LazyBinding` does not cache resources anymore in case the repository 
+   contents changed since the last call
+
 * 1.0.0-beta3 (2015-03-19)
 
  * replaced `Assert` by webmozart/assert

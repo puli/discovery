@@ -60,7 +60,7 @@ class LazyBindingTest extends AbstractBindingTest
             new TestFile('/file2'),
         ));
 
-        $repo->expects($this->once())
+        $repo->expects($this->exactly(2))
             ->method('find')
             ->with('/file*', 'glob')
             ->will($this->returnValue($collection));
@@ -69,7 +69,7 @@ class LazyBindingTest extends AbstractBindingTest
 
         $this->assertSame($collection, $binding->getResources());
 
-        // access again, no more repository calls
+        // access again, repository called again in case the repository changed
         $this->assertSame($collection, $binding->getResources());
     }
 }

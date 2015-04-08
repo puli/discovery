@@ -26,11 +26,6 @@ use Puli\Repository\Api\ResourceRepository;
 class LazyBinding extends AbstractBinding
 {
     /**
-     * @var ResourceCollection
-     */
-    private $resources;
-
-    /**
      * @var ResourceRepository
      */
     private $repo;
@@ -60,10 +55,6 @@ class LazyBinding extends AbstractBinding
      */
     public function getResources()
     {
-        if (null === $this->resources) {
-            $this->resources = $this->repo->find($this->getQuery());
-        }
-
-        return $this->resources;
+        return $this->repo->find($this->getQuery());
     }
 }
