@@ -68,18 +68,20 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         return $discovery;
     }
 
-    /**
-     * @expectedException \Puli\Discovery\Api\NoQueryMatchesException
-     * @expectedExceptionMessage /foo
-     */
-    public function testBindFailsIfResourceNotFound()
+    public function testBindSucceedsIfNoQueryMatches()
     {
         $repo = $this->createRepository();
         $discovery = $this->createEditableDiscovery($repo);
         $discovery->defineType('type');
 
         $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->bind('/foo', 'type');
+
+        // even if the query does not match right now, it might later when
+        // resources are added to the repository
+        $discovery->bind('/*.twig', 'type');
+
+        $this->assertCount(1, $discovery->findByType('type'));
+        $this->assertCount(1, $discovery->getBindings());
     }
 
     /**

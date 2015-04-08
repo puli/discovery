@@ -74,7 +74,6 @@ interface EditableDiscovery extends ResourceDiscovery
      *
      * @throws NoSuchParameterException If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
-     * @throws NoQueryMatchesException If the query did not return any results.
      * @throws NoSuchTypeException If the passed type does not exist.
      * @throws UnsupportedLanguageException If the passed language is not supported.
      */

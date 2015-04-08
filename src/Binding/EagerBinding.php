@@ -15,10 +15,10 @@ use InvalidArgumentException;
 use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\Binding\MissingParameterException;
 use Puli\Discovery\Api\Binding\NoSuchParameterException;
-use Puli\Discovery\Api\NoQueryMatchesException;
 use Puli\Repository\Api\Resource\Resource;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Resource\Collection\ArrayResourceCollection;
+use Webmozart\Assert\Assert;
 
 /**
  * Binds resources to a type.
@@ -44,7 +44,6 @@ class EagerBinding extends AbstractBinding
      *
      * @throws NoSuchParameterException If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
-     * @throws NoQueryMatchesException If the query did not return any results.
      * @throws InvalidArgumentException If the resources are invalid.
      */
     public function __construct($query, $resources, BindingType $type, array $parameters = array(), $language = 'glob')
@@ -61,12 +60,7 @@ class EagerBinding extends AbstractBinding
             ));
         }
 
-        if (0 === count($resources)) {
-            throw new NoQueryMatchesException(sprintf(
-                'Did not find any resources to bind for query "%s".',
-                $query
-            ));
-        }
+        Assert::greaterThan(count($resources), 0, 'You should pass at least one resource to EagerBinding.');
 
         parent::__construct($query, $type, $parameters, $language);
 
