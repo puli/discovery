@@ -35,16 +35,23 @@ class BindingParameterTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($param->isRequired());
     }
 
+    public function testIsNotRequiredIfFlagsNull()
+    {
+        $param = new BindingParameter('name', null);
+
+        $this->assertFalse($param->isRequired());
+    }
+
     public function testRequired()
     {
-        $param = new BindingParameter('name', true);
+        $param = new BindingParameter('name', BindingParameter::REQUIRED);
 
         $this->assertTrue($param->isRequired());
     }
 
     public function testSetDefaultValue()
     {
-        $param = new BindingParameter('name', false, 'default');
+        $param = new BindingParameter('name', BindingParameter::OPTIONAL, 'default');
 
         $this->assertSame('name', $param->getName());
         $this->assertSame('default', $param->getDefaultValue());
@@ -55,7 +62,7 @@ class BindingParameterTest extends PHPUnit_Framework_TestCase
      */
     public function testFailIfRequiredParameterHasDefault()
     {
-        new BindingParameter('name', true, 'default');
+        new BindingParameter('name', BindingParameter::REQUIRED, 'default');
     }
 
     public function getValidNames()

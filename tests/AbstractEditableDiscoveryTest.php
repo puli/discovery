@@ -125,7 +125,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $discovery = $this->createEditableDiscovery($repo);
         $discovery->defineType(new BindingType('type', array(
-            new BindingParameter('param', false, 'default')
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default')
         )));
         $discovery->bind('/file', 'type', array('param' => 'default'));
 

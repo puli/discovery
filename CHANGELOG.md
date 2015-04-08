@@ -6,6 +6,8 @@ Changelog
  * `LazyBinding` does not cache resources anymore in case the repository 
    contents changed since the last call
  * removed `NoQueryMatchesException`
+ * changed boolean parameter `$required` to integer parameter `$flags` in
+   `BindingParameter::__construct()`
 
 * 1.0.0-beta3 (2015-03-19)
 

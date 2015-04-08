@@ -23,14 +23,24 @@ use Webmozart\Assert\Assert;
 class BindingParameter
 {
     /**
+     * Flag: The parameter is optional.
+     */
+    const OPTIONAL = 0;
+
+    /**
+     * Flag: The parameter is required.
+     */
+    const REQUIRED = 1;
+
+    /**
      * @var string
      */
     private $name;
 
     /**
-     * @var bool
+     * @var int
      */
-    private $required;
+    private $flags;
 
     /**
      * @var mixed
@@ -41,22 +51,23 @@ class BindingParameter
      * Creates a new parameter.
      *
      * @param string $name         The parameter name.
-     * @param bool   $required     Whether the parameter is required.
+     * @param int    $flags        A bitwise combination of the flag constants
+     *                             in this class.
      * @param mixed  $defaultValue The parameter's default value.
      */
-    public function __construct($name, $required = false, $defaultValue = null)
+    public function __construct($name, $flags = self::OPTIONAL, $defaultValue = null)
     {
         Assert::stringNotEmpty($name, 'The parameter name must be a non-empty string. Got: %s');
         Assert::startsWithLetter($name, 'The parameter name must start with a letter. Got: %s');
-        Assert::boolean($required, 'The parameter "$required" must be a boolean. Got: %s');
+        Assert::nullOrInteger($flags, 'The parameter "$flags" must be an integer or null. Got: %s');
 
-        if ($required && null !== $defaultValue) {
+        if (($flags & self::REQUIRED) && null !== $defaultValue) {
             throw new RuntimeException('Required parameters must not have default values.');
         }
 
 
         $this->name = $name;
-        $this->required = $required;
+        $this->flags = $flags;
         $this->defaultValue = $defaultValue;
     }
 
@@ -71,13 +82,13 @@ class BindingParameter
     }
 
     /**
-     * Returns whether the parameter must be set.
+     * Returns the flags passed to the constructor.
      *
-     * @return bool Returns `true` if the parameter must be set.
+     * @return int A bitwise combination of the flag constants in this class.
      */
-    public function isRequired()
+    public function getFlags()
     {
-        return $this->required;
+        return $this->flags;
     }
 
     /**
@@ -88,5 +99,16 @@ class BindingParameter
     public function getDefaultValue()
     {
         return $this->defaultValue;
+    }
+
+    /**
+     * Returns whether the parameter is required.
+     *
+     * @return bool Returns `true` if the parameter is required and `false`
+     *              otherwise.
+     */
+    public function isRequired()
+    {
+        return (bool) ($this->flags & self::REQUIRED);
     }
 }

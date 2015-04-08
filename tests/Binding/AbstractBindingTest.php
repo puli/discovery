@@ -70,7 +70,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     public function testCreateWithParameterDefaults()
     {
         $type = new BindingType('type', array(
-            new BindingParameter('param', false, 'default'),
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
         $binding = $this->createBinding('/path/*', $type);
@@ -88,7 +88,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     public function testCreateFailsIfMissingRequiredParameter()
     {
         $type = new BindingType('type', array(
-            new BindingParameter('param', true),
+            new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
         $this->createBinding('/file1', $type);
@@ -191,7 +191,7 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     public function testEqualIfDefaultValues()
     {
         $type = new BindingType('type', array(
-            new BindingParameter('param', false, 'default'),
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
         $binding1 = $this->createBinding('/path', $type, array('param' => 'default'));

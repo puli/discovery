@@ -100,7 +100,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     public function testGetParameterValues()
     {
         $type = new BindingType('name', array(
-            new BindingParameter('param', false, 'default'),
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
         $this->assertSame(array('param' => 'default'), $type->getParameterValues());
@@ -109,7 +109,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     public function testGetParameterValuesDoesNotIncludeRequiredParameters()
     {
         $type = new BindingType('name', array(
-            new BindingParameter('param', true),
+            new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
         $this->assertSame(array(), $type->getParameterValues());
@@ -118,7 +118,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     public function testGetParameterValue()
     {
         $type = new BindingType('name', array(
-            new BindingParameter('param', false, 'default'),
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
         $this->assertSame('default', $type->getParameterValue('param'));
@@ -127,7 +127,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     public function testGetParameterValueReturnsNullForRequired()
     {
         $type = new BindingType('name', array(
-            new BindingParameter('param', true),
+            new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
         $this->assertNull($type->getParameterValue('param'));
