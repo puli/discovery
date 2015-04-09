@@ -8,6 +8,7 @@ Changelog
  * removed `NoQueryMatchesException`
  * changed boolean parameter `$required` to integer parameter `$flags` in
    `BindingParameter::__construct()`
+ * removed `$code` arguments from static exception factory methods
 
 * 1.0.0-beta3 (2015-03-19)
 

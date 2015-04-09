@@ -29,17 +29,16 @@ class NoSuchParameterException extends RuntimeException
      *                                 found.
      * @param string    $typeName      The name of the type that the parameter
      *                                 was searched on.
-     * @param int       $code          The exception code.
      * @param Exception $cause         The exception that caused this exception.
      *
      * @return static The created exception.
      */
-    public static function forParameterName($parameterName, $typeName, $code = 0, Exception $cause = null)
+    public static function forParameterName($parameterName, $typeName, Exception $cause = null)
     {
         return new static(sprintf(
             'The parameter "%s" does not exist for type "%s".',
             $parameterName,
             $typeName
-        ), $code, $cause);
+        ), 0, $cause);
     }
 }
