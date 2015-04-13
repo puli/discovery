@@ -19,7 +19,7 @@
     "require-dev": {
         "symfony/filesystem": "~2.5"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "beta",
     "autoload": {
         "psr-4": {
             "Puli\\Discovery\\": "src/"
