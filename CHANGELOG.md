@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* 1.0.0-next (@release_date@)
+* 1.0.0-beta4 (2015-04-13)
 
  * `LazyBinding` does not cache resources anymore in case the repository 
    contents changed since the last call
@@ -9,6 +9,7 @@ Changelog
  * changed boolean parameter `$required` to integer parameter `$flags` in
    `BindingParameter::__construct()`
  * removed `$code` arguments from static exception factory methods
+ * updated to webmozart/glob 2.0
 
 * 1.0.0-beta3 (2015-03-19)
 
