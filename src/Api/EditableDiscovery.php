@@ -21,13 +21,13 @@ use Puli\Repository\Api\UnsupportedLanguageException;
  * A discovery that supports the addition and removal of bindings and types.
  *
  * Binding types have a name and optionally one or more parameters. Binding
- * types can be defined with the {@link define()} method:
+ * types can be defined with the {@link defineType()} method:
  *
  * ```php
  * use Puli\Discovery\Api\Binding\BindingParameter;
  * use Puli\Discovery\Api\Binding\BindingType;
  *
- * $discovery->define(new BindingType('acme/xliff-messages', array(
+ * $discovery->defineType(new BindingType('acme/xliff-messages', array(
  *     new BindingParameter('translationDomain', null, 'messages'),
  * ));
  * ```
@@ -111,7 +111,7 @@ interface EditableDiscovery extends ResourceDiscovery
      * use Puli\Discovery\Api\Binding\BindingParameter;
      * use Puli\Discovery\Api\Binding\BindingType;
      *
-     * $binder->define(new BindingType('acme/xliff-message', array(
+     * $binder->defineType(new BindingType('acme/xliff-message', array(
      *     new BindingParameter('translationDomain', null, 'messages'),
      * ));
      * ```
