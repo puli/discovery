@@ -13,7 +13,7 @@ Latest release: [1.0.0-beta4](https://packagist.org/packages/puli/discovery#1.0.
 PHP >= 5.3.9
 
 The [Puli] Discovery Component supports binding of Puli resources to *binding
-types*. Binding types can be defined with the `define()` method of the 
+types*. Binding types can be defined with the `defineType()` method of the 
 [`EditableDiscovery`] interface:
 
 ```php
@@ -22,7 +22,7 @@ use Puli\Discovery\InMemoryDiscovery;
 // $repo is a Puli repository
 $discovery = new InMemoryDiscovery($repo);
 
-$discovery->define('doctrine/xml-mapping');
+$discovery->defineType('doctrine/xml-mapping');
 ```
 
 Resources in the repository can then be bound to the defined type with `bind()`:
