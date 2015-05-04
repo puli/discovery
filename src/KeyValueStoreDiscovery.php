@@ -158,7 +158,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $nextId = $this->store->get('//nextId');
 
         for ($id = 1; $id < $nextId; ++$id) {
-            if ($this->store->has($id)) {
+            if ($this->store->exists($id)) {
                 $this->loadBinding($id);
             }
         }
