@@ -18,7 +18,7 @@
     },
     "require-dev": {
         "symfony/filesystem": "~2.5",
-        "phpunit/phpunit": "^4.8@dev"
+        "phpunit/phpunit": "^4.6"
     },
     "minimum-stability": "dev",
     "autoload": {
