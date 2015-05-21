@@ -75,6 +75,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
         }
 
         $this->types[$type->getName()] = $type;
+        $this->typeIndex[$type->getName()] = array();
     }
 
     /**
@@ -87,6 +88,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
         $this->removeBindingsByType($typeName);
 
         unset($this->types[$typeName]);
+        unset($this->typeIndex[$typeName]);
     }
 
     /**

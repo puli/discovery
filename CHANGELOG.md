@@ -5,6 +5,8 @@ Changelog
 
  * fixed: no exception is thrown by `KeyValueStoreDiscovery::findByPath()` if
    the discovery contains the requested type, but no bindings
+ * fixed: no exception is thrown by `InMemoryDiscovery::findByPath()` if
+   the discovery contains the requested type, but no bindings
 
 * 1.0.0-beta4 (2015-04-13)
 
