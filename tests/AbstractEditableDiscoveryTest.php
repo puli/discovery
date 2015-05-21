@@ -48,7 +48,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
      *
      * @return ResourceDiscovery
      */
-    protected function createDiscovery(ResourceRepository $repo, array $bindings = array())
+    protected function createDiscovery(ResourceRepository $repo, array $bindings = array(), array $additionalTypes = array())
     {
         $discovery = $this->createEditableDiscovery($repo);
 
@@ -59,6 +59,10 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
             if (!$discovery->isTypeDefined($type->getName())) {
                 $discovery->defineType($type);
             }
+        }
+
+        foreach ($additionalTypes as $type) {
+            $discovery->defineType($type);
         }
 
         foreach ($bindings as $binding) {

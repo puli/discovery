@@ -83,6 +83,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         }
 
         $this->types[$type->getName()] = $type;
+        $this->typeIndex[$type->getName()] = array();
 
         $this->store->set('//types', array_keys($this->types));
         $this->store->set($type->getName(), $type);
@@ -98,6 +99,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $this->removeBindingsByType($typeName);
 
         unset($this->types[$typeName]);
+        unset($this->typeIndex[$typeName]);
 
         $this->store->set('//types', array_keys($this->types));
         $this->store->remove($typeName);

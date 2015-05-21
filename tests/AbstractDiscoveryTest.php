@@ -49,7 +49,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
      *
      * @return ResourceDiscovery
      */
-    abstract protected function createDiscovery(ResourceRepository $repo, array $bindings = array());
+    abstract protected function createDiscovery(ResourceRepository $repo, array $bindings = array(), array $additionalTypes = array());
 
     public function testFindByType()
     {
@@ -131,6 +131,16 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $discovery = $this->createDiscovery($repo);
 
         $this->assertSame(array(), $discovery->findByPath('foo'));
+    }
+
+    public function testFindByPathIgnoresUnknownPathIfTypeIsPassed()
+    {
+        $type1 = new BindingType('type1');
+
+        $repo = $this->createRepository();
+        $discovery = $this->createDiscovery($repo, array(), array($type1));
+
+        $this->assertSame(array(), $discovery->findByPath('foo', 'type1'));
     }
 
     /**

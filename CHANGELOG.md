@@ -1,6 +1,11 @@
 Changelog
 =========
 
+* 1.0.0-next (@release_date@)
+
+ * fixed: no exception is thrown by `KeyValueStoreDiscovery::findByPath()` if
+   the discovery contains the requested type, but no bindings
+
 * 1.0.0-beta4 (2015-04-13)
 
  * `LazyBinding` does not cache resources anymore in case the repository 
