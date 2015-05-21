@@ -43,7 +43,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * @var BindingType[]
      */
-    private $types;
+    private $types = array();
 
     /**
      * Creates a new resource discovery.
@@ -57,7 +57,6 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         parent::__construct($repo);
 
         $this->store = $store;
-        $this->types = array_flip($store->get('//types', array()));
         $this->queryIndex = $store->get('//queryIndex', array());
         $this->typeIndex = $store->get('//typeIndex', array());
     }
@@ -78,14 +77,14 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             ));
         }
 
-        if (isset($this->types[$type->getName()])) {
+        if (isset($this->typeIndex[$type->getName()])) {
             throw DuplicateTypeException::forTypeName($type->getName());
         }
 
         $this->types[$type->getName()] = $type;
         $this->typeIndex[$type->getName()] = array();
 
-        $this->store->set('//types', array_keys($this->types));
+        $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->set($type->getName(), $type);
     }
 
@@ -101,7 +100,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         unset($this->types[$typeName]);
         unset($this->typeIndex[$typeName]);
 
-        $this->store->set('//types', array_keys($this->types));
+        $this->store->set('//typeIndex', $this->typeIndex);
         $this->store->remove($typeName);
     }
 
@@ -122,7 +121,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
      */
     public function isTypeDefined($typeName)
     {
-        return array_key_exists($typeName, $this->types);
+        return array_key_exists($typeName, $this->typeIndex);
     }
 
     /**
@@ -130,8 +129,8 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
      */
     public function getDefinedTypes()
     {
-        foreach ($this->types as $typeName => $type) {
-            if (is_int($type)) {
+        foreach ($this->typeIndex as $typeName => $index) {
+            if (!isset($this->types[$typeName])) {
                 $this->loadType($typeName);
             }
         }
