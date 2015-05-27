@@ -125,22 +125,34 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file2', 'type'));
     }
 
-    public function testFindByPathIgnoresUnknownPath()
+    public function testFindByPathIgnoresUnboundPath()
+    {
+        $repo = $this->createRepository(array(new TestFile('/file1')));
+        $discovery = $this->createDiscovery($repo);
+
+        $this->assertSame(array(), $discovery->findByPath('/file1'));
+    }
+
+    public function testFindByPathIgnoresUnboundPathIfTypeIsPassed()
+    {
+        $type1 = new BindingType('type1');
+
+        $repo = $this->createRepository(array(new TestFile('/file1')));
+        $discovery = $this->createDiscovery($repo, array(), array($type1));
+
+        $this->assertSame(array(), $discovery->findByPath('/file1', 'type1'));
+    }
+
+    /**
+     * @expectedException \Puli\Repository\Api\ResourceNotFoundException
+     * @expectedExceptionMessage /foo/bar
+     */
+    public function testFindByPathFailsIfNonExistingPath()
     {
         $repo = $this->createRepository();
         $discovery = $this->createDiscovery($repo);
 
-        $this->assertSame(array(), $discovery->findByPath('foo'));
-    }
-
-    public function testFindByPathIgnoresUnknownPathIfTypeIsPassed()
-    {
-        $type1 = new BindingType('type1');
-
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo, array(), array($type1));
-
-        $this->assertSame(array(), $discovery->findByPath('foo', 'type1'));
+        $this->assertSame(array(), $discovery->findByPath('/foo/bar'));
     }
 
     /**
@@ -149,10 +161,10 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
      */
     public function testFindByPathFailsIfUnknownType()
     {
-        $repo = $this->createRepository();
+        $repo = $this->createRepository(array(new TestFile('/file1')));
         $discovery = $this->createDiscovery($repo);
 
-        $this->assertSame(array(), $discovery->findByPath('/data/file1', 'foo'));
+        $this->assertSame(array(), $discovery->findByPath('/file1', 'foo'));
     }
 
     public function testGetBindings()

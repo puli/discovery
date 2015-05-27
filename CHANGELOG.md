@@ -7,6 +7,8 @@ Changelog
    the discovery contains the requested type, but no bindings
  * fixed: no exception is thrown by `InMemoryDiscovery::findByPath()` if
    the discovery contains the requested type, but no bindings
+ * `ResourceDiscovery::findByPath()` now throws an exception if the path does
+   not exist
 
 * 1.0.0-beta4 (2015-04-13)
 

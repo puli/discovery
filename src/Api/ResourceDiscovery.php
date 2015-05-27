@@ -13,6 +13,7 @@ namespace Puli\Discovery\Api;
 
 use Puli\Discovery\Api\Binding\BindingType;
 use Puli\Discovery\Api\Binding\ResourceBinding;
+use Puli\Repository\Api\ResourceNotFoundException;
 
 /**
  * Discovers resources for binding types.
@@ -72,6 +73,7 @@ interface ResourceDiscovery
      *
      * @return ResourceBinding[] The matching bindings.
      *
+     * @throws ResourceNotFoundException If the path does not exist.
      * @throws NoSuchTypeException If the type has not been defined.
      */
     public function findByPath($resourcePath, $typeName = null);

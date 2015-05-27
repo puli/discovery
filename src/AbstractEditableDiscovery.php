@@ -15,6 +15,7 @@ use Puli\Discovery\Api\Binding\ResourceBinding;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\NoSuchTypeException;
 use Puli\Discovery\Binding\LazyBinding;
+use Puli\Repository\Api\ResourceNotFoundException;
 use Puli\Repository\Api\ResourceRepository;
 use Puli\Repository\Api\UnsupportedLanguageException;
 use Webmozart\Glob\Glob;
@@ -117,6 +118,10 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      */
     public function findByPath($resourcePath, $typeName = null)
     {
+        if (!$this->repo->contains($resourcePath)) {
+            throw ResourceNotFoundException::forPath($resourcePath);
+        }
+
         if (null === $typeName) {
             return $this->findAllForPath($resourcePath);
         }
