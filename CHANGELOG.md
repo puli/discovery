@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* 1.0.0-next (@release_date@)
+* 1.0.0-beta5 (2015-05-29)
 
  * fixed: no exception is thrown by `KeyValueStoreDiscovery::findByPath()` if
    the discovery contains the requested type, but no bindings
