@@ -18,6 +18,7 @@ use Webmozart\Assert\Assert;
  * A parameter that can be set during binding.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class BindingParameter
@@ -64,7 +65,6 @@ class BindingParameter
         if (($flags & self::REQUIRED) && null !== $defaultValue) {
             throw new RuntimeException('Required parameters must not have default values.');
         }
-
 
         $this->name = $name;
         $this->flags = $flags;

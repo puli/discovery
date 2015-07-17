@@ -56,6 +56,7 @@ use Puli\Repository\Api\UnsupportedLanguageException;
  * ```
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 interface EditableDiscovery extends ResourceDiscovery
@@ -72,9 +73,9 @@ interface EditableDiscovery extends ResourceDiscovery
      *                                type.
      * @param string $language        The language of the resource query.
      *
-     * @throws NoSuchParameterException If an invalid parameter was passed.
-     * @throws MissingParameterException If a required parameter was not passed.
-     * @throws NoSuchTypeException If the passed type does not exist.
+     * @throws NoSuchParameterException     If an invalid parameter was passed.
+     * @throws MissingParameterException    If a required parameter was not passed.
+     * @throws NoSuchTypeException          If the passed type does not exist.
      * @throws UnsupportedLanguageException If the passed language is not supported.
      */
     public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob');
@@ -118,7 +119,7 @@ interface EditableDiscovery extends ResourceDiscovery
      *
      * @param string|BindingType $type The type name or instance.
      *
-     * @throws DuplicateTypeException If the type is already defined.
+     * @throws DuplicateTypeException   If the type is already defined.
      * @throws InvalidArgumentException If the type is invalid.
      */
     public function defineType($type);

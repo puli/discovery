@@ -17,6 +17,7 @@ use Puli\Discovery\Api\Binding\BindingType;
  * Validates parameter values against the constraints defined by a binding type.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 interface ParameterValidator
@@ -31,5 +32,4 @@ interface ParameterValidator
      *                               found, an empty array is returned.
      */
     public function validate(array $parameterValues, BindingType $type);
-
 }

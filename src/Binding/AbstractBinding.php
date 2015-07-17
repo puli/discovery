@@ -22,6 +22,7 @@ use Puli\Discovery\Validation\SimpleParameterValidator;
  * Base class for resource bindings.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 abstract class AbstractBinding implements ResourceBinding
@@ -65,7 +66,7 @@ abstract class AbstractBinding implements ResourceBinding
      *                                     for the type.
      * @param string      $language        The language of the resource query.
      *
-     * @throws NoSuchParameterException If an invalid parameter was passed.
+     * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
     public function __construct($query, BindingType $type, array $parameterValues = array(), $language = 'glob')

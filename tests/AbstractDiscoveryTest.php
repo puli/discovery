@@ -24,6 +24,7 @@ use Puli\Repository\Tests\Resource\TestFile;
 
 /**
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase

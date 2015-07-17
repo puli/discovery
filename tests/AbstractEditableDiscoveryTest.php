@@ -21,6 +21,7 @@ use Puli\Repository\Tests\Resource\TestFile;
 
 /**
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
@@ -129,7 +130,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $discovery = $this->createEditableDiscovery($repo);
         $discovery->defineType(new BindingType('type', array(
-            new BindingParameter('param', BindingParameter::OPTIONAL, 'default')
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         )));
         $discovery->bind('/file', 'type', array('param' => 'default'));
 
@@ -497,6 +498,5 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $this->assertSame(array(), $discovery->getBindings());
         $this->assertSame(array(), $discovery->getDefinedTypes());
-
     }
 }

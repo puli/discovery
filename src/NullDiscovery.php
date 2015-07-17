@@ -22,6 +22,7 @@ use Puli\Discovery\Api\NoSuchTypeException;
  * in tests).
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class NullDiscovery implements EditableDiscovery

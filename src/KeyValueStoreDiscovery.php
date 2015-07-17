@@ -26,6 +26,7 @@ use Webmozart\KeyValueStore\Api\KeyValueStore;
  * A resource discovery that stores the bindings in a key-value store.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class KeyValueStoreDiscovery extends AbstractEditableDiscovery
@@ -194,7 +195,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             $binding->getQuery(),
             $binding->getType()->getName(),
             $binding->getParameterValues(),
-            $binding->getLanguage()
+            $binding->getLanguage(),
         ));
 
         $this->store->set('//nextId', $id + 1);
@@ -261,7 +262,6 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             $data[2], // parameters
             $data[3] // language
         );
-
     }
 
     private function loadType($typeName)

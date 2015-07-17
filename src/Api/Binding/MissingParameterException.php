@@ -18,6 +18,7 @@ use RuntimeException;
  * Thrown when a binding parameter is missing.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class MissingParameterException extends RuntimeException

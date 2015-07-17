@@ -19,6 +19,7 @@ use Puli\Discovery\Api\Validation\ParameterValidator;
  * A simple parameter validator implementation.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class SimpleParameterValidator implements ParameterValidator
@@ -56,5 +57,4 @@ class SimpleParameterValidator implements ParameterValidator
 
         return $violations;
     }
-
 }

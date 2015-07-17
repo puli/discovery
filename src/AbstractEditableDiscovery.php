@@ -25,6 +25,7 @@ use Webmozart\PathUtil\Path;
  * Base class for editable resource discoveries.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 abstract class AbstractEditableDiscovery implements EditableDiscovery
@@ -47,7 +48,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * Creates a new resource discovery.
      *
-     * @param ResourceRepository $repo  The repository to fetch resources from.
+     * @param ResourceRepository $repo The repository to fetch resources from.
      */
     public function __construct(ResourceRepository $repo)
     {

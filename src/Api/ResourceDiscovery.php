@@ -48,6 +48,7 @@ use Puli\Repository\Api\ResourceNotFoundException;
  * ```
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 interface ResourceDiscovery
@@ -74,7 +75,7 @@ interface ResourceDiscovery
      * @return ResourceBinding[] The matching bindings.
      *
      * @throws ResourceNotFoundException If the path does not exist.
-     * @throws NoSuchTypeException If the type has not been defined.
+     * @throws NoSuchTypeException       If the type has not been defined.
      */
     public function findByPath($resourcePath, $typeName = null);
 

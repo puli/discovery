@@ -17,6 +17,7 @@ use Webmozart\Assert\Assert;
  * A type that a resource can be bound to.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class BindingType

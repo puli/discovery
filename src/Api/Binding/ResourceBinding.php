@@ -17,6 +17,7 @@ use Puli\Repository\Api\ResourceCollection;
  * Binds one or more resources to a binding type.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 interface ResourceBinding

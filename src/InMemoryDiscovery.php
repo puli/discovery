@@ -25,6 +25,7 @@ use Webmozart\Assert\Assert;
  * A resource discovery that holds the bindings in memory.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class InMemoryDiscovery extends AbstractEditableDiscovery

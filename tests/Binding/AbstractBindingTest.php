@@ -18,6 +18,7 @@ use Puli\Discovery\Binding\AbstractBinding;
 
 /**
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase

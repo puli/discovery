@@ -24,6 +24,7 @@ use Webmozart\Assert\Assert;
  * Binds resources to a type.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class EagerBinding extends AbstractBinding
@@ -42,9 +43,9 @@ class EagerBinding extends AbstractBinding
      * @param array                       $parameters Additional parameters.
      * @param string                      $language   The language of the resource query.
      *
-     * @throws NoSuchParameterException If an invalid parameter was passed.
+     * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
-     * @throws InvalidArgumentException If the resources are invalid.
+     * @throws InvalidArgumentException  If the resources are invalid.
      */
     public function __construct($query, $resources, BindingType $type, array $parameters = array(), $language = 'glob')
     {
