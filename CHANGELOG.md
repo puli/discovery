@@ -1,7 +1,11 @@
 Changelog
 =========
 
-* 1.0.0-beta5 (2015-05-29)
+* 1.0.0-next (@release_date@)
+
+ * upgraded to webmozart/glob 3.0
+
+* 1.0.0-beta5 (2015-05-29)R
 
  * fixed: no exception is thrown by `KeyValueStoreDiscovery::findByPath()` if
    the discovery contains the requested type, but no bindings
@@ -18,7 +22,7 @@ Changelog
  * changed boolean parameter `$required` to integer parameter `$flags` in
    `BindingParameter::__construct()`
  * removed `$code` arguments from static exception factory methods
- * updated to webmozart/glob 2.0
+ * upgraded to webmozart/glob 2.0
 
 * 1.0.0-beta3 (2015-03-19)
 
