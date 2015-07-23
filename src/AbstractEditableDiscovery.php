@@ -36,12 +36,12 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     protected $repo;
 
     /**
-     * @var bool[][]
+     * @var array
      */
     protected $queryIndex = array();
 
     /**
-     * @var bool[][]
+     * @var array
      */
     protected $typeIndex = array();
 
