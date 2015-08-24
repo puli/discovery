@@ -22,7 +22,7 @@
     "suggest": {
         "webmozart/key-value-store": "to use the KeyValueStoreDiscovery"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "beta",
     "autoload": {
         "psr-4": {
             "Puli\\Discovery\\": "src/"
