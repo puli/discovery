@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta7 (2015-08-24)
+
+ * fixed minimum package versions in composer.json
+
 * 1.0.0-beta6 (2015-08-12)
 
  * upgraded to webmozart/glob 3.0
