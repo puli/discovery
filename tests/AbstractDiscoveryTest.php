@@ -11,16 +11,18 @@
 
 namespace Puli\Discovery\Tests;
 
+use PHPUnit_Framework_MockObject_MockObject;
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\ResourceBinding;
-use Puli\Discovery\Api\ResourceDiscovery;
-use Puli\Discovery\Binding\EagerBinding;
-use Puli\Discovery\Binding\LazyBinding;
-use Puli\Repository\Api\ResourceRepository;
-use Puli\Repository\InMemoryRepository;
-use Puli\Repository\Resource\Collection\ArrayResourceCollection;
-use Puli\Repository\Tests\Resource\TestFile;
+use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
+use Puli\Discovery\Api\Discovery;
+use Puli\Discovery\Api\Type\BindingParameter;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Binding\ClassBinding;
+use Puli\Discovery\Binding\ResourceBinding;
+use Puli\Discovery\Tests\Fixtures\Bar;
+use Puli\Discovery\Tests\Fixtures\Foo;
+use Rhumsaa\Uuid\Uuid;
+use stdClass;
 
 /**
  * @since  1.0
@@ -30,274 +32,287 @@ use Puli\Repository\Tests\Resource\TestFile;
 abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @param Resource[] $resources
-     *
-     * @return InMemoryRepository
+     * @var PHPUnit_Framework_MockObject_MockObject|BindingInitializer
      */
-    protected function createRepository(array $resources = array())
-    {
-        $repo = new InMemoryRepository();
-
-        foreach ($resources as $resource) {
-            $repo->add($resource->getPath(), $resource);
-        }
-
-        return $repo;
-    }
+    protected $initializer;
 
     /**
+     * @param BindingType[]     $types
      * @param ResourceBinding[] $bindings
      *
-     * @return ResourceDiscovery
+     * @return Discovery
      */
-    abstract protected function createDiscovery(ResourceRepository $repo, array $bindings = array(), array $additionalTypes = array());
+    abstract protected function createLoadedDiscovery(array $types = array(), array $bindings = array(), array $initializers = array());
 
-    public function testFindByType()
+    protected function setUp()
     {
-        $type1 = new BindingType('type1');
-        $type2 = new BindingType('type2');
+        $this->initializer = $this->getMock('Puli\Discovery\Api\Binding\Initializer\BindingInitializer');
+    }
 
-        $repo = $this->createRepository(array(
-            $resource1 = new TestFile('/file1'),
-            $resource2 = new TestFile('/file2'),
+    public function testFindBindings()
+    {
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+        $binding1 = new ResourceBinding('/file1', Foo::clazz);
+        $binding2 = new ResourceBinding('/file2', Foo::clazz);
+        $binding3 = new ClassBinding(__CLASS__, Bar::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
+
+        $this->assertEquals(array($binding1, $binding2), $discovery->findBindings(Foo::clazz));
+        $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz));
+    }
+
+    public function testFindBindingsWithParameters()
+    {
+        $type1 = new BindingType(Foo::clazz, array(
+            new BindingParameter('param1'),
+            new BindingParameter('param2'),
         ));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', $resource1, $type1),
-            $binding2 = new EagerBinding('/file2', $resource2, $type1),
-            $binding3 = new EagerBinding('/file2', $resource2, $type2),
+        $type2 = new BindingType(Bar::clazz, array(
+            new BindingParameter('param1'),
+            new BindingParameter('param2'),
         ));
+        $binding1 = new ResourceBinding('/file1', Foo::clazz, array('param1' => 'value1', 'param2' => 'value2'));
+        $binding2 = new ResourceBinding('/file2', Foo::clazz, array('param1' => 'value1'));
+        $binding3 = new ClassBinding(__CLASS__, Bar::clazz, array('param1' => 'value1', 'param2' => 'value2'));
 
-        $this->assertBindingsEqual(array($binding1, $binding2), $discovery->findByType('type1'));
-        $this->assertBindingsEqual(array($binding3), $discovery->findByType('type2'));
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
+
+        $this->assertEquals(array($binding1, $binding2), $discovery->findBindings(Foo::clazz, array('param1' => 'value1')));
+        $this->assertEquals(array($binding1), $discovery->findBindings(Foo::clazz, array('param1' => 'value1', 'param2' => 'value2')));
+        $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz, array('param1' => 'value1', 'param2' => 'value2')));
+    }
+
+    public function testFindBindingsReturnsEmptyArrayIfUnknownType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+
+        $this->assertEquals(array(), $discovery->findBindings(Foo::clazz));
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage foo
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
      */
-    public function testFindByTypeFailsIfUnknownType()
+    public function testFindBindingsFailsIfInvalidType()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
-
-        $discovery->findByType('foo');
-    }
-
-    public function testFindByPath()
-    {
-        $type1 = new BindingType('type1');
-        $type2 = new BindingType('type2');
-
-        $repo = $this->createRepository(array(
-            $resource1 = new TestFile('/file1'),
-            $resource2 = new TestFile('/data/file2'),
-            $resource3 = new TestFile('/data/file3'),
-        ));
-
-        $coll = new ArrayResourceCollection(array($resource2, $resource3));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', $resource1, $type1),
-            $binding2 = new EagerBinding('/data/file2', $resource2, $type1),
-            $binding3 = new EagerBinding('/data/*', $coll, $type2),
-        ));
-
-        $this->assertBindingsEqual(array($binding2, $binding3), $discovery->findByPath('/data/file2'));
-        $this->assertBindingsEqual(array($binding3), $discovery->findByPath('/data/file2', 'type2'));
-    }
-
-    public function testFindByPathForResourceAddedAfterCreation()
-    {
-        $type = new BindingType('type');
-
-        $repo = $this->createRepository(array(
-            new TestFile('/data/file1'),
-        ));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding = new LazyBinding('/data/*', $repo, $type),
-        ));
-
-        $repo->add('/data/file2', new TestFile());
-
-        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file1'));
-        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file2'));
-        $this->assertBindingsEqual(array($binding), $discovery->findByPath('/data/file2', 'type'));
-    }
-
-    public function testFindByPathIgnoresUnboundPath()
-    {
-        $repo = $this->createRepository(array(new TestFile('/file1')));
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->findByPath('/file1'));
-    }
-
-    public function testFindByPathIgnoresUnboundPathIfTypeIsPassed()
-    {
-        $type1 = new BindingType('type1');
-
-        $repo = $this->createRepository(array(new TestFile('/file1')));
-        $discovery = $this->createDiscovery($repo, array(), array($type1));
-
-        $this->assertSame(array(), $discovery->findByPath('/file1', 'type1'));
-    }
-
-    /**
-     * @expectedException \Puli\Repository\Api\ResourceNotFoundException
-     * @expectedExceptionMessage /foo/bar
-     */
-    public function testFindByPathFailsIfNonExistingPath()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->findByPath('/foo/bar'));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage foo
-     */
-    public function testFindByPathFailsIfUnknownType()
-    {
-        $repo = $this->createRepository(array(new TestFile('/file1')));
-        $discovery = $this->createDiscovery($repo);
-
-        $this->assertSame(array(), $discovery->findByPath('/file1', 'foo'));
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->findBindings(new stdClass());
     }
 
     public function testGetBindings()
     {
-        $type1 = new BindingType('type1');
-        $type2 = new BindingType('type2');
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+        $binding1 = new ResourceBinding('/file1', Foo::clazz);
+        $binding2 = new ResourceBinding('/file2', Foo::clazz);
+        $binding3 = new ClassBinding(__CLASS__, Bar::clazz);
 
-        $repo = $this->createRepository(array(
-            $resource1 = new TestFile('/file1'),
-            $resource2 = new TestFile('/data/file2'),
-            $resource3 = new TestFile('/data/file3'),
-        ));
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
 
-        $coll = new ArrayResourceCollection(array($resource2, $resource3));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', $resource1, $type1),
-            $binding2 = new EagerBinding('/data/file2', $resource2, $type1),
-            $binding3 = new EagerBinding('/data/*', $coll, $type2),
-        ));
-
-        $this->assertBindingsEqual(array($binding1, $binding2, $binding3), $discovery->getBindings());
-    }
-
-    public function testGetBindingsForResourceAddedAfterCreation()
-    {
-        $type = new BindingType('type');
-
-        $repo = $this->createRepository(array(
-            new TestFile('/data/file1'),
-        ));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding = new LazyBinding('/data/*', $repo, $type),
-        ));
-
-        $repo->add('/data/file2', new TestFile());
-
-        $this->assertBindingsEqual(array($binding), $discovery->getBindings());
+        $this->assertEquals(array($binding1, $binding2, $binding3), $discovery->getBindings());
     }
 
     public function testGetNoBindings()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
+        $discovery = $this->createLoadedDiscovery();
 
-        $this->assertSame(array(), $discovery->getBindings());
+        $this->assertEquals(array(), $discovery->getBindings());
     }
 
-    public function testGetType()
+    public function testGetBinding()
     {
-        $type1 = new BindingType('type1');
-        $type2 = new BindingType('type2');
+        $type = new BindingType(Foo::clazz);
+        $binding1 = new ResourceBinding('/file1', Foo::clazz);
+        $binding2 = new ResourceBinding('/file2', Foo::clazz);
 
-        $repo = $this->createRepository(array(
-            $resource1 = new TestFile('/file1'),
-            $resource2 = new TestFile('/file2'),
-        ));
+        $discovery = $this->createLoadedDiscovery(array($type), array($binding1, $binding2));
 
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', $resource1, $type1),
-            $binding3 = new EagerBinding('/file2', $resource2, $type2),
-        ));
-
-        $this->assertEquals($type1, $discovery->getDefinedType('type1'));
-        $this->assertEquals($type2, $discovery->getDefinedType('type2'));
-    }
-
-    public function testGetTypes()
-    {
-        $type1 = new BindingType('type1');
-        $type2 = new BindingType('type2');
-
-        $repo = $this->createRepository(array(
-            $resource1 = new TestFile('/file1'),
-            $resource2 = new TestFile('/file2'),
-        ));
-
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file1', $resource1, $type1),
-            $binding3 = new EagerBinding('/file2', $resource2, $type2),
-        ));
-
-        $this->assertEquals(array('type1' => $type1, 'type2' => $type2), $discovery->getDefinedTypes());
+        $this->assertEquals($binding1, $discovery->getBinding($binding1->getUuid()));
+        $this->assertEquals($binding2, $discovery->getBinding($binding2->getUuid()));
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage foobar
+     * @expectedException \Puli\Discovery\Api\Binding\NoSuchBindingException
      */
-    public function testGetTypeFailsIfUnknownType()
+    public function testGetBindingFailsIfNotFound()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createDiscovery($repo);
+        $discovery = $this->createLoadedDiscovery();
 
-        $discovery->getDefinedType('foobar');
+        $discovery->getBinding(Uuid::uuid4());
     }
 
-    public function testIsDefined()
+    public function testHasBinding()
     {
-        $type = new BindingType('type');
+        $type = new BindingType(Foo::clazz);
+        $binding = new ResourceBinding('/file1', Foo::clazz);
 
-        $repo = $this->createRepository(array(
-            $resource = new TestFile('/file'),
-        ));
+        $discovery = $this->createLoadedDiscovery(array($type), array($binding));
 
-        $discovery = $this->createDiscovery($repo, array(
-            $binding1 = new EagerBinding('/file', $resource, $type),
-        ));
+        $this->assertTrue($discovery->hasBinding($binding->getUuid()));
+        $this->assertFalse($discovery->hasBinding(Uuid::uuid4()));
+    }
 
-        $this->assertTrue($discovery->isTypeDefined('type'));
-        $this->assertFalse($discovery->isTypeDefined('foo'));
+    public function testHasBindings()
+    {
+        $type = new BindingType(Foo::clazz);
+        $binding = new ResourceBinding('/file1', Foo::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type), array($binding));
+
+        $this->assertTrue($discovery->hasBindings());
+    }
+
+    public function testHasNoBindings()
+    {
+        $type = new BindingType(Foo::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type));
+
+        $this->assertFalse($discovery->hasBindings());
+    }
+
+    public function testHasBindingsWithType()
+    {
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+        $binding = new ResourceBinding('/file1', Foo::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
+
+        $this->assertTrue($discovery->hasBindings(Foo::clazz));
+        $this->assertFalse($discovery->hasBindings(Bar::clazz));
+    }
+
+    public function testHasBindingsWithTypeReturnsFalseIfUnknownType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $this->assertFalse($discovery->hasBindings(Foo::clazz));
     }
 
     /**
-     * @param ResourceBinding[] $expected
-     * @param mixed             $actual
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
      */
-    private function assertBindingsEqual(array $expected, $actual)
+    public function testHasBindingsWithTypeFailsIfInvalidType()
     {
-        $this->assertInternalType('array', $actual);
-        $this->assertCount(count($expected), $actual);
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->hasBindings(new stdClass());
+    }
 
-        foreach ($expected as $key => $expectedBinding) {
-            $this->assertArrayHasKey($key, $actual);
+    public function testHasBindingsWithTypeAndParameters()
+    {
+        $type1 = new BindingType(Foo::clazz, array(
+            new BindingParameter('param'),
+        ));
+        $type2 = new BindingType(Bar::clazz);
+        $binding = new ResourceBinding('/file1', Foo::clazz, array('param' => 'foo'));
 
-            $actualBinding = $actual[$key];
-            $this->assertSame($expectedBinding->getQuery(), $actualBinding->getQuery());
-            $this->assertSame($expectedBinding->getLanguage(), $actualBinding->getLanguage());
-            $this->assertEquals($expectedBinding->getType(), $actualBinding->getType());
-            $this->assertEquals($expectedBinding->getParameterValues(), $actualBinding->getParameterValues());
-            $this->assertEquals($expectedBinding->getResources(), $actualBinding->getResources());
-        }
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
+
+        $this->assertTrue($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
+        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'bar')));
+    }
+
+    public function testHasBindingsWithTypeAndParameterDefaultValues()
+    {
+        $type1 = new BindingType(Foo::clazz, array(
+            new BindingParameter('param', BindingParameter::OPTIONAL, 'foo'),
+        ));
+        $type2 = new BindingType(Bar::clazz);
+        $binding = new ResourceBinding('/file1', Foo::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
+
+        $this->assertTrue($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
+        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'bar')));
+    }
+
+    public function testHasBindingsWithTypeAndParametersReturnsFalseIfUnknownType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testHasBindingsWithTypeAndParametersFailsIfInvalidType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->hasBindings(new stdClass(), array('param' => 'foo'));
+    }
+
+    /**
+     * @expectedException \BadMethodCallException
+     */
+    public function testHasBindingsFailsIfParametersPassedButNoType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->hasBindings(null, array('param' => 'foo'));
+    }
+
+    public function testGetBindingType()
+    {
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2));
+
+        $this->assertEquals($type1, $discovery->getBindingType(Foo::clazz));
+        $this->assertEquals($type2, $discovery->getBindingType(Bar::clazz));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\Type\NoSuchTypeException
+     * @expectedExceptionMessage Foo
+     */
+    public function testGetBindingTypeFailsIfUnknownType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+
+        $discovery->getBindingType(Foo::clazz);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testGetBindingTypeFailsIfInvalidType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->getBindingType(new stdClass());
+    }
+
+    public function testGetBindingTypes()
+    {
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type1, $type2));
+
+        $this->assertEquals(array($type1, $type2), $discovery->getBindingTypes());
+    }
+
+    public function testHasBindingType()
+    {
+        $type = new BindingType(Foo::clazz);
+
+        $discovery = $this->createLoadedDiscovery(array($type));
+
+        $this->assertTrue($discovery->hasBindingType(Foo::clazz));
+        $this->assertFalse($discovery->hasBindingType(Bar::clazz));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testHasBindingTypeFailsIfInvalidType()
+    {
+        $discovery = $this->createLoadedDiscovery();
+        $discovery->hasBindingType(new stdClass());
     }
 }

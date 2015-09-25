@@ -11,28 +11,31 @@
 
 namespace Puli\Discovery\Api;
 
-use InvalidArgumentException;
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\MissingParameterException;
-use Puli\Discovery\Api\Binding\NoSuchParameterException;
-use Puli\Repository\Api\UnsupportedLanguageException;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Type\BindingNotAcceptedException;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Api\Type\DuplicateTypeException;
+use Puli\Discovery\Api\Type\MissingParameterException;
+use Puli\Discovery\Api\Type\NoSuchParameterException;
+use Puli\Discovery\Api\Type\NoSuchTypeException;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * A discovery that supports the addition and removal of bindings and types.
  *
  * Binding types have a name and optionally one or more parameters. Binding
- * types can be defined with the {@link defineType()} method:
+ * types can be added with the {@link addBindingType()} method:
  *
  * ```php
- * use Puli\Discovery\Api\Binding\BindingParameter;
- * use Puli\Discovery\Api\Binding\BindingType;
+ * use Puli\Discovery\Api\Type\BindingParameter;
+ * use Puli\Discovery\Api\Type\BindingType;
  *
- * $discovery->defineType(new BindingType('acme/xliff-messages', array(
+ * $discovery->addBindingType(new BindingType('acme/message-catalog', array(
  *     new BindingParameter('translationDomain', null, 'messages'),
  * ));
  * ```
  *
- * Resources can be bound to these types with the {@link bind()} method:
+ * Bindings can be added for these types with the {@link addBinding()} method:
  *
  * ```php
  * $discovery->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
@@ -59,82 +62,70 @@ use Puli\Repository\Api\UnsupportedLanguageException;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface EditableDiscovery extends ResourceDiscovery
+interface EditableDiscovery extends Discovery
 {
     /**
-     * Binds resources to a type.
+     * Adds a binding to the discovery.
      *
-     * The type must have been defined. You can pass values for the parameters
-     * defined for the type.
+     * The type of the binding must have been added to the discovery.
      *
-     * @param string $query           A query for resources in the repository.
-     * @param string $typeName        The type name to bind to.
-     * @param array  $parameterValues Values for the parameters defined for the
-     *                                type.
-     * @param string $language        The language of the resource query.
+     * @param Binding $binding The binding to add.
      *
-     * @throws NoSuchParameterException     If an invalid parameter was passed.
-     * @throws MissingParameterException    If a required parameter was not passed.
-     * @throws NoSuchTypeException          If the passed type does not exist.
-     * @throws UnsupportedLanguageException If the passed language is not supported.
+     * @throws NoSuchParameterException    If an invalid parameter was passed.
+     * @throws MissingParameterException   If a required parameter was not passed.
+     * @throws NoSuchTypeException         If the type of the binding does not
+     *                                     exist.
+     * @throws BindingNotAcceptedException If the type of the binding does not
+     *                                     accept the binding.
      */
-    public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob');
+    public function addBinding(Binding $binding);
 
     /**
-     * Unbinds a bound query.
+     * Removes a binding from the discovery.
      *
-     * You can pass any query that was previously passed to {@link bind()}. If
-     * the query was not bound, this method does nothing.
+     * This method does nothing if the given UUID is not found.
      *
-     * Pass the parameter `$typeName` if you want to unbind bindings from a
-     * specific binding type. If you don't pass this parameter or if you pass
-     * `null`, all bindings for the query will be removed.
-     *
-     * You can restrict bindings to bindings with specific parameters by passing
-     * the parameter values in `$parameterValues`. If you leave this parameter
-     * empty, the bindings will be removed regardless of their parameter values.
-     *
-     * @param string      $query           The resource query.
-     * @param string|null $typeName        The name of a binding type.
-     * @param array|null  $parameterValues The values of the binding parameters.
-     * @param string      $language        The language of the resource query.
+     * @param Uuid $uuid The UUID of the binding.
      */
-    public function unbind($query, $typeName = null, array $parameterValues = null, $language = null);
+    public function removeBinding(Uuid $uuid);
 
     /**
-     * Defines a binding type.
+     * Removes all bindings from the discovery.
      *
-     * The type can be passed as string or as an instance of
-     * {@link BindingType}. If you want to define parameters for the type, you
-     * need to construct an instance of {@link BindingType} manually:
+     * You can optionally filter bindings by type and parameter values. If you
+     * pass parameter values, you must pass a type as well.
      *
-     * ```php
-     * use Puli\Discovery\Api\Binding\BindingParameter;
-     * use Puli\Discovery\Api\Binding\BindingType;
+     * If no matching bindings are found or if the type does not exist this
+     * method does nothing.
      *
-     * $binder->defineType(new BindingType('acme/xliff-message', array(
-     *     new BindingParameter('translationDomain', null, 'messages'),
-     * ));
-     * ```
-     *
-     * @param string|BindingType $type The type name or instance.
-     *
-     * @throws DuplicateTypeException   If the type is already defined.
-     * @throws InvalidArgumentException If the type is invalid.
+     * @param string|null $typeName        The name of the binding type or
+     *                                     `null` to remove all bindings.
+     * @param array       $parameterValues The parameter values to match.
      */
-    public function defineType($type);
+    public function removeBindings($typeName = null, array $parameterValues = array());
 
     /**
-     * Undefines a binding type.
+     * Adds a binding type to the discovery.
      *
-     * If the type has not been defined, this method does nothing.
+     * @param BindingType $type The type to add.
      *
-     * @param string $typeName The name of a binding type.
+     * @throws DuplicateTypeException If a binding type with the same name exists.
      */
-    public function undefineType($typeName);
+    public function addBindingType(BindingType $type);
 
     /**
-     * Removes all defined types and bindings.
+     * Removes a binding type from the discovery.
+     *
+     * If the binding type is not found, this method does nothing.
+     *
+     * All bindings for the type are removed as well.
+     *
+     * @param string $typeName The name of the binding type.
      */
-    public function clear();
+    public function removeBindingType($typeName);
+
+    /**
+     * Removes all binding types and bindings from the discovery.
+     */
+    public function removeBindingTypes();
 }

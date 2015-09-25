@@ -11,9 +11,9 @@
 
 namespace Puli\Discovery\Tests;
 
+use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\KeyValueStoreDiscovery;
-use Puli\Repository\Api\ResourceRepository;
-use Webmozart\KeyValueStore\ArrayStore;
+use Webmozart\KeyValueStore\SerializingArrayStore;
 
 /**
  * @since  1.0
@@ -28,11 +28,16 @@ class KeyValueStoreDiscoveryLoadedTest extends AbstractEditableDiscoveryTest
     {
         parent::setUp();
 
-        $this->store = new ArrayStore();
+        $this->store = new SerializingArrayStore();
     }
 
-    protected function createEditableDiscovery(ResourceRepository $repo)
+    protected function createDiscovery(array $initializers = array())
     {
-        return new KeyValueStoreDiscovery($repo, $this->store);
+        return new KeyValueStoreDiscovery($this->store, $initializers);
+    }
+
+    protected function loadDiscoveryFromStorage(EditableDiscovery $discovery, array $initializers = array())
+    {
+        return $discovery;
     }
 }

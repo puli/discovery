@@ -11,36 +11,44 @@
 
 namespace Puli\Discovery\Binding;
 
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\MissingParameterException;
-use Puli\Discovery\Api\Binding\NoSuchParameterException;
-use Puli\Discovery\Api\Binding\ResourceBinding;
-use Puli\Discovery\Api\Validation\ConstraintViolation;
-use Puli\Discovery\Validation\SimpleParameterValidator;
+use InvalidArgumentException;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\Initializer\NotInitializedException;
+use Puli\Discovery\Api\Type\BindingNotAcceptedException;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Api\Type\MissingParameterException;
+use Puli\Discovery\Api\Type\NoSuchParameterException;
+use Rhumsaa\Uuid\Uuid;
+use Webmozart\Assert\Assert;
 
 /**
- * Base class for resource bindings.
+ * Base class for bindings.
  *
  * @since  1.0
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractBinding implements ResourceBinding
+abstract class AbstractBinding implements Binding
 {
     /**
-     * @var string
+     * @var Uuid
      */
-    private $query;
+    private $uuid;
 
     /**
      * @var string
      */
-    private $language;
+    private $typeName;
 
     /**
-     * @var BindingType
+     * @var BindingType|null
      */
     private $type;
+
+    /**
+     * @var array
+     */
+    private $userParameterValues = array();
 
     /**
      * @var array
@@ -50,9 +58,6 @@ abstract class AbstractBinding implements ResourceBinding
     /**
      * Creates a new binding.
      *
-     * A binding has a query that is used to retrieve the resources matched
-     * by the binding.
-     *
      * You can pass parameters that have been defined for the type. If you pass
      * unknown parameters, or if a required parameter is missing, an exception
      * is thrown.
@@ -60,43 +65,75 @@ abstract class AbstractBinding implements ResourceBinding
      * All parameters that you do not set here will receive the default values
      * set for the parameter.
      *
-     * @param string      $query           The resource query.
-     * @param BindingType $type            The type to bind against.
-     * @param array       $parameterValues The values of the parameters defined
-     *                                     for the type.
-     * @param string      $language        The language of the resource query.
+     * @param string    $typeName        The name of the type to bind against.
+     * @param array     $parameterValues The values of the parameters defined
+     *                                   for the type.
+     * @param Uuid|null $uuid            The UUID of the binding. A new one is
+     *                                   generated if none is passed.
      *
      * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
-    public function __construct($query, BindingType $type, array $parameterValues = array(), $language = 'glob')
+    public function __construct($typeName, array $parameterValues = array(), Uuid $uuid = null)
     {
-        $this->assertParametersValid($parameterValues, $type);
-
-        $parameterValues = array_replace($type->getParameterValues(), $parameterValues);
+        Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
 
         ksort($parameterValues);
 
-        $this->query = $query;
-        $this->language = $language;
-        $this->type = $type;
+        $this->typeName = $typeName;
+        $this->userParameterValues = $parameterValues;
         $this->parameterValues = $parameterValues;
+        $this->uuid = $uuid ?: Uuid::uuid4();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getQuery()
+    public function initialize(BindingType $type)
     {
-        return $this->query;
+        if ($this->typeName !== $type->getName()) {
+            throw new InvalidArgumentException(sprintf(
+                'The passed type "%s" does not match the configured type "%s".',
+                $type->getName(),
+                $this->typeName
+            ));
+        }
+
+        if (!$type->acceptsBinding(get_class($this))) {
+            throw BindingNotAcceptedException::forBindingClass($type->getName(), get_class($this));
+        }
+
+        // Merge default parameter values of the type
+        $this->assertParameterValuesValid($this->userParameterValues, $type);
+
+        $this->type = $type;
+        $this->parameterValues = array_replace($type->getParameterValues(), $this->userParameterValues);
+
+        ksort($this->parameterValues);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getLanguage()
+    public function isInitialized()
     {
-        return $this->language;
+        return null !== $this->type;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUuid()
+    {
+        return $this->uuid;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTypeName()
+    {
+        return $this->typeName;
     }
 
     /**
@@ -104,81 +141,113 @@ abstract class AbstractBinding implements ResourceBinding
      */
     public function getType()
     {
+        if (null === $this->type) {
+            throw new NotInitializedException('The binding must be initialized before accessing the type.');
+        }
+
         return $this->type;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParameterValues()
+    public function getParameterValues($includeDefault = true)
     {
-        return $this->parameterValues;
+        if ($includeDefault) {
+            return $this->parameterValues;
+        }
+
+        return $this->userParameterValues;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParameterValue($parameterName)
+    public function hasParameterValues($includeDefault = true)
     {
-        if (!array_key_exists($parameterName, $this->parameterValues)) {
-            throw NoSuchParameterException::forParameterName($parameterName, $this->type->getName());
+        if ($includeDefault) {
+            return count($this->parameterValues) > 0;
         }
 
-        return $this->parameterValues[$parameterName];
+        return count($this->userParameterValues) > 0;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasParameterValue($parameterName)
+    public function getParameterValue($parameterName, $includeDefault = true)
     {
-        return array_key_exists($parameterName, $this->parameterValues);
+        $parameterValues = $includeDefault ? $this->parameterValues : $this->userParameterValues;
+
+        if (!array_key_exists($parameterName, $parameterValues)) {
+            throw NoSuchParameterException::forParameterName($parameterName, $this->typeName);
+        }
+
+        return $parameterValues[$parameterName];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function equals(ResourceBinding $other)
+    public function hasParameterValue($parameterName, $includeDefault = true)
     {
-        if (get_class($other) !== get_class($this)) {
-            return false;
+        if ($includeDefault) {
+            return array_key_exists($parameterName, $this->parameterValues);
         }
 
-        if ($this->query !== $other->getQuery()) {
-            return false;
-        }
-
-        if ($this->type !== $other->getType()) {
-            return false;
-        }
-
-        if ($this->language !== $other->getLanguage()) {
-            return false;
-        }
-
-        // The local parameters are sorted by key. Sort before comparing to
-        // prevent false negatives.
-        $otherParameterValues = $other->getParameterValues();
-        ksort($otherParameterValues);
-
-        if ($this->parameterValues !== $otherParameterValues) {
-            return false;
-        }
-
-        return true;
+        return array_key_exists($parameterName, $this->userParameterValues);
     }
 
-    private function assertParametersValid(array $parameterValues, BindingType $type)
+    /**
+     * {@inheritdoc}
+     */
+    public function serialize()
     {
-        $validator = new SimpleParameterValidator();
-        $violations = $validator->validate($parameterValues, $type);
+        $data = array();
 
-        foreach ($violations as $violation) {
-            switch ($violation->getCode()) {
-                case ConstraintViolation::NO_SUCH_PARAMETER:
-                    throw NoSuchParameterException::forParameterName($violation->getParameterName(), $violation->getTypeName());
-                case ConstraintViolation::MISSING_PARAMETER:
-                    throw MissingParameterException::forParameterName($violation->getParameterName(), $violation->getTypeName());
+        $this->preSerialize($data);
+
+        return serialize($data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unserialize($serialized)
+    {
+        $data = unserialize($serialized);
+
+        $this->postUnserialize($data);
+    }
+
+    protected function preSerialize(array &$data)
+    {
+        $data[] = $this->typeName;
+        $data[] = $this->userParameterValues;
+        $data[] = $this->uuid->toString();
+    }
+
+    protected function postUnserialize(array &$data)
+    {
+        $this->uuid = Uuid::fromString(array_pop($data));
+        $this->userParameterValues = array_pop($data);
+        $this->parameterValues = $this->userParameterValues;
+        $this->typeName = array_pop($data);
+    }
+
+    private function assertParameterValuesValid(array $parameterValues, BindingType $type)
+    {
+        foreach ($parameterValues as $name => $value) {
+            if (!$type->hasParameter($name)) {
+                throw NoSuchParameterException::forParameterName($name, $type->getName());
+            }
+        }
+
+        foreach ($type->getParameters() as $parameter) {
+            if (!isset($parameterValues[$parameter->getName()])) {
+                if ($parameter->isRequired()) {
+                    throw MissingParameterException::forParameterName($parameter->getName(), $type->getName());
+                }
             }
         }
     }

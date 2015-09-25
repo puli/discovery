@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Api;
+namespace Puli\Discovery\Api\Type;
 
 use Exception;
 use RuntimeException;
@@ -26,8 +26,8 @@ class NoSuchTypeException extends RuntimeException
     /**
      * Creates an exception for a type name.
      *
-     * @param string    $typeName The name of the type.
-     * @param Exception $cause    The exception that caused this exception.
+     * @param string         $typeName The name of the type.
+     * @param Exception|null $cause    The exception that caused this exception.
      *
      * @return static The created exception.
      */

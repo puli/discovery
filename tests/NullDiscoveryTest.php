@@ -13,7 +13,10 @@
 namespace Puli\Discovery\Tests;
 
 use PHPUnit_Framework_TestCase;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\NullDiscovery;
+use Puli\Discovery\Tests\Fixtures\Foo;
 
 /**
  * @since  1.0
@@ -32,64 +35,76 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->discovery = new NullDiscovery();
     }
 
-    public function testBind()
+    public function testFindBindings()
     {
-        $this->discovery->defineType('type');
-        $this->discovery->bind('/path', 'type');
+        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
 
-        $this->assertFalse($this->discovery->isTypeDefined('type'));
-        $this->assertCount(0, $this->discovery->getBindings());
+        $this->assertSame(array(), $this->discovery->findBindings(Foo::clazz));
     }
 
-    public function testUnbind()
+    public function testGetBindings()
     {
-        $this->assertCount(0, $this->discovery->getBindings());
+        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
 
-        $this->discovery->unbind('/path');
-
-        $this->assertFalse($this->discovery->isTypeDefined('type'));
-        $this->assertCount(0, $this->discovery->getBindings());
+        $this->assertSame(array(), $this->discovery->getBindings());
     }
 
-    public function testUndefineType()
+    public function testHasBindings()
     {
-        $this->assertFalse($this->discovery->isTypeDefined('type'));
+        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
 
-        $this->discovery->undefineType('type');
-
-        $this->assertFalse($this->discovery->isTypeDefined('type'));
+        $this->assertFalse($this->discovery->hasBindings());
     }
 
-    /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage type
-     */
-    public function testGetDefinedTypeAlwaysThrowsException()
+    public function testHasBinding()
     {
-        $this->discovery->defineType('type');
+        $binding = new ResourceBinding('/path', Foo::clazz);
 
-        $this->discovery->getDefinedType('type');
+        $this->discovery->addBinding($binding);
+
+        $this->assertFalse($this->discovery->hasBinding($binding->getUuid()));
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage type
+     * @expectedException \Puli\Discovery\Api\Binding\NoSuchBindingException
      */
-    public function testFindByTypeAlwaysThrowsException()
+    public function testGetBinding()
     {
-        $this->discovery->defineType('type');
+        $binding = new ResourceBinding('/path', Foo::clazz);
 
-        $this->discovery->findByType('type');
+        $this->discovery->addBinding($binding);
+
+        $this->discovery->getBinding($binding->getUuid());
+    }
+
+    public function testGetBindingTypes()
+    {
+        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+
+        $this->assertSame(array(), $this->discovery->getBindingTypes());
+    }
+
+    public function testHasBindingTypes()
+    {
+        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+
+        $this->assertFalse($this->discovery->hasBindingTypes());
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage type
+     * @expectedException \Puli\Discovery\Api\Type\NoSuchTypeException
      */
-    public function testFindByPathAlwaysThrowsExceptionIfTypeIsPassed()
+    public function testGetBindingType()
     {
-        $this->discovery->defineType('type');
+        $this->discovery->addBindingType(new BindingType(Foo::clazz));
 
-        $this->discovery->findByPath('/path', 'type');
+        $this->discovery->getBindingType(Foo::clazz);
+    }
+
+    public function testHasBindingType()
+    {
+        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+
+        $this->assertFalse($this->discovery->hasBindingType(Foo::clazz));
     }
 }

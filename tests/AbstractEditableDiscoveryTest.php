@@ -11,13 +11,18 @@
 
 namespace Puli\Discovery\Tests;
 
-use Puli\Discovery\Api\Binding\BindingParameter;
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\ResourceBinding;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
+use Puli\Discovery\Api\Discovery;
 use Puli\Discovery\Api\EditableDiscovery;
-use Puli\Discovery\Api\ResourceDiscovery;
-use Puli\Repository\Api\ResourceRepository;
-use Puli\Repository\Tests\Resource\TestFile;
+use Puli\Discovery\Api\Type\BindingParameter;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Binding\ClassBinding;
+use Puli\Discovery\Binding\ResourceBinding;
+use Puli\Discovery\Tests\Fixtures\Bar;
+use Puli\Discovery\Tests\Fixtures\Foo;
+use Rhumsaa\Uuid\Uuid;
+use stdClass;
 
 /**
  * @since  1.0
@@ -26,477 +31,441 @@ use Puli\Repository\Tests\Resource\TestFile;
  */
 abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 {
+    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
+
+    const CLASS_BINDING = 'Puli\Discovery\Binding\ClassBinding';
+
     /**
-     * @param ResourceRepository $repo
+     * Creates a discovery that can be written in the test.
+     *
+     * @param BindingInitializer[] $initializers
      *
      * @return EditableDiscovery
      */
-    abstract protected function createEditableDiscovery(ResourceRepository $repo);
+    abstract protected function createDiscovery(array $initializers = array());
 
     /**
-     * @param EditableDiscovery $discovery
+     * Creates a discovery that can be read in the test.
+     *
+     * This method is needed to test whether the discovery actually synchronized
+     * all in-memory changes to the backing data store:
+     *
+     *  * If the method returns the passed $discovery, the in-memory data
+     *    structures are tested.
+     *  * If the method returns a new discovery with the same backing data store,
+     *    that data store is tested.
+     *
+     * @param EditableDiscovery    $discovery
+     * @param BindingInitializer[] $initializers
      *
      * @return EditableDiscovery
      */
-    protected function getDiscoveryUnderTest(EditableDiscovery $discovery)
-    {
-        return $discovery;
-    }
+    abstract protected function loadDiscoveryFromStorage(EditableDiscovery $discovery, array $initializers = array());
 
     /**
-     * @param ResourceRepository $repo
-     * @param ResourceBinding[]  $bindings
+     * @param BindingType[]        $types
+     * @param Binding[]            $bindings
+     * @param BindingInitializer[] $initializers
      *
-     * @return ResourceDiscovery
+     * @return Discovery
      */
-    protected function createDiscovery(ResourceRepository $repo, array $bindings = array(), array $additionalTypes = array())
+    protected function createLoadedDiscovery(array $types = array(), array $bindings = array(), array $initializers = array())
     {
-        $discovery = $this->createEditableDiscovery($repo);
+        $discovery = $this->createDiscovery($initializers);
 
-        foreach ($bindings as $binding) {
-            $type = $binding->getType();
-
-            // Prevent duplicate additions
-            if (!$discovery->isTypeDefined($type->getName())) {
-                $discovery->defineType($type);
-            }
-        }
-
-        foreach ($additionalTypes as $type) {
-            $discovery->defineType($type);
+        foreach ($types as $type) {
+            $discovery->addBindingType($type);
         }
 
         foreach ($bindings as $binding) {
-            $discovery->bind($binding->getQuery(), $binding->getType()->getName(), $binding->getParameterValues());
+            $discovery->addBinding($binding);
         }
 
-        return $discovery;
+        return $this->loadDiscoveryFromStorage($discovery);
     }
 
-    public function testBindSucceedsIfNoQueryMatches()
+    public function testAddBinding()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType('type');
+        $binding = new ResourceBinding('/path', Foo::clazz);
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBinding($binding);
 
-        // even if the query does not match right now, it might later when
-        // resources are added to the repository
-        $discovery->bind('/*.twig', 'type');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(1, $discovery->findByType('type'));
+        $this->assertCount(1, $discovery->findBindings(Foo::clazz));
         $this->assertCount(1, $discovery->getBindings());
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\NoSuchTypeException
-     * @expectedExceptionMessage foo
+     * @expectedException \Puli\Discovery\Api\Type\NoSuchTypeException
+     * @expectedExceptionMessage Foo
      */
-    public function testBindFailsIfTypeNotFound()
+    public function testAddBindingFailsIfTypeNotFound()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
-
-        $discovery = $this->createEditableDiscovery($repo);
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->bind('/file', 'foo');
+        $discovery = $this->createDiscovery();
+        $discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
     }
 
     /**
-     * @expectedException \Puli\Repository\Api\UnsupportedLanguageException
-     * @expectedExceptionMessage foo
+     * @expectedException \Puli\Discovery\Api\Type\BindingNotAcceptedException
+     * @expectedExceptionMessage Foo
      */
-    public function testBindFailsIfUnsupportedLanguage()
+    public function testAddBindingFailsIfTypeDoesNotAcceptBinding()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
-
-        $discovery = $this->createEditableDiscovery($repo);
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->defineType(new BindingType('type'));
-        $discovery->bind('/file', 'type', array(), 'foo');
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz, array(), array(self::CLASS_BINDING)));
+        $discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
     }
 
-    public function testBindIgnoresDuplicates()
+    public function testAddBindingIgnoresDuplicates()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
+        $binding = new ResourceBinding('/path', Foo::clazz);
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type', array(
-            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
-        )));
-        $discovery->bind('/file', 'type', array('param' => 'default'));
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBinding($binding);
+        $discovery->addBinding($binding);
 
-        // The parameter is the same both times
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->bind('/file', 'type');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(1, $discovery->findByType('type'));
+        $this->assertCount(1, $discovery->findBindings(Foo::clazz));
         $this->assertCount(1, $discovery->getBindings());
     }
 
-    public function testUnbindPath()
+    public function testRemoveBinding()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz);
+        $binding2 = new ResourceBinding('/path2', Foo::clazz);
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type1'));
-        $discovery->defineType(new BindingType('type2'));
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->removeBinding($binding2->getUuid());
 
-        $discovery->bind('/file1', 'type1');
-        $discovery->bind('/file1', 'type2');
-        $discovery->bind('/file2', 'type1');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(2, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(2, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(3, $discovery->getBindings());
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file1');
-
-        $this->assertCount(1, $discovery->findByType('type1'));
-        $this->assertCount(0, $discovery->findByType('type2'));
-        $this->assertCount(0, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
+        $this->assertCount(1, $discovery->findBindings(Foo::clazz));
         $this->assertCount(1, $discovery->getBindings());
+        $this->assertTrue($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
     }
 
-    public function testUnbindPathWithType()
+    public function testRemoveBindingIgnoresUnknownUuid()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz);
+        $binding2 = new ResourceBinding('/path2', Foo::clazz);
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type1'));
-        $discovery->defineType(new BindingType('type2'));
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->removeBinding(Uuid::uuid4());
 
-        $discovery->bind('/file1', 'type1');
-        $discovery->bind('/file1', 'type2');
-        $discovery->bind('/file2', 'type1');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(2, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(2, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(3, $discovery->getBindings());
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file1', 'type1');
-
-        $this->assertCount(1, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(1, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
+        $this->assertCount(2, $discovery->findBindings(Foo::clazz));
         $this->assertCount(2, $discovery->getBindings());
     }
 
-    public function testUnbindPathWithTypeAndParameters()
+    public function testRemoveBindings()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz);
+        $binding2 = new ResourceBinding('/path2', Foo::clazz);
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type1', array(
-            new BindingParameter('param'),
-        )));
-        $discovery->defineType(new BindingType('type2'));
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->removeBindings();
 
-        $discovery->bind('/file1', 'type1', array(
-            'param' => 'foo',
-        ));
-        $discovery->bind('/file1', 'type1', array(
-            'param' => 'bar',
-        ));
-        $discovery->bind('/file1', 'type2');
-        $discovery->bind('/file2', 'type1', array(
-            'param' => 'foo',
-        ));
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(3, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(3, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(4, $discovery->getBindings());
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file1', 'type1', array(
-            'param' => 'foo',
-        ));
-
-        $this->assertCount(2, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(2, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(3, $discovery->getBindings());
+        $this->assertCount(0, $discovery->findBindings(Foo::clazz));
+        $this->assertCount(0, $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
     }
 
-    public function testUnbindPathWithParameters()
+    public function testRemoveBindingsDoesNothingIfNoneFound()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings();
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type1', array(
-            new BindingParameter('param'),
-        )));
-        $discovery->defineType(new BindingType('type2', array(
-            new BindingParameter('param'),
-        )));
-
-        $discovery->bind('/file1', 'type1', array(
-            'param' => 'foo',
-        ));
-        $discovery->bind('/file1', 'type1', array(
-            'param' => 'bar',
-        ));
-        $discovery->bind('/file1', 'type2', array(
-            'param' => 'foo',
-        ));
-        $discovery->bind('/file2', 'type1', array(
-            'param' => 'foo',
-        ));
-
-        $this->assertCount(3, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(3, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(4, $discovery->getBindings());
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file1', null, array(
-            'param' => 'foo',
-        ));
-
-        $this->assertCount(2, $discovery->findByType('type1'));
-        $this->assertCount(0, $discovery->findByType('type2'));
-        $this->assertCount(1, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(2, $discovery->getBindings());
-    }
-
-    public function testUnbindQuery()
-    {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
-
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type1'));
-        $discovery->defineType(new BindingType('type2'));
-
-        $discovery->bind('/file1', 'type1');
-        $discovery->bind('/file2', 'type2');
-        $discovery->bind('/file*', 'type1');
-
-        $this->assertCount(2, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(2, $discovery->findByPath('/file1'));
-        $this->assertCount(2, $discovery->findByPath('/file2'));
-        $this->assertCount(3, $discovery->getBindings());
-
-        // Only the binding for "/file*" is removed, not the others
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file*');
-
-        $this->assertCount(1, $discovery->findByType('type1'));
-        $this->assertCount(1, $discovery->findByType('type2'));
-        $this->assertCount(1, $discovery->findByPath('/file1'));
-        $this->assertCount(1, $discovery->findByPath('/file2'));
-        $this->assertCount(2, $discovery->getBindings());
-    }
-
-    /**
-     * @expectedException \Puli\Repository\Api\UnsupportedLanguageException
-     * @expectedExceptionMessage foo
-     */
-    public function testUnbindFailsIfUnsupportedLanguage()
-    {
-        $repo = $this->createRepository(array(
-            new TestFile('/file1'),
-            new TestFile('/file2'),
-        ));
-
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
-        $discovery->bind('/file*', 'type');
-
-        // Only the binding for "/file*" is removed, not the others
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file*', null, null, 'foo');
-    }
-
-    public function testUnbindIgnoresUnknownPath()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/foobar');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
         $this->assertCount(0, $discovery->getBindings());
     }
 
-    public function testUnbindIgnoresUnknownType()
+    public function testRemoveBindingsWithType()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz);
+        $binding2 = new ResourceBinding('/path2', Foo::clazz);
+        $binding3 = new ResourceBinding('/path3', Bar::clazz);
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->addBinding($binding3);
+        $discovery->removeBindings(Foo::clazz);
 
-        $discovery->bind('/file', 'type');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->unbind('/file', 'foobar');
-
-        $this->assertCount(1, $discovery->findByType('type'));
-        $this->assertCount(1, $discovery->findByPath('/file'));
-        $this->assertCount(1, $discovery->getBindings());
+        $this->assertEquals(array(), $discovery->findBindings(Foo::clazz));
+        $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz));
+        $this->assertEquals(array($binding3), $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
+        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
-    public function testDefineTypeName()
+    public function testRemoveBindingsWithTypeDoesNothingIfNoneFound()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->removeBindings(Foo::clazz);
 
-        $this->assertFalse($discovery->isTypeDefined('type'));
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->defineType('type');
-
-        $this->assertTrue($discovery->isTypeDefined('type'));
+        $this->assertCount(0, $discovery->getBindings());
     }
 
-    public function testDefineTypeInstance()
+    public function testRemoveBindingsWithTypeDoesNothingIfTypeNotFound()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings(Foo::clazz);
 
-        $this->assertFalse($discovery->isTypeDefined('type'));
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->defineType(new BindingType('type'));
-
-        $this->assertTrue($discovery->isTypeDefined('type'));
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage stdClass
-     */
-    public function testDefineFailsIfInvalidType()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->defineType(new \stdClass());
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\DuplicateTypeException
-     * @expectedExceptionMessage type
-     */
-    public function testDefineFailsIfAlreadyDefined()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType('type');
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->defineType('type');
-    }
-
-    public function testUndefine()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
-
-        $this->assertTrue($discovery->isTypeDefined('type'));
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->undefineType('type');
-
-        $this->assertFalse($discovery->isTypeDefined('type'));
-    }
-
-    public function testUndefineIgnoresUnknownTypes()
-    {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->undefineType('foobar');
-
-        $this->assertTrue($discovery->isTypeDefined('type'));
+        $this->assertCount(0, $discovery->getBindings());
     }
 
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage stdClass
      */
-    public function testUndefineFailsIfInvalidType()
+    public function testRemoveBindingsWithTypeFailsIfInvalidType()
     {
-        $repo = $this->createRepository();
-        $discovery = $this->createEditableDiscovery($repo);
-
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->undefineType(new \stdClass());
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings(new stdClass());
     }
 
-    public function testUndefineRemovesCorrespondingBindings()
+    public function testRemoveBindingsWithTypeAndParameters()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz, array('param1' => 'foo', 'param2' => 'bar'));
+        $binding2 = new ResourceBinding('/path2', Foo::clazz, array('param1' => 'foo'));
+        $binding3 = new ResourceBinding('/path3', Foo::clazz, array('param1' => 'bar'));
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
-        $discovery->bind('/file', 'type');
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz, array(
+            new BindingParameter('param1'),
+            new BindingParameter('param2'),
+        )));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->addBinding($binding3);
+        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->undefineType('type');
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertFalse($discovery->isTypeDefined('type'));
-        $this->assertCount(0, $discovery->findByPath('/file'));
+        $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
+        $this->assertEquals(array($binding3), $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
+        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
-    public function testClear()
+    public function testRemoveBindingsWithTypeAndParameterDefaults()
     {
-        $repo = $this->createRepository(array(
-            new TestFile('/file'),
-        ));
+        $binding1 = new ResourceBinding('/path1', Foo::clazz, array('param2' => 'bar'));
+        $binding2 = new ResourceBinding('/path2', Foo::clazz);
+        $binding3 = new ResourceBinding('/path3', Foo::clazz, array('param1' => 'bar'));
 
-        $discovery = $this->createEditableDiscovery($repo);
-        $discovery->defineType(new BindingType('type'));
-        $discovery->bind('/file', 'type');
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz, array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'foo'),
+            new BindingParameter('param2'),
+        )));
+        $discovery->addBinding($binding1);
+        $discovery->addBinding($binding2);
+        $discovery->addBinding($binding3);
+        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
 
-        $discovery = $this->getDiscoveryUnderTest($discovery);
-        $discovery->clear();
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertSame(array(), $discovery->getBindings());
-        $this->assertSame(array(), $discovery->getDefinedTypes());
+        $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
+        $this->assertEquals(array($binding3), $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
+        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
+    }
+
+    public function testRemoveBindingsWithTypeAndParametersDoesNothingIfNoneFound()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertCount(0, $discovery->getBindings());
+    }
+
+    public function testRemoveBindingsWithTypeAndParametersDoesNothingIfTypeNotFound()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertCount(0, $discovery->getBindings());
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testRemoveBindingsWithTypeAndParametersFailsIfInvalidType()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings(new stdClass(), array('param1' => 'foo'));
+    }
+
+    /**
+     * @expectedException \BadMethodCallException
+     */
+    public function testRemoveBindingsFailsIfParametersPassedButNoType()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindings(null, array('param1' => 'foo'));
+    }
+
+    public function testAddBindingType()
+    {
+        $type = new BindingType(Foo::clazz);
+
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType($type);
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertEquals($type, $discovery->getBindingType(Foo::clazz));
+    }
+
+    public function testAddBindingTypeAfterReadingStorage()
+    {
+        $type1 = new BindingType(Foo::clazz);
+        $type2 = new BindingType(Bar::clazz);
+
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType($type1);
+
+        // Make sure that the previous call to addBindingType() stored all
+        // necessary information in order to add further types (e.g. nextId)
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+        $discovery->addBindingType($type2);
+
+        $this->assertEquals($type1, $discovery->getBindingType(Foo::clazz));
+        $this->assertEquals($type2, $discovery->getBindingType(Bar::clazz));
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\Type\DuplicateTypeException
+     * @expectedExceptionMessage Foo
+     */
+    public function testAddBindingTypeFailsIfAlreadyDefined()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+    }
+
+    public function testRemoveBindingType()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType($type1 = new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->removeBindingType(Bar::clazz);
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertEquals(array($type1), $discovery->getBindingTypes());
+        $this->assertTrue($discovery->hasBindingType(Foo::clazz));
+        $this->assertFalse($discovery->hasBindingType(Bar::clazz));
+    }
+
+    public function testRemoveBindingTypeIgnoresUnknownTypes()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->removeBindingType(Bar::clazz);
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertTrue($discovery->hasBindingType(Foo::clazz));
+        $this->assertFalse($discovery->hasBindingType(Bar::clazz));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testRemoveBindingTypeFailsIfInvalidType()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->removeBindingType(new stdClass());
+    }
+
+    public function testRemoveBindingTypeRemovesCorrespondingBindings()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBinding($binding1 = new ResourceBinding('/path1', Foo::clazz));
+        $discovery->addBinding($binding2 = new ClassBinding(__CLASS__, Foo::clazz));
+        $discovery->addBinding($binding3 = new ResourceBinding('/path2', Bar::clazz));
+
+        $discovery->removeBindingType(Foo::clazz);
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertEquals(array($binding3), $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
+        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
+    }
+
+    public function testRemoveBindingTypes()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->removeBindingTypes();
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertEquals(array(), $discovery->getBindingTypes());
+        $this->assertFalse($discovery->hasBindingType(Foo::clazz));
+        $this->assertFalse($discovery->hasBindingType(Bar::clazz));
+    }
+
+    public function testRemoveBindingTypesRemovesBindings()
+    {
+        $discovery = $this->createDiscovery();
+        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBinding($binding1 = new ResourceBinding('/path1', Foo::clazz));
+        $discovery->addBinding($binding2 = new ClassBinding(__CLASS__, Bar::clazz));
+        $discovery->removeBindingTypes();
+
+        $discovery = $this->loadDiscoveryFromStorage($discovery);
+
+        $this->assertCount(0, $discovery->getBindings());
+        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
+        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
     }
 }

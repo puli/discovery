@@ -1,6 +1,53 @@
 Changelog
 =========
 
+* 1.0.0-beta8 (@release_date@)
+
+ * removed `$repo` argument from the constructors of `Discovery` implementations
+ * added `$initializers` argument to the constructors of `Discovery` 
+   implementations
+ * renamed `ResourceDiscovery` to `Discovery`
+ * renamed `ResourceDiscovery::findByType()` to `Discovery::findBindings()`
+ * renamed `ResourceDiscovery::isTypeDefined()` to `Discovery::hasBindingType()`
+ * renamed `ResourceDiscovery::getDefinedType()` to `Discovery::getBindingType()`
+ * renamed `ResourceDiscovery::getDefinedTypes()` to `Discovery::getBindingTypes()`
+ * removed `ResourceDiscovery::findByPath()`
+ * added `Discovery::hasBindings()`
+ * added `Discovery::hasBinding()`
+ * added `Discovery::getBinding()`
+ * added `Discovery::hasBindingTypes()`
+ * renamed `EditableDiscovery::bind()` to `EditableDiscovery::addBinding()`
+ * renamed `EditableDiscovery::unbind()` to `EditableDiscovery::removeBinding()`
+ * renamed `EditableDiscovery::defineType()` to `EditableDiscovery::addBindingType()`
+ * renamed `EditableDiscovery::undefineType()` to `EditableDiscovery::removeBindingType()`
+ * renamed `EditableDiscovery::clear()` to `EditableDiscovery::removeBindingTypes()`
+ * added `EditableDiscovery::removeBindings()`
+ * added `Binding`
+ * removed `ResourceBinding` interface
+ * added `ResourceBinding` class
+ * added `BindingInitializer`
+ * added `NotInitializedException`
+ * added `NoSuchBindingException`
+ * added `BindingNotAcceptedException`
+ * moved `BindingParameter` to `Puli\Discovery\Api\Type` namespace
+ * moved `BindingType` to `Puli\Discovery\Api\Type` namespace
+ * moved `DuplicateTypeException` to `Puli\Discovery\Api\Type` namespace
+ * moved `MissingParameterException` to `Puli\Discovery\Api\Type` namespace
+ * moved `NoSuchParameterException` to `Puli\Discovery\Api\Type` namespace
+ * moved `NoSuchTypeException` to `Puli\Discovery\Api\Type` namespace
+ * added parameter `$acceptedBindings` to constructor of `BindingType`
+ * added `BindingType::hasParameters()`
+ * added `BindingType::acceptsBinding()`
+ * added `BindingType::getAcceptedBindings()`
+ * removed `ParameterValidator` interface
+ * renamed `SimpleParameterValidator` class to `ParameterValidator`
+ * changed `AbstractBinding` to implement `Binding`
+ * added `ClassBinding`
+ * removed `EagerBinding`
+ * removed `LazyBinding`
+ * added `ResourceBindingInitializer`
+ * adapted data structures stored by `KeyValueStoreDiscovery`
+
 * 1.0.0-beta7 (2015-08-24)
 
  * fixed minimum package versions in composer.json
