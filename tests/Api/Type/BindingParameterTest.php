@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests\Api\Binding;
+namespace Puli\Discovery\Tests\Api\Type;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Api\Binding\BindingParameter;
+use Puli\Discovery\Api\Type\BindingParameter;
 
 /**
  * @since  1.0

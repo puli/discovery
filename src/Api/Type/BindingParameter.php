@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Api\Binding;
+namespace Puli\Discovery\Api\Type;
 
 use RuntimeException;
 use Webmozart\Assert\Assert;

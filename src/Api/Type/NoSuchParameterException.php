@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Api\Binding;
+namespace Puli\Discovery\Api\Type;
 
 use Exception;
 use RuntimeException;
@@ -26,11 +26,12 @@ class NoSuchParameterException extends RuntimeException
     /**
      * Creates a new exception for the given parameter name.
      *
-     * @param string    $parameterName The name of the parameter that was not
-     *                                 found.
-     * @param string    $typeName      The name of the type that the parameter
-     *                                 was searched on.
-     * @param Exception $cause         The exception that caused this exception.
+     * @param string         $parameterName The name of the parameter that was
+     *                                      not found.
+     * @param string         $typeName      The name of the type that the
+     *                                      parameter was searched on.
+     * @param Exception|null $cause         The exception that caused this
+     *                                      exception.
      *
      * @return static The created exception.
      */

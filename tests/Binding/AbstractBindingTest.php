@@ -12,9 +12,13 @@
 namespace Puli\Discovery\Tests\Binding;
 
 use PHPUnit_Framework_TestCase;
-use Puli\Discovery\Api\Binding\BindingParameter;
-use Puli\Discovery\Api\Binding\BindingType;
+use Puli\Discovery\Api\Type\BindingParameter;
+use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
+use Puli\Discovery\Tests\Fixtures\Bar;
+use Puli\Discovery\Tests\Fixtures\Foo;
+use Rhumsaa\Uuid\Uuid;
+use stdClass;
 
 /**
  * @since  1.0
@@ -24,192 +28,268 @@ use Puli\Discovery\Binding\AbstractBinding;
 abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @param string      $query
-     * @param BindingType $type
-     * @param array       $parameters
-     * @param string      $language
+     * @param string $typeName
+     * @param array  $parameterValues
+     * @param Uuid   $uuid
      *
      * @return AbstractBinding
      */
-    abstract protected function createBinding($query, BindingType $type, array $parameters = array(), $language = 'glob');
+    abstract protected function createBinding($typeName, array $parameterValues = array(), Uuid $uuid = null);
 
     public function testCreate()
     {
-        $type = new BindingType('type');
+        $binding = $this->createBinding(Foo::clazz);
 
-        $binding = $this->createBinding('/path/*', $type);
-
-        $this->assertSame('/path/*', $binding->getQuery());
-        $this->assertSame($type, $binding->getType());
+        $this->assertSame(Foo::clazz, $binding->getTypeName());
         $this->assertSame(array(), $binding->getParameterValues());
         $this->assertFalse($binding->hasParameterValue('param'));
+        $this->assertInstanceOf('Rhumsaa\Uuid\Uuid', $binding->getUuid());
+    }
+
+    public function testCreateWithUuid()
+    {
+        $uuid = Uuid::uuid4();
+        $binding = $this->createBinding(Foo::clazz, array(), $uuid);
+
+        $this->assertSame($uuid, $binding->getUuid());
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage stdClass
+     */
+    public function testCreateFailsIfInvalidType()
+    {
+        $this->createBinding(new stdClass());
     }
 
     public function testCreateWithParameters()
     {
-        $type = new BindingType('type', array(
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param1' => 'value',
+        ));
+
+        $this->assertSame(Foo::clazz, $binding->getTypeName());
+        $this->assertSame(array(
+            'param1' => 'value',
+        ), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param1'));
+        $this->assertFalse($binding->hasParameterValue('foo'));
+        $this->assertSame('value', $binding->getParameterValue('param1'));
+    }
+
+    public function testInitialize()
+    {
+        $type = new BindingType(Foo::clazz);
+        $binding = $this->createBinding(Foo::clazz);
+
+        $this->assertFalse($binding->isInitialized());
+
+        $binding->initialize($type);
+
+        $this->assertSame($type, $binding->getType());
+        $this->assertTrue($binding->isInitialized());
+    }
+
+    public function testInitializeWithParameters()
+    {
+        $type = new BindingType(Foo::clazz, array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         ));
 
-        $binding = $this->createBinding('/path/*', $type, array(
+        $binding = $this->createBinding(Foo::clazz, array(
             'param1' => 'value',
         ));
 
-        $this->assertSame($type, $binding->getType());
-        $this->assertSame(array(
-            'param1' => 'value',
-            'param2' => null,
-        ), $binding->getParameterValues());
+        $this->assertSame(array('param1' => 'value'), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param1'));
+        $this->assertFalse($binding->hasParameterValue('param2'));
+        $this->assertFalse($binding->hasParameterValue('foo'));
+        $this->assertSame('value', $binding->getParameterValue('param1'));
+
+        $binding->initialize($type);
+
+        $this->assertSame(array('param1' => 'value', 'param2' => null), $binding->getParameterValues());
         $this->assertTrue($binding->hasParameterValue('param1'));
         $this->assertTrue($binding->hasParameterValue('param2'));
         $this->assertFalse($binding->hasParameterValue('foo'));
         $this->assertSame('value', $binding->getParameterValue('param1'));
         $this->assertNull($binding->getParameterValue('param2'));
+
+        // exclude default values
+        $this->assertSame(array('param1' => 'value'), $binding->getParameterValues(false));
+        $this->assertTrue($binding->hasParameterValue('param1', false));
+        $this->assertFalse($binding->hasParameterValue('param2', false));
+        $this->assertFalse($binding->hasParameterValue('foo', false));
+        $this->assertSame('value', $binding->getParameterValue('param1', false));
     }
 
-    public function testCreateWithParameterDefaults()
+    public function testInitializeWithParameterDefaults()
     {
-        $type = new BindingType('type', array(
-            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
+        $type = new BindingType(Foo::clazz, array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2'),
         ));
 
-        $binding = $this->createBinding('/path/*', $type);
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param2' => 'value',
+        ));
 
-        $this->assertSame($type, $binding->getType());
-        $this->assertSame(array('param' => 'default'), $binding->getParameterValues());
-        $this->assertTrue($binding->hasParameterValue('param'));
-        $this->assertSame('default', $binding->getParameterValue('param'));
+        $this->assertSame(array('param2' => 'value'), $binding->getParameterValues());
+        $this->assertFalse($binding->hasParameterValue('param1'));
+        $this->assertTrue($binding->hasParameterValue('param2'));
+        $this->assertSame('value', $binding->getParameterValue('param2'));
+
+        $binding->initialize($type);
+
+        $this->assertSame(array('param1' => 'default', 'param2' => 'value'), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param1'));
+        $this->assertTrue($binding->hasParameterValue('param2'));
+        $this->assertSame('default', $binding->getParameterValue('param1'));
+        $this->assertSame('value', $binding->getParameterValue('param2'));
+
+        // exclude default values
+        $this->assertSame(array('param2' => 'value'), $binding->getParameterValues(false));
+        $this->assertFalse($binding->hasParameterValue('param1', false));
+        $this->assertTrue($binding->hasParameterValue('param2', false));
+        $this->assertSame('value', $binding->getParameterValue('param2', false));
+    }
+
+    public function testInitializeWithRequiredParameters()
+    {
+        $type = new BindingType(Foo::clazz, array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2', BindingParameter::REQUIRED),
+        ));
+
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param2' => 'value',
+        ));
+
+        $this->assertSame(array('param2' => 'value'), $binding->getParameterValues());
+        $this->assertFalse($binding->hasParameterValue('param1'));
+        $this->assertTrue($binding->hasParameterValue('param2'));
+        $this->assertSame('value', $binding->getParameterValue('param2'));
+
+        $binding->initialize($type);
+
+        $this->assertSame(array('param1' => 'default', 'param2' => 'value'), $binding->getParameterValues());
+        $this->assertTrue($binding->hasParameterValue('param1'));
+        $this->assertTrue($binding->hasParameterValue('param2'));
+        $this->assertSame('default', $binding->getParameterValue('param1'));
+        $this->assertSame('value', $binding->getParameterValue('param2'));
+
+        // exclude default values
+        $this->assertSame(array('param2' => 'value'), $binding->getParameterValues(false));
+        $this->assertFalse($binding->hasParameterValue('param1', false));
+        $this->assertTrue($binding->hasParameterValue('param2', false));
+        $this->assertSame('value', $binding->getParameterValue('param2', false));
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\Binding\MissingParameterException
+     * @expectedException \Puli\Discovery\Api\Type\MissingParameterException
      * @expectedExceptionMessage param
      */
-    public function testCreateFailsIfMissingRequiredParameter()
+    public function testInitializeFailsIfMissingRequiredParameter()
     {
-        $type = new BindingType('type', array(
+        $type = new BindingType(Foo::clazz, array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
-        $this->createBinding('/file1', $type);
+        $binding = $this->createBinding(Foo::clazz);
+
+        $binding->initialize($type);
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\Binding\NoSuchParameterException
+     * @expectedException \Puli\Discovery\Api\Type\NoSuchParameterException
      * @expectedExceptionMessage foo
      */
-    public function testCreateFailsIfUnknownParameter()
+    public function testInitializeFailsIfUnknownParameter()
     {
-        $type = new BindingType('type');
+        $type = new BindingType(Foo::clazz);
 
-        $this->createBinding('/file1', $type, array(
+        $binding = $this->createBinding(Foo::clazz, array(
             'foo' => 'bar',
         ));
+
+        $binding->initialize($type);
     }
 
     /**
-     * @expectedException \Puli\Discovery\Api\Binding\NoSuchParameterException
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Bar
+     */
+    public function testInitializeFailsIfWrongType()
+    {
+        $type = new BindingType(Foo::clazz);
+
+        $binding = $this->createBinding(Bar::clazz);
+
+        $binding->initialize($type);
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\Type\BindingNotAcceptedException
+     */
+    public function testInitializeFailsIfBindingNotAccepted()
+    {
+        $binding = $this->getMock('Puli\Discovery\Api\Binding\Binding');
+        $type = new BindingType(Foo::clazz, array(), array(get_class($binding)));
+
+        $binding = $this->createBinding(Foo::clazz);
+
+        $binding->initialize($type);
+    }
+
+    /**
+     * @expectedException \Puli\Discovery\Api\Type\NoSuchParameterException
      * @expectedExceptionMessage foo
      */
     public function testGetParameterFailsIfNotFound()
     {
-        $type = new BindingType('type');
-
-        $binding = $this->createBinding('/file1', $type);
+        $binding = $this->createBinding(Foo::clazz);
 
         $binding->getParameterValue('foo');
     }
 
-    public function testEqual()
+    /**
+     * @expectedException \Puli\Discovery\Api\Binding\Initializer\NotInitializedException
+     */
+    public function testGetTypeFailsIfNotInitialized()
     {
-        $type = new BindingType('type');
+        $binding = $this->createBinding(Foo::clazz);
 
-        $binding1 = $this->createBinding('/path', $type);
-        $binding2 = $this->createBinding('/path', $type);
-
-        $this->assertTrue($binding1->equals($binding2));
+        $binding->getType();
     }
 
-    public function testNotEqualIfDifferentTypeInstance()
+    public function testSerialize()
     {
-        $type1 = new BindingType('type');
-        $type2 = new BindingType('type');
-
-        $binding1 = $this->createBinding('/path', $type1);
-        $binding2 = $this->createBinding('/path', $type2);
-
-        $this->assertFalse($binding1->equals($binding2));
-    }
-
-    public function testNotEqualIfDifferentPath()
-    {
-        $type = new BindingType('type');
-
-        $binding1 = $this->createBinding('/path1', $type);
-        $binding2 = $this->createBinding('/path2', $type);
-
-        $this->assertFalse($binding1->equals($binding2));
-    }
-
-    public function testNotEqualIfDifferentParameters()
-    {
-        $type = new BindingType('type', array(
-            new BindingParameter('param'),
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param1' => 'value',
         ));
 
-        $binding1 = $this->createBinding('/path', $type, array('param' => 'foo'));
-        $binding2 = $this->createBinding('/path', $type, array('param' => 'bar'));
+        $unserialized = unserialize(serialize($binding));
 
-        $this->assertFalse($binding1->equals($binding2));
+        $this->assertEquals($binding, $unserialized);
     }
 
-    public function testNotEqualIfDifferentParameterTypes()
+    public function testSerializeInitialized()
     {
-        $type = new BindingType('type', array(
-            new BindingParameter('param'),
+        $type = new BindingType(Foo::clazz, array(
+            new BindingParameter('param1'),
+            new BindingParameter('param2'),
         ));
 
-        $binding1 = $this->createBinding('/path', $type, array('param' => '2'));
-        $binding2 = $this->createBinding('/path', $type, array('param' => 2));
-
-        $this->assertFalse($binding1->equals($binding2));
-    }
-
-    public function testEqualIfDifferentParameterOrder()
-    {
-        $type = new BindingType('type', array(
-            new BindingParameter('foo'),
-            new BindingParameter('bar'),
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param1' => 'value',
         ));
+        $binding->initialize($type);
 
-        $binding1 = $this->createBinding('/path', $type, array('foo' => 'bar', 'bar' => 'foo'));
-        $binding2 = $this->createBinding('/path', $type, array('bar' => 'foo', 'foo' => 'bar'));
+        $unserialized = unserialize(serialize($binding));
+        $unserialized->initialize($type);
 
-        $this->assertTrue($binding1->equals($binding2));
-    }
-
-    public function testEqualIfDefaultValues()
-    {
-        $type = new BindingType('type', array(
-            new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
-        ));
-
-        $binding1 = $this->createBinding('/path', $type, array('param' => 'default'));
-        $binding2 = $this->createBinding('/path', $type);
-
-        $this->assertTrue($binding1->equals($binding2));
-    }
-
-    public function testNotEqualIfDifferentLanguage()
-    {
-        $type = new BindingType('type', array(
-            new BindingParameter('param'),
-        ));
-
-        $binding1 = $this->createBinding('/path', $type, array(), 'glob');
-        $binding2 = $this->createBinding('/path', $type, array(), 'xpath');
-
-        $this->assertFalse($binding1->equals($binding2));
+        $this->assertEquals($binding, $unserialized);
     }
 }

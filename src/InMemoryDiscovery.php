@@ -11,14 +11,12 @@
 
 namespace Puli\Discovery;
 
-use InvalidArgumentException;
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\ResourceBinding;
-use Puli\Discovery\Api\DuplicateTypeException;
-use Puli\Discovery\Api\NoSuchTypeException;
-use Puli\Discovery\Binding\EagerBinding;
-use Puli\Repository\Api\ResourceRepository;
-use RuntimeException;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\NoSuchBindingException;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Api\Type\DuplicateTypeException;
+use Puli\Discovery\Api\Type\NoSuchTypeException;
+use Rhumsaa\Uuid\Uuid;
 use Webmozart\Assert\Assert;
 
 /**
@@ -33,70 +31,69 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * @var BindingType[]
      */
-    private $types;
+    private $types = array();
 
     /**
-     * @var EagerBinding[]
+     * @var Binding[]
      */
-    private $bindings;
+    private $bindings = array();
 
     /**
-     * @var int
+     * @var Binding[][]
      */
-    private $nextId;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct(ResourceRepository $repo)
-    {
-        parent::__construct($repo);
-
-        $this->clear();
-    }
+    private $bindingsByTypeName = array();
 
     /**
      * {@inheritdoc}
      */
-    public function defineType($type)
+    public function addBindingType(BindingType $type)
     {
-        if (is_string($type)) {
-            $type = new BindingType($type);
-        }
-
-        if (!$type instanceof BindingType) {
-            throw new InvalidArgumentException(sprintf(
-                'Expected argument of type string or BindingType. Got: %s',
-                is_object($type) ? get_class($type) : gettype($type)
-            ));
-        }
-
         if (isset($this->types[$type->getName()])) {
             throw DuplicateTypeException::forTypeName($type->getName());
         }
 
         $this->types[$type->getName()] = $type;
-        $this->typeIndex[$type->getName()] = array();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function undefineType($typeName)
+    public function removeBindingType($typeName)
     {
-        Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
-
-        $this->removeBindingsByType($typeName);
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
         unset($this->types[$typeName]);
-        unset($this->typeIndex[$typeName]);
+
+        $this->removeBindingsWithTypeName($typeName);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefinedType($typeName)
+    public function removeBindingTypes()
     {
+        $this->types = array();
+        $this->bindings = array();
+        $this->bindingsByTypeName = array();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasBindingType($typeName)
+    {
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
+
+        return isset($this->types[$typeName]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindingType($typeName)
+    {
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
+
         if (!isset($this->types[$typeName])) {
             throw NoSuchTypeException::forTypeName($typeName);
         }
@@ -107,29 +104,73 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function isTypeDefined($typeName)
+    public function hasBindingTypes()
     {
-        return isset($this->types[$typeName]);
+        return count($this->types) > 0;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefinedTypes()
+    public function getBindingTypes()
     {
-        return $this->types;
+        return array_values($this->types);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clear()
+    public function addBinding(Binding $binding)
     {
-        parent::clear();
+        $uuidString = $binding->getUuid()->toString();
 
-        $this->types = array();
-        $this->bindings = array();
-        $this->nextId = 0;
+        if (isset($this->bindings[$uuidString])) {
+            return;
+        }
+
+        $this->initializeBinding($binding);
+
+        $this->bindings[$uuidString] = $binding;
+        $this->bindingsByTypeName[$binding->getTypeName()][$uuidString] = $binding;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBinding(Uuid $uuid)
+    {
+        $uuidString = $uuid->toString();
+
+        if (!isset($this->bindings[$uuidString])) {
+            return;
+        }
+
+        $binding = $this->bindings[$uuidString];
+
+        unset($this->bindings[$uuidString]);
+        unset($this->bindingsByTypeName[$binding->getTypeName()][$uuidString]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findBindings($typeName, array $parameterValues = array())
+    {
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
+
+        if (!isset($this->bindingsByTypeName[$typeName])) {
+            return array();
+        }
+
+        $bindings = $this->bindingsByTypeName[$typeName];
+
+        if (count($parameterValues) > 0) {
+            $bindings = array_filter($bindings, function (Binding $binding) use ($parameterValues) {
+                return AbstractEditableDiscovery::testParameterValues($binding, $parameterValues);
+            });
+        }
+
+        return array_values($bindings);
     }
 
     /**
@@ -143,35 +184,96 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function getBinding($id)
+    public function hasBinding(Uuid $uuid)
     {
-        if (!isset($this->bindings[$id])) {
-            throw new RuntimeException(sprintf(
-                'Could not find binding with ID %s.',
-                $id
-            ));
+        return isset($this->bindings[$uuid->toString()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBinding(Uuid $uuid)
+    {
+        if (!isset($this->bindings[$uuid->toString()])) {
+            throw NoSuchBindingException::forUuid($uuid);
         }
 
-        return $this->bindings[$id];
+        return $this->bindings[$uuid->toString()];
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function insertBinding(ResourceBinding $binding)
+    protected function removeAllBindings()
     {
-        $id = $this->nextId++;
-
-        $this->bindings[$id] = $binding;
-
-        $this->updateIndicesForId($id, $binding);
+        $this->bindings = array();
+        $this->bindingsByTypeName = array();
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function removeBinding($id)
+    protected function removeBindingsWithTypeName($typeName)
     {
-        unset($this->bindings[$id]);
+        if (!isset($this->bindingsByTypeName[$typeName])) {
+            return;
+        }
+
+        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
+            unset($this->bindings[$binding->getUuid()->toString()]);
+        }
+
+        unset($this->bindingsByTypeName[$typeName]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function removeBindingsWithParameterValues($typeName, array $parameterValues)
+    {
+        if (!isset($this->bindingsByTypeName[$typeName])) {
+            return;
+        }
+
+        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
+            if (self::testParameterValues($binding, $parameterValues)) {
+                unset($this->bindings[$binding->getUuid()->toString()]);
+                unset($this->bindingsByTypeName[$typeName][$binding->getUuid()->toString()]);
+            }
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function hasAnyBinding()
+    {
+        return count($this->bindings) > 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function hasBindingsWithTypeName($typeName)
+    {
+        return !empty($this->bindingsByTypeName[$typeName]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function hasBindingsWithParameterValues($typeName, array $parameterValues)
+    {
+        if (!isset($this->bindingsByTypeName[$typeName])) {
+            return false;
+        }
+
+        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
+            if (self::testParameterValues($binding, $parameterValues)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

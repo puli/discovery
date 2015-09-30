@@ -11,8 +11,12 @@
 
 namespace Puli\Discovery;
 
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\EditableDiscovery;
-use Puli\Discovery\Api\NoSuchTypeException;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Api\Type\NoSuchTypeException;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * A discovery that does nothing.
@@ -30,56 +34,17 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob')
+    public function findBindings($typeName, array $parameterValues = array())
     {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function unbind($query, $typeName = null, array $parameterValues = null, $language = null)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function defineType($type)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function undefineType($typeName)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function clear()
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByType($typeName)
-    {
-        throw NoSuchTypeException::forTypeName($typeName);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByPath($resourcePath, $typeName = null)
-    {
-        if (null !== $typeName) {
-            throw NoSuchTypeException::forTypeName($typeName);
-        }
-
         return array();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasBindings($typeName = null, array $parameterValues = array())
+    {
+        return false;
     }
 
     /**
@@ -93,7 +58,7 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function isTypeDefined($typeName)
+    public function hasBinding(Uuid $uuid)
     {
         return false;
     }
@@ -101,7 +66,23 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getDefinedType($typeName)
+    public function getBinding(Uuid $uuid)
+    {
+        throw NoSuchBindingException::forUuid($uuid);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasBindingType($typeName)
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindingType($typeName)
     {
         throw NoSuchTypeException::forTypeName($typeName);
     }
@@ -109,8 +90,58 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getDefinedTypes()
+    public function hasBindingTypes()
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindingTypes()
     {
         return array();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function addBinding(Binding $binding)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBinding(Uuid $uuid)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBindings($typeName = null, array $parameterValues = array())
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function addBindingType(BindingType $type)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBindingType($typeName)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBindingTypes()
+    {
     }
 }

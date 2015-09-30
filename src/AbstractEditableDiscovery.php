@@ -11,15 +11,12 @@
 
 namespace Puli\Discovery;
 
-use Puli\Discovery\Api\Binding\ResourceBinding;
+use BadMethodCallException;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
 use Puli\Discovery\Api\EditableDiscovery;
-use Puli\Discovery\Api\NoSuchTypeException;
-use Puli\Discovery\Binding\LazyBinding;
-use Puli\Repository\Api\ResourceNotFoundException;
-use Puli\Repository\Api\ResourceRepository;
-use Puli\Repository\Api\UnsupportedLanguageException;
-use Webmozart\Glob\Glob;
-use Webmozart\PathUtil\Path;
+use Puli\Discovery\Api\Type\BindingNotAcceptedException;
+use Webmozart\Assert\Assert;
 
 /**
  * Base class for editable resource discoveries.
@@ -31,356 +28,191 @@ use Webmozart\PathUtil\Path;
 abstract class AbstractEditableDiscovery implements EditableDiscovery
 {
     /**
-     * @var ResourceRepository
+     * @var BindingInitializer[]
      */
-    protected $repo;
+    private $initializers;
 
     /**
-     * @var bool[][]
+     * @var BindingInitializer[][]
      */
-    protected $queryIndex = array();
+    private $initializersByBindingClass = array();
 
     /**
-     * @var bool[][]
+     * Tests whether a binding matches the given parameter values.
+     *
+     * @param Binding $binding         The tested binding.
+     * @param array   $parameterValues One or more parameter values indexed by
+     *                                 parameter names.
+     *
+     * @return bool Returns `true` if the passed parameters match the values in
+     *              the binding.
      */
-    protected $typeIndex = array();
+    public static function testParameterValues(Binding $binding, array $parameterValues)
+    {
+        foreach ($parameterValues as $parameterName => $parameterValue) {
+            if ($parameterValue !== $binding->getParameterValue($parameterName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Creates a new resource discovery.
      *
-     * @param ResourceRepository $repo The repository to fetch resources from.
+     * @param BindingInitializer[] $initializers The binding initializers to
+     *                                           apply to newly created or
+     *                                           unserialized bindings.
      */
-    public function __construct(ResourceRepository $repo)
+    public function __construct(array $initializers = array())
     {
-        $this->repo = $repo;
+        $this->initializers = $initializers;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function bind($query, $typeName, array $parameterValues = array(), $language = 'glob')
+    public function removeBindings($typeName = null, array $parameterValues = array())
     {
-        if ('glob' !== $language) {
-            throw UnsupportedLanguageException::forLanguage($language);
+        Assert::nullOrStringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
+
+        if (null === $typeName && count($parameterValues) > 0) {
+            throw new BadMethodCallException('The type name must be passed when searching bindings by a parameter value.');
         }
 
-        $type = $this->getDefinedType($typeName);
+        if (count($parameterValues) > 0) {
+            $this->removeBindingsWithParameterValues($typeName, $parameterValues);
 
-        // Use a lazy binding, because the resources in the repository may change
-        $binding = new LazyBinding($query, $this->repo, $type, $parameterValues, $language);
-
-        if ($this->containsBinding($binding)) {
             return;
-        }
-
-        $this->insertBinding($binding);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function unbind($query, $typeName = null, array $parameterValues = null, $language = null)
-    {
-        if (null !== $language && 'glob' !== $language) {
-            throw UnsupportedLanguageException::forLanguage($language);
         }
 
         if (null !== $typeName) {
-            $this->removeBindingsByQueryAndType($query, $typeName, $parameterValues);
+            $this->removeBindingsWithTypeName($typeName);
 
             return;
         }
 
-        $this->removeBindingsByQuery($query, $parameterValues);
+        $this->removeAllBindings();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function findByType($typeName)
+    public function hasBindings($typeName = null, array $parameterValues = array())
     {
-        if (!isset($this->typeIndex[$typeName])) {
-            throw NoSuchTypeException::forTypeName($typeName);
+        Assert::nullOrStringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
+
+        if (null === $typeName && count($parameterValues) > 0) {
+            throw new BadMethodCallException('The type class must be passed when searching bindings by a parameter value.');
         }
 
-        $bindings = array();
-
-        if (isset($this->typeIndex[$typeName])) {
-            foreach ($this->typeIndex[$typeName] as $id => $true) {
-                $bindings[] = $this->getBinding($id);
-            }
+        if (count($parameterValues) > 0) {
+            return $this->hasBindingsWithParameterValues($typeName, $parameterValues);
         }
 
-        return $bindings;
+        if (null !== $typeName) {
+            return $this->hasBindingsWithTypeName($typeName);
+        }
+
+        return $this->hasAnyBinding();
     }
 
     /**
-     * {@inheritdoc}
+     * Removes all bindings from the discovery.
      */
-    public function findByPath($resourcePath, $typeName = null)
+    abstract protected function removeAllBindings();
+
+    /**
+     * Removes all bindings bound to the given binding type.
+     *
+     * @param string $typeName The name of the binding type.
+     */
+    abstract protected function removeBindingsWithTypeName($typeName);
+
+    /**
+     * Removes all bindings bound to the given type with certain parameter values.
+     *
+     * Only bindings with exactly the given parameter values should be removed.
+     * Parameters that are not passed in $parameterValues should be ignored.
+     *
+     * @param string $typeName        The name of the binding type.
+     * @param array  $parameterValues The parameter values to match.
+     */
+    abstract protected function removeBindingsWithParameterValues($typeName, array $parameterValues);
+
+    /**
+     * Returns whether the discovery contains bindings.
+     *
+     * @return bool Returns `true` if the discovery has bindings and `false`
+     *              otherwise.
+     */
+    abstract protected function hasAnyBinding();
+
+    /**
+     * Returns whether the discovery contains bindings for the given type.
+     *
+     * @param string $typeName The name of the binding type.
+     *
+     * @return bool Returns `true` if bindings bound to the given binding type
+     *              are found and `false` otherwise.
+     */
+    abstract protected function hasBindingsWithTypeName($typeName);
+
+    /**
+     * Returns whether the discovery contains bindings for the given type and
+     * parameter values.
+     *
+     * Parameters that are not passed in $parameterValues should be ignored.
+     *
+     * @param string $typeName        The name of the binding type.
+     * @param array  $parameterValues The parameter values to match.
+     *
+     * @return bool Returns `true` if the discovery contains bindings bound to
+     *              the given type and with the given parameter values.
+     */
+    abstract protected function hasBindingsWithParameterValues($typeName, array $parameterValues);
+
+    /**
+     * Initializes a binding.
+     *
+     * @param Binding $binding The binding to initialize.
+     *
+     * @throws BindingNotAcceptedException If the loaded type does not accept
+     *                                     the binding.
+     */
+    protected function initializeBinding(Binding $binding)
     {
-        if (!$this->repo->contains($resourcePath)) {
-            throw ResourceNotFoundException::forPath($resourcePath);
-        }
+        $binding->initialize($this->getBindingType($binding->getTypeName()));
 
-        if (null === $typeName) {
-            return $this->findAllForPath($resourcePath);
-        }
+        $bindingClass = get_class($binding);
 
-        return $this->findByPathAndType($resourcePath, $typeName);
-    }
+        if (!isset($this->initializersByBindingClass[$bindingClass])) {
+            $this->initializersByBindingClass[$bindingClass] = array();
 
-    /**
-     * {@inheritdoc}
-     */
-    public function clear()
-    {
-        $this->queryIndex = array();
-        $this->typeIndex = array();
-    }
-
-    /**
-     * Returns the binding with the given ID.
-     *
-     * IDs are simple integers that are used to reference bindings in the
-     * indices. IDs should be generated in {@link insertBinding()}.
-     *
-     * The resource with the given ID is guaranteed to have been inserted before
-     * this method is called.
-     *
-     * @param int $id The ID of the binding.
-     *
-     * @return ResourceBinding The binding with the ID.
-     */
-    abstract protected function getBinding($id);
-
-    /**
-     * Inserts a binding.
-     *
-     * An integer ID should be generated for the binding. You must call
-     * {@link updateIndicesForId()} with that ID to update the indices.
-     *
-     * @param ResourceBinding $binding The binding to insert.
-     */
-    abstract protected function insertBinding(ResourceBinding $binding);
-
-    /**
-     * Removes the binding with the given ID.
-     *
-     * @param int $id The ID of the binding.
-     */
-    abstract protected function removeBinding($id);
-
-    /**
-     * Returns whether the binder contains a binding equal to the given one.
-     *
-     * The {@link ResourceBinding::equals()} method is used to compare bindings.
-     *
-     * @param ResourceBinding $binding A binding to search for.
-     *
-     * @return bool Returns `true` if an equal binding has been defined.
-     */
-    protected function containsBinding(ResourceBinding $binding)
-    {
-        if (!isset($this->typeIndex[$binding->getType()->getName()])) {
-            return false;
-        }
-
-        if (!isset($this->queryIndex[$binding->getQuery()])) {
-            return false;
-        }
-
-        foreach ($this->queryIndex[$binding->getQuery()] as $id => $true) {
-            if ($this->getBinding($id)->equals($binding)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns the bindings for a resource path.
-     *
-     * @param string $resourcePath The resource path.
-     *
-     * @return ResourceBinding[] The bindings for that resource path.
-     */
-    protected function findAllForPath($resourcePath)
-    {
-        $bindings = array();
-
-        foreach ($this->queryIndex as $query => $ids) {
-            if (!$this->resourcePathMatchesQuery($resourcePath, $query)) {
-                continue;
-            }
-
-            foreach ($ids as $id => $true) {
-                $bindings[$id] = $this->getBinding($id);
-            }
-        }
-
-        return array_values($bindings);
-    }
-
-    /**
-     * Returns the bindings for a resource path and type.
-     *
-     * @param string $resourcePath The resource path.
-     * @param string $typeName     The type name.
-     *
-     * @return ResourceBinding[] The matching bindings.
-     */
-    protected function findByPathAndType($resourcePath, $typeName)
-    {
-        if (!isset($this->typeIndex[$typeName])) {
-            throw NoSuchTypeException::forTypeName($typeName);
-        }
-
-        $bindings = array();
-
-        foreach ($this->queryIndex as $query => $ids) {
-            if (!$this->resourcePathMatchesQuery($resourcePath, $query)) {
-                continue;
-            }
-
-            foreach ($ids as $id => $true) {
-                // Prevent duplicate type comparisons
-                if (isset($bindings[$id])) {
-                    continue;
-                }
-
-                $binding = $this->getBinding($id);
-
-                if ($typeName === $binding->getType()->getName()) {
-                    $bindings[$id] = $this->getBinding($id);
+            // Find out which initializers accept the binding
+            foreach ($this->initializers as $initializer) {
+                if ($initializer->acceptsBinding($bindingClass)) {
+                    $this->initializersByBindingClass[$bindingClass][] = $initializer;
                 }
             }
         }
 
-        return array_values($bindings);
-    }
-
-    /**
-     * Inserts the given binding ID into the index structures.
-     *
-     * @param int             $id      The binding ID.
-     * @param ResourceBinding $binding The associated binding.
-     */
-    protected function updateIndicesForId($id, ResourceBinding $binding)
-    {
-        $typeName = $binding->getType()->getName();
-
-        $this->queryIndex[$binding->getQuery()][$id] = true;
-
-        if (!isset($this->typeIndex[$typeName])) {
-            $this->typeIndex[$typeName] = array();
-        }
-
-        $this->typeIndex[$typeName][$id] = true;
-    }
-
-    /**
-     * Removes bindings for a query.
-     *
-     * @param string     $query           The resource query.
-     * @param array|null $parameterValues The parameters values to filter by.
-     */
-    protected function removeBindingsByQuery($query, array $parameterValues = null)
-    {
-        if (!isset($this->queryIndex[$query])) {
-            return;
-        }
-
-        foreach ($this->queryIndex[$query] as $id => $true) {
-            $binding = $this->getBinding($id);
-
-            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
-                continue;
-            }
-
-            unset($this->queryIndex[$query][$id]);
-            unset($this->typeIndex[$binding->getType()->getName()][$id]);
-
-            $this->removeBinding($id);
+        // Apply all initializers that we found
+        foreach ($this->initializersByBindingClass[$bindingClass] as $initializer) {
+            $initializer->initializeBinding($binding);
         }
     }
 
     /**
-     * Removes bindings for a type.
+     * Initializes multiple bindings.
      *
-     * @param string     $typeName        The name of the type.
-     * @param array|null $parameterValues The parameters values to filter by.
+     * @param Binding[] $bindings The bindings to initialize.
      */
-    protected function removeBindingsByType($typeName, array $parameterValues = null)
+    protected function initializeBindings(array $bindings)
     {
-        if (!isset($this->typeIndex[$typeName])) {
-            return;
+        foreach ($bindings as $binding) {
+            $this->initializeBinding($binding);
         }
-
-        foreach ($this->typeIndex[$typeName] as $id => $true) {
-            $binding = $this->getBinding($id);
-
-            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
-                continue;
-            }
-
-            unset($this->typeIndex[$typeName][$id]);
-            unset($this->queryIndex[$binding->getQuery()][$id]);
-
-            $this->removeBinding($id);
-        }
-    }
-
-    /**
-     * Removes bindings for a binding path and type.
-     *
-     * @param string     $query           The resource query.
-     * @param string     $typeName        The name of the type.
-     * @param array|null $parameterValues The parameters values to filter by.
-     */
-    protected function removeBindingsByQueryAndType($query, $typeName, array $parameterValues = null)
-    {
-        if (!isset($this->queryIndex[$query])) {
-            return;
-        }
-
-        if (!isset($this->typeIndex[$typeName])) {
-            return;
-        }
-
-        foreach ($this->queryIndex[$query] as $id => $true) {
-            $binding = $this->getBinding($id);
-
-            if ($typeName !== $binding->getType()->getName()) {
-                continue;
-            }
-
-            if (null !== $parameterValues && $parameterValues !== $binding->getParameterValues()) {
-                continue;
-            }
-
-            unset($this->queryIndex[$query][$id]);
-            unset($this->typeIndex[$typeName][$id]);
-
-            $this->removeBinding($id);
-        }
-    }
-
-    /**
-     * Returns whether a resource path matches a query.
-     *
-     * @param string $resourcePath The resource path.
-     * @param string $query        The resource query of a binding.
-     *
-     * @return bool Returns `true` if the resource path matches the query.
-     */
-    protected function resourcePathMatchesQuery($resourcePath, $query)
-    {
-        if (false !== strpos($query, '*')) {
-            return Glob::match($resourcePath, $query);
-        }
-
-        return $query === $resourcePath || Path::isBasePath($query, $resourcePath);
     }
 }

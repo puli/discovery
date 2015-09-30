@@ -11,8 +11,8 @@
 
 namespace Puli\Discovery\Tests;
 
+use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\InMemoryDiscovery;
-use Puli\Repository\Api\ResourceRepository;
 
 /**
  * @since  1.0
@@ -21,8 +21,13 @@ use Puli\Repository\Api\ResourceRepository;
  */
 class InMemoryDiscoveryTest extends AbstractEditableDiscoveryTest
 {
-    protected function createEditableDiscovery(ResourceRepository $repo)
+    protected function createDiscovery(array $initializers = array())
     {
-        return new InMemoryDiscovery($repo);
+        return new InMemoryDiscovery();
+    }
+
+    protected function loadDiscoveryFromStorage(EditableDiscovery $discovery, array $initializers = array())
+    {
+        return $discovery;
     }
 }

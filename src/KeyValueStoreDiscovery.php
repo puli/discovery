@@ -11,13 +11,13 @@
 
 namespace Puli\Discovery;
 
-use InvalidArgumentException;
-use Puli\Discovery\Api\Binding\BindingType;
-use Puli\Discovery\Api\Binding\ResourceBinding;
-use Puli\Discovery\Api\DuplicateTypeException;
-use Puli\Discovery\Api\NoSuchTypeException;
-use Puli\Discovery\Binding\LazyBinding;
-use Puli\Repository\Api\ResourceRepository;
+use Puli\Discovery\Api\Binding\Binding;
+use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
+use Puli\Discovery\Api\Binding\NoSuchBindingException;
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Api\Type\DuplicateTypeException;
+use Puli\Discovery\Api\Type\NoSuchTypeException;
+use Rhumsaa\Uuid\Uuid;
 use RuntimeException;
 use Webmozart\Assert\Assert;
 use Webmozart\KeyValueStore\Api\KeyValueStore;
@@ -37,117 +37,139 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     private $store;
 
     /**
-     * @var ResourceBinding[]
+     * Stores the integer key that will be used when adding the next binding type.
+     *
+     * Synchronized with the entry "::nextKey" in the store.
+     *
+     * @var int
      */
-    private $bindings = array();
+    private $nextKey;
 
     /**
+     * Stores an integer "key" for each binding type name.
+     *
+     * Contains each key only once.
+     *
+     * Synchronized with the entry "::keysByTypeName" in the store.
+     *
+     * @var int[]
+     */
+    private $keysByTypeName;
+
+    /**
+     * Stores the corresponding keys for each binding UUID.
+     *
+     * Potentially contains keys zero or multiple times.
+     *
+     * Synchronized with the entry "::keysByUuid" in the store.
+     *
+     * @var int[]
+     */
+    private $keysByUuid;
+
+    /**
+     * Stores the binding type for each key.
+     *
+     * Synchronized with the entries "t:<key>" in the store.
+     *
      * @var BindingType[]
      */
-    private $types = array();
+    private $typesByKey = array();
+
+    /**
+     * Stores the bindings for each key.
+     *
+     * Synchronized with the entries "b:<key>" in the store.
+     *
+     * @var Binding[][]
+     */
+    private $bindingsByKey = array();
 
     /**
      * Creates a new resource discovery.
      *
-     * @param ResourceRepository $repo  The repository to fetch resources from.
-     * @param KeyValueStore      $store The key-value store used to store the
-     *                                  bindings and the binding types.
+     * @param KeyValueStore        $store        The key-value store used to
+     *                                           store the bindings and the
+     *                                           binding types.
+     * @param BindingInitializer[] $initializers The binding initializers to
+     *                                           apply to newly created or
+     *                                           unserialized bindings.
      */
-    public function __construct(ResourceRepository $repo, KeyValueStore $store)
+    public function __construct(KeyValueStore $store, array $initializers = array())
     {
-        parent::__construct($repo);
+        parent::__construct($initializers);
 
         $this->store = $store;
-        $this->queryIndex = $store->get('//queryIndex', array());
-        $this->typeIndex = $store->get('//typeIndex', array());
+        $this->keysByTypeName = $store->get('::keysByTypeName', array());
+        $this->keysByUuid = $store->get('::keysByUuid', array());
+        $this->nextKey = $store->get('::nextKey', 0);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function defineType($type)
+    public function addBindingType(BindingType $type)
     {
-        if (is_string($type)) {
-            $type = new BindingType($type);
-        }
-
-        if (!$type instanceof BindingType) {
-            throw new InvalidArgumentException(sprintf(
-                'Expected argument of type string or BindingType. Got: %s',
-                is_object($type) ? get_class($type) : gettype($type)
-            ));
-        }
-
-        if (isset($this->typeIndex[$type->getName()])) {
+        if (isset($this->keysByTypeName[$type->getName()])) {
             throw DuplicateTypeException::forTypeName($type->getName());
         }
 
-        $this->types[$type->getName()] = $type;
-        $this->typeIndex[$type->getName()] = array();
+        $key = $this->nextKey++;
 
-        $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set($type->getName(), $type);
+        $this->keysByTypeName[$type->getName()] = $key;
+
+        // Use integer keys to reduce storage space
+        // (compared to fully-qualified class names)
+        $this->typesByKey[$key] = $type;
+
+        $this->store->set('::keysByTypeName', $this->keysByTypeName);
+        $this->store->set('::nextKey', $this->nextKey);
+        $this->store->set('t:'.$key, $type);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function undefineType($typeName)
+    public function removeBindingType($typeName)
     {
-        Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
-        $this->removeBindingsByType($typeName);
-
-        unset($this->types[$typeName]);
-        unset($this->typeIndex[$typeName]);
-
-        $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->remove($typeName);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefinedType($typeName)
-    {
-        if (!isset($this->types[$typeName]) || !$this->types[$typeName] instanceof BindingType) {
-            $this->loadType($typeName);
+        if (!isset($this->keysByTypeName[$typeName])) {
+            return;
         }
 
-        return $this->types[$typeName];
-    }
+        $key = $this->keysByTypeName[$typeName];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isTypeDefined($typeName)
-    {
-        return array_key_exists($typeName, $this->typeIndex);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefinedTypes()
-    {
-        foreach ($this->typeIndex as $typeName => $index) {
-            if (!isset($this->types[$typeName])) {
-                $this->loadType($typeName);
-            }
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            // no initialize, since we're removing this anyway
         }
 
-        return $this->types;
+        // Remove all binding UUIDs for this binding type
+        foreach ($this->bindingsByKey[$key] as $binding) {
+            unset($this->keysByUuid[$binding->getUuid()->toString()]);
+        }
+
+        unset($this->keysByTypeName[$typeName]);
+        unset($this->typesByKey[$key]);
+        unset($this->bindingsByKey[$key]);
+
+        $this->store->remove('t:'.$key);
+        $this->store->remove('b:'.$key);
+        $this->store->set('::keysByTypeName', $this->keysByTypeName);
+        $this->store->set('::keysByUuid', $this->keysByUuid);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clear()
+    public function removeBindingTypes()
     {
-        parent::clear();
-
-        $this->types = array();
-        $this->bindings = array();
+        $this->keysByTypeName = array();
+        $this->keysByUuid = array();
+        $this->typesByKey = array();
+        $this->bindingsByKey = array();
+        $this->nextKey = 0;
 
         $this->store->clear();
     }
@@ -155,121 +177,322 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function getBindings()
+    public function hasBindingType($typeName)
     {
-        $nextId = $this->store->get('//nextId');
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
-        for ($id = 1; $id < $nextId; ++$id) {
-            if ($this->store->exists($id)) {
-                $this->loadBinding($id);
-            }
-        }
-
-        return array_values($this->bindings);
+        return isset($this->keysByTypeName[$typeName]);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getBinding($id)
+    public function getBindingType($typeName)
     {
-        if (!isset($this->bindings[$id])) {
-            $this->loadBinding($id);
-        }
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
-        return $this->bindings[$id];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function insertBinding(ResourceBinding $binding)
-    {
-        $id = $this->store->get('//nextId', 1);
-
-        $this->bindings[$id] = $binding;
-
-        $this->updateIndicesForId($id, $binding);
-
-        $this->store->set($id, array(
-            $binding->getQuery(),
-            $binding->getType()->getName(),
-            $binding->getParameterValues(),
-            $binding->getLanguage(),
-        ));
-
-        $this->store->set('//nextId', $id + 1);
-        $this->store->set('//queryIndex', $this->queryIndex);
-        $this->store->set('//typeIndex', $this->typeIndex);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function removeBinding($id)
-    {
-        unset($this->bindings[$id]);
-
-        $this->store->remove($id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function removeBindingsByQuery($query, array $parameterValues = null)
-    {
-        parent::removeBindingsByQuery($query, $parameterValues);
-
-        $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//queryIndex', $this->queryIndex);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function removeBindingsByType($typeName, array $parameterValues = null)
-    {
-        parent::removeBindingsByType($typeName, $parameterValues);
-
-        $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//queryIndex', $this->queryIndex);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function removeBindingsByQueryAndType($query, $typeName, array $parameterValues = null)
-    {
-        parent::removeBindingsByQueryAndType($query, $typeName, $parameterValues);
-
-        $this->store->set('//typeIndex', $this->typeIndex);
-        $this->store->set('//queryIndex', $this->queryIndex);
-    }
-
-    private function loadBinding($id)
-    {
-        if (!($data = $this->store->get($id))) {
-            throw new RuntimeException(sprintf(
-                'Could not fetch data for binding with ID %s.',
-                $id
-            ));
-        }
-
-        $this->bindings[$id] = new LazyBinding(
-            $data[0], // query
-            $this->repo,
-            $this->getDefinedType($data[1]), // type name
-            $data[2], // parameters
-            $data[3] // language
-        );
-    }
-
-    private function loadType($typeName)
-    {
-        if (!($type = $this->store->get($typeName))) {
+        if (!isset($this->keysByTypeName[$typeName])) {
             throw NoSuchTypeException::forTypeName($typeName);
         }
 
-        $this->types[$typeName] = $type;
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->typesByKey[$key])) {
+            $this->typesByKey[$key] = $this->store->get('t:'.$key);
+        }
+
+        return $this->typesByKey[$key];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasBindingTypes()
+    {
+        return count($this->keysByTypeName) > 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindingTypes()
+    {
+        $keysToFetch = array();
+
+        foreach ($this->keysByTypeName as $key) {
+            if (!isset($this->typesByKey[$key])) {
+                $keysToFetch[] = 't:'.$key;
+            }
+        }
+
+        $types = $this->store->getMultiple($keysToFetch);
+
+        foreach ($types as $prefixedKey => $type) {
+            $this->typesByKey[substr($prefixedKey, 2)] = $type;
+        }
+
+        ksort($this->typesByKey);
+
+        return $this->typesByKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function addBinding(Binding $binding)
+    {
+        $typeName = $binding->getTypeName();
+
+        if (!isset($this->keysByTypeName[$typeName])) {
+            throw NoSuchTypeException::forTypeName($typeName);
+        }
+
+        if (isset($this->keysByUuid[$binding->getUuid()->toString()])) {
+            // Ignore duplicates
+            return;
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        $this->initializeBinding($binding);
+
+        $this->keysByUuid[$binding->getUuid()->toString()] = $key;
+        $this->bindingsByKey[$key][] = $binding;
+
+        $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
+        $this->store->set('::keysByUuid', $this->keysByUuid);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeBinding(Uuid $uuid)
+    {
+        $uuidString = $uuid->toString();
+
+        if (!isset($this->keysByUuid[$uuidString])) {
+            return;
+        }
+
+        $key = $this->keysByUuid[$uuidString];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        foreach ($this->bindingsByKey[$key] as $i => $binding) {
+            if ($binding->getUuid()->equals($uuid)) {
+                unset($this->bindingsByKey[$key][$i]);
+            }
+        }
+
+        // Reindex array
+        $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
+
+        unset($this->keysByUuid[$uuidString]);
+
+        $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
+        $this->store->set('::keysByUuid', $this->keysByUuid);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasBinding(Uuid $uuid)
+    {
+        return isset($this->keysByUuid[$uuid->toString()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBinding(Uuid $uuid)
+    {
+        if (!isset($this->keysByUuid[$uuid->toString()])) {
+            throw NoSuchBindingException::forUuid($uuid);
+        }
+
+        $key = $this->keysByUuid[$uuid->toString()];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        foreach ($this->bindingsByKey[$key] as $binding) {
+            if ($binding->getUuid()->equals($uuid)) {
+                return $binding;
+            }
+        }
+
+        // This does not happen except if someone plays with the key-value store
+        // contents (or there's a bug here..)
+        throw new RuntimeException('The discovery is corrupt. Please rebuild it.');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findBindings($typeName, array $parameterValues = array())
+    {
+        Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
+
+        if (!isset($this->keysByTypeName[$typeName])) {
+            return array();
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        $bindings = $this->bindingsByKey[$key];
+
+        if (count($parameterValues) > 0) {
+            $bindings = array_filter($bindings, function (Binding $binding) use ($parameterValues) {
+                return AbstractEditableDiscovery::testParameterValues($binding, $parameterValues);
+            });
+        }
+
+        return $bindings;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindings()
+    {
+        $bindings = array();
+        $keysToFetch = array();
+
+        foreach ($this->keysByTypeName as $key) {
+            if (!isset($this->bindingsByKey[$key])) {
+                $keysToFetch[] = 'b:'.$key;
+            }
+        }
+
+        $fetchedBindings = $this->store->getMultiple($keysToFetch);
+
+        foreach ($fetchedBindings as $key => $bindingsForKey) {
+            $this->bindingsByKey[$key] = $bindingsForKey ?: array();
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        foreach ($this->bindingsByKey as $bindingsForKey) {
+            $bindings = array_merge($bindings, $bindingsForKey);
+        }
+
+        return $bindings;
+    }
+
+    protected function removeAllBindings()
+    {
+        $this->bindingsByKey = array();
+        $this->keysByUuid = array();
+
+        // Iterate $keysByTypeName which does not contain duplicate keys
+        foreach ($this->keysByTypeName as $key) {
+            $this->store->remove('b:'.$key);
+        }
+
+        $this->store->remove('::keysByUuid');
+    }
+
+    protected function removeBindingsWithTypeName($typeName)
+    {
+        if (!isset($this->keysByTypeName[$typeName])) {
+            return;
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            // no initialize, since we're removing this anyway
+        }
+
+        foreach ($this->bindingsByKey[$key] as $binding) {
+            unset($this->keysByUuid[$binding->getUuid()->toString()]);
+        }
+
+        unset($this->bindingsByKey[$key]);
+
+        $this->store->remove('b:'.$key);
+        $this->store->set('::keysByUuid', $this->keysByUuid);
+    }
+
+    protected function removeBindingsWithParameterValues($typeName, array $parameterValues)
+    {
+        if (!isset($this->keysByTypeName[$typeName])) {
+            return;
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+
+            // Initialize to load default parameter values
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        foreach ($this->bindingsByKey[$key] as $i => $binding) {
+            if (self::testParameterValues($binding, $parameterValues)) {
+                unset($this->bindingsByKey[$key][$i]);
+                unset($this->keysByUuid[$binding->getUuid()->toString()]);
+            }
+        }
+
+        // Reindex array
+        $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
+
+        $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
+        $this->store->set('::keysByUuid', $this->keysByUuid);
+    }
+
+    protected function hasAnyBinding()
+    {
+        return count($this->keysByUuid) > 0;
+    }
+
+    protected function hasBindingsWithTypeName($typeName)
+    {
+        if (!isset($this->keysByTypeName[$typeName])) {
+            return false;
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        return false !== array_search($key, $this->keysByUuid, true);
+    }
+
+    protected function hasBindingsWithParameterValues($typeName, array $parameterValues)
+    {
+        if (!$this->hasBindingsWithTypeName($typeName)) {
+            return false;
+        }
+
+        $key = $this->keysByTypeName[$typeName];
+
+        if (!isset($this->bindingsByKey[$key])) {
+            $this->bindingsByKey[$key] = $this->store->get('b:'.$key, array());
+            $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+
+        foreach ($this->bindingsByKey[$key] as $binding) {
+            if (self::testParameterValues($binding, $parameterValues)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
