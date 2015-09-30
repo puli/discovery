@@ -17,6 +17,7 @@ use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
 use Rhumsaa\Uuid\Uuid;
+use Webmozart\Expression\Expression;
 
 /**
  * A discovery that does nothing.
@@ -34,7 +35,7 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function findBindings($typeName, array $parameterValues = array())
+    public function findBindings($typeName, Expression $expr = null)
     {
         return array();
     }
@@ -42,7 +43,7 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function hasBindings($typeName = null, array $parameterValues = array())
+    public function hasBindings($typeName = null, Expression $expr = null)
     {
         return false;
     }
@@ -120,7 +121,7 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function removeBindings($typeName = null, array $parameterValues = array())
+    public function removeBindings($typeName = null, Expression $expr = null)
     {
     }
 

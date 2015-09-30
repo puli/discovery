@@ -18,6 +18,7 @@ use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\KeyValueStoreDiscovery;
 use Puli\Discovery\Tests\Fixtures\Foo;
+use Webmozart\Expression\Expr;
 use Webmozart\KeyValueStore\SerializingArrayStore;
 
 /**
@@ -174,7 +175,7 @@ class KeyValueStoreDiscoveryUnloadedTest extends AbstractEditableDiscoveryTest
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
         // Bindings need to be initialized for this to work
-        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+        $discovery->removeBindings(Foo::clazz, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
         $this->assertEquals(array($binding3), $discovery->getBindings());
