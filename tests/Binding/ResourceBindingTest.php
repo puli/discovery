@@ -13,7 +13,7 @@ namespace Puli\Discovery\Tests\Binding;
 
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @since  1.0
