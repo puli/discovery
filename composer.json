@@ -15,7 +15,7 @@
         "webmozart/assert": "^1.0",
         "webmozart/expression": "^1.0.0-beta5",
         "webmozart/glob": ">=2.0,<4.0",
-        "ramsey/uuid": "^2.8"
+        "ramsey/uuid": "^3.0"
     },
     "require-dev": {
         "webmozart/key-value-store": "^1.0.0-beta6",

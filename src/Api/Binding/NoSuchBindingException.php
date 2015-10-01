@@ -12,7 +12,7 @@
 namespace Puli\Discovery\Api\Binding;
 
 use Exception;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
 /**
