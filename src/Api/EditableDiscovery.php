@@ -19,6 +19,7 @@ use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
 use Rhumsaa\Uuid\Uuid;
+use Webmozart\Expression\Expression;
 
 /**
  * A discovery that supports the addition and removal of bindings and types.
@@ -38,15 +39,17 @@ use Rhumsaa\Uuid\Uuid;
  * Bindings can be added for these types with the {@link addBinding()} method:
  *
  * ```php
- * $discovery->bind('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
- *     'translationDomain' => 'errors',
- * ));
+ * $discovery->addBinding(
+ *     new ResourceBinding('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
+ *         'translationDomain' => 'errors',
+ *     ),
+ * );
  * ```
  *
- * Use {@link find()} to retrieve bindings for a given type:
+ * Use {@link findBindings()} to retrieve bindings for a given type:
  *
  * ```php
- * $bindings = $discovery->find('acme/xliff-messages');
+ * $bindings = $discovery->findBindings('acme/xliff-messages');
  *
  * foreach ($bindings as $binding) {
  *     foreach ($binding->getResources() as $resource) {
@@ -98,11 +101,11 @@ interface EditableDiscovery extends Discovery
      * If no matching bindings are found or if the type does not exist this
      * method does nothing.
      *
-     * @param string|null $typeName        The name of the binding type or
-     *                                     `null` to remove all bindings.
-     * @param array       $parameterValues The parameter values to match.
+     * @param string|null     $typeName The name of the binding type or `null`
+     *                                  to remove all bindings.
+     * @param Expression|null $expr     The expression to filter by.
      */
-    public function removeBindings($typeName = null, array $parameterValues = array());
+    public function removeBindings($typeName = null, Expression $expr = null);
 
     /**
      * Adds a binding type to the discovery.

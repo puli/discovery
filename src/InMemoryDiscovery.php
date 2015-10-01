@@ -18,6 +18,7 @@ use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
 use Rhumsaa\Uuid\Uuid;
 use Webmozart\Assert\Assert;
+use Webmozart\Expression\Expression;
 
 /**
  * A resource discovery that holds the bindings in memory.
@@ -154,7 +155,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function findBindings($typeName, array $parameterValues = array())
+    public function findBindings($typeName, Expression $expr = null)
     {
         Assert::stringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
@@ -164,10 +165,8 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
 
         $bindings = $this->bindingsByTypeName[$typeName];
 
-        if (count($parameterValues) > 0) {
-            $bindings = array_filter($bindings, function (Binding $binding) use ($parameterValues) {
-                return AbstractEditableDiscovery::testParameterValues($binding, $parameterValues);
-            });
+        if (null !== $expr) {
+            $bindings = $this->filterBindings($bindings, $expr);
         }
 
         return array_values($bindings);
@@ -213,6 +212,19 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
+    protected function removeBindingsThatMatch(Expression $expr)
+    {
+        foreach ($this->bindings as $uuidString => $binding) {
+            if ($expr->evaluate($binding)) {
+                unset($this->bindings[$uuidString]);
+                unset($this->bindingsByTypeName[$binding->getTypeName()][$uuidString]);
+            }
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function removeBindingsWithTypeName($typeName)
     {
         if (!isset($this->bindingsByTypeName[$typeName])) {
@@ -229,16 +241,16 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function removeBindingsWithParameterValues($typeName, array $parameterValues)
+    protected function removeBindingsWithTypeNameThatMatch($typeName, Expression $expr)
     {
         if (!isset($this->bindingsByTypeName[$typeName])) {
             return;
         }
 
-        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
-            if (self::testParameterValues($binding, $parameterValues)) {
-                unset($this->bindings[$binding->getUuid()->toString()]);
-                unset($this->bindingsByTypeName[$typeName][$binding->getUuid()->toString()]);
+        foreach ($this->bindingsByTypeName[$typeName] as $uuidString => $binding) {
+            if ($expr->evaluate($binding)) {
+                unset($this->bindings[$uuidString]);
+                unset($this->bindingsByTypeName[$typeName][$uuidString]);
             }
         }
     }
@@ -254,6 +266,14 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
+    protected function hasBindingsThatMatch(Expression $expr)
+    {
+        return count($this->filterBindings($this->bindings, $expr)) > 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function hasBindingsWithTypeName($typeName)
     {
         return !empty($this->bindingsByTypeName[$typeName]);
@@ -262,18 +282,12 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     /**
      * {@inheritdoc}
      */
-    protected function hasBindingsWithParameterValues($typeName, array $parameterValues)
+    protected function hasBindingsWithTypeNameThatMatch($typeName, Expression $expr)
     {
         if (!isset($this->bindingsByTypeName[$typeName])) {
             return false;
         }
 
-        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
-            if (self::testParameterValues($binding, $parameterValues)) {
-                return true;
-            }
-        }
-
-        return false;
+        return count($this->filterBindings($this->bindingsByTypeName[$typeName], $expr)) > 0;
     }
 }

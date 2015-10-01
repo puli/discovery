@@ -47,6 +47,7 @@ Changelog
  * removed `LazyBinding`
  * added `ResourceBindingInitializer`
  * adapted data structures stored by `KeyValueStoreDiscovery`
+ * added support for search/removal using `Expression` instances
 
 * 1.0.0-beta7 (2015-08-24)
 

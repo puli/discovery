@@ -11,12 +11,12 @@
 
 namespace Puli\Discovery;
 
-use BadMethodCallException;
 use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingNotAcceptedException;
 use Webmozart\Assert\Assert;
+use Webmozart\Expression\Expression;
 
 /**
  * Base class for editable resource discoveries.
@@ -38,27 +38,6 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     private $initializersByBindingClass = array();
 
     /**
-     * Tests whether a binding matches the given parameter values.
-     *
-     * @param Binding $binding         The tested binding.
-     * @param array   $parameterValues One or more parameter values indexed by
-     *                                 parameter names.
-     *
-     * @return bool Returns `true` if the passed parameters match the values in
-     *              the binding.
-     */
-    public static function testParameterValues(Binding $binding, array $parameterValues)
-    {
-        foreach ($parameterValues as $parameterName => $parameterValue) {
-            if ($parameterValue !== $binding->getParameterValue($parameterName)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Creates a new resource discovery.
      *
      * @param BindingInitializer[] $initializers The binding initializers to
@@ -73,46 +52,40 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function removeBindings($typeName = null, array $parameterValues = array())
+    public function removeBindings($typeName = null, Expression $expr = null)
     {
         Assert::nullOrStringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
 
-        if (null === $typeName && count($parameterValues) > 0) {
-            throw new BadMethodCallException('The type name must be passed when searching bindings by a parameter value.');
-        }
-
-        if (count($parameterValues) > 0) {
-            $this->removeBindingsWithParameterValues($typeName, $parameterValues);
-
-            return;
-        }
-
         if (null !== $typeName) {
-            $this->removeBindingsWithTypeName($typeName);
-
-            return;
+            if (null !== $expr) {
+                $this->removeBindingsWithTypeNameThatMatch($typeName, $expr);
+            } else {
+                $this->removeBindingsWithTypeName($typeName);
+            }
+        } elseif (null !== $expr) {
+            $this->removeBindingsThatMatch($expr);
+        } else {
+            $this->removeAllBindings();
         }
-
-        $this->removeAllBindings();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasBindings($typeName = null, array $parameterValues = array())
+    public function hasBindings($typeName = null, Expression $expr = null)
     {
         Assert::nullOrStringNotEmpty($typeName, 'The type class must be a non-empty string. Got: %s');
 
-        if (null === $typeName && count($parameterValues) > 0) {
-            throw new BadMethodCallException('The type class must be passed when searching bindings by a parameter value.');
-        }
-
-        if (count($parameterValues) > 0) {
-            return $this->hasBindingsWithParameterValues($typeName, $parameterValues);
-        }
-
         if (null !== $typeName) {
+            if (null !== $expr) {
+                return $this->hasBindingsWithTypeNameThatMatch($typeName, $expr);
+            }
+
             return $this->hasBindingsWithTypeName($typeName);
+        }
+
+        if (null !== $expr) {
+            return $this->hasBindingsThatMatch($expr);
         }
 
         return $this->hasAnyBinding();
@@ -124,6 +97,13 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     abstract protected function removeAllBindings();
 
     /**
+     * Removes all bindings from the discovery that match an expression.
+     *
+     * @param Expression $expr The expression to filter by.
+     */
+    abstract protected function removeBindingsThatMatch(Expression $expr);
+
+    /**
      * Removes all bindings bound to the given binding type.
      *
      * @param string $typeName The name of the binding type.
@@ -131,15 +111,12 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     abstract protected function removeBindingsWithTypeName($typeName);
 
     /**
-     * Removes all bindings bound to the given type with certain parameter values.
+     * Removes all bindings bound to the given binding type that match an expression.
      *
-     * Only bindings with exactly the given parameter values should be removed.
-     * Parameters that are not passed in $parameterValues should be ignored.
-     *
-     * @param string $typeName        The name of the binding type.
-     * @param array  $parameterValues The parameter values to match.
+     * @param string     $typeName The name of the binding type.
+     * @param Expression $expr     The expression to filter by.
      */
-    abstract protected function removeBindingsWithParameterValues($typeName, array $parameterValues);
+    abstract protected function removeBindingsWithTypeNameThatMatch($typeName, Expression $expr);
 
     /**
      * Returns whether the discovery contains bindings.
@@ -148,6 +125,16 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
      *              otherwise.
      */
     abstract protected function hasAnyBinding();
+
+    /**
+     * Returns whether the discovery contains bindings that match an expression.
+     *
+     * @param Expression|null $expr The expression to filter by.
+     *
+     * @return bool Returns `true` if the discovery has bindings and `false`
+     *              otherwise.
+     */
+    abstract protected function hasBindingsThatMatch(Expression $expr);
 
     /**
      * Returns whether the discovery contains bindings for the given type.
@@ -160,18 +147,29 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     abstract protected function hasBindingsWithTypeName($typeName);
 
     /**
-     * Returns whether the discovery contains bindings for the given type and
-     * parameter values.
+     * Returns whether the discovery contains bindings for the given type that
+     * match an expression.
      *
-     * Parameters that are not passed in $parameterValues should be ignored.
+     * @param string     $typeName The name of the binding type.
+     * @param Expression $expr     The expression to filter by.
      *
-     * @param string $typeName        The name of the binding type.
-     * @param array  $parameterValues The parameter values to match.
-     *
-     * @return bool Returns `true` if the discovery contains bindings bound to
-     *              the given type and with the given parameter values.
+     * @return bool Returns `true` if bindings bound to the given binding type
+     *              are found and `false` otherwise.
      */
-    abstract protected function hasBindingsWithParameterValues($typeName, array $parameterValues);
+    abstract protected function hasBindingsWithTypeNameThatMatch($typeName, Expression $expr);
+
+    /**
+     * Filters the bindings that match the given expression.
+     *
+     * @param Binding[]  $bindings The bindings to filter.
+     * @param Expression $expr     The expression to evaluate for each binding.
+     *
+     * @return Binding[] The filtered bindings.
+     */
+    protected function filterBindings(array $bindings, Expression $expr)
+    {
+        return array_values(array_filter($bindings, array($expr, 'evaluate')));
+    }
 
     /**
      * Initializes a binding.

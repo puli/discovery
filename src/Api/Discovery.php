@@ -16,6 +16,7 @@ use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
 use Rhumsaa\Uuid\Uuid;
+use Webmozart\Expression\Expression;
 
 /**
  * Discovers artifacts.
@@ -58,12 +59,12 @@ interface Discovery
      *
      * This method returns an empty array if the given type is not defined.
      *
-     * @param string $typeName        The name of the binding type.
-     * @param array  $parameterValues The parameter values to match.
+     * @param string          $typeName The name of the binding type.
+     * @param Expression|null $expr     The expression to filter by.
      *
      * @return Binding[] The matching bindings.
      */
-    public function findBindings($typeName, array $parameterValues = array());
+    public function findBindings($typeName, Expression $expr = null);
 
     /**
      * Returns whether the discovery contains bindings.
@@ -74,14 +75,12 @@ interface Discovery
      *
      * This method returns `false` if the passed type does not exist.
      *
-     * @param string|null $typeName        The name of the binding type or
-     *                                     `null` to check whether the discovery
-     *                                     has bindings with any type.
-     * @param array       $parameterValues The parameter values to match.
+     * @param string|null     $typeName The name of the binding type.
+     * @param Expression|null $expr     The expression to filter by.
      *
      * @return bool Returns whether the discovery contains matching bindings.
      */
-    public function hasBindings($typeName = null, array $parameterValues = array());
+    public function hasBindings($typeName = null, Expression $expr = null);
 
     /**
      * Returns all bindings.

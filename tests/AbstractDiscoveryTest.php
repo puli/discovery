@@ -23,6 +23,7 @@ use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
 use Rhumsaa\Uuid\Uuid;
 use stdClass;
+use Webmozart\Expression\Expr;
 
 /**
  * @since  1.0
@@ -63,7 +64,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz));
     }
 
-    public function testFindBindingsWithParameters()
+    public function testFindBindingsWithExpression()
     {
         $type1 = new BindingType(Foo::clazz, array(
             new BindingParameter('param1'),
@@ -79,9 +80,13 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
 
-        $this->assertEquals(array($binding1, $binding2), $discovery->findBindings(Foo::clazz, array('param1' => 'value1')));
-        $this->assertEquals(array($binding1), $discovery->findBindings(Foo::clazz, array('param1' => 'value1', 'param2' => 'value2')));
-        $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz, array('param1' => 'value1', 'param2' => 'value2')));
+        $exprParam1 = Expr::method('getParameterValue', 'param1', Expr::same('value1'));
+        $exprParam2 = Expr::method('getParameterValue', 'param1', Expr::same('value1'))
+            ->andMethod('getParameterValue', 'param2', Expr::same('value2'));
+
+        $this->assertEquals(array($binding1, $binding2), $discovery->findBindings(Foo::clazz, $exprParam1));
+        $this->assertEquals(array($binding1), $discovery->findBindings(Foo::clazz, $exprParam2));
+        $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz, $exprParam2));
     }
 
     public function testFindBindingsReturnsEmptyArrayIfUnknownType()
@@ -201,7 +206,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $discovery->hasBindings(new stdClass());
     }
 
-    public function testHasBindingsWithTypeAndParameters()
+    public function testHasBindingsWithTypeAndExpression()
     {
         $type1 = new BindingType(Foo::clazz, array(
             new BindingParameter('param'),
@@ -211,28 +216,14 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
 
-        $this->assertTrue($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
-        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'bar')));
+        $this->assertTrue($discovery->hasBindings(Foo::clazz, Expr::method('getParameterValue', 'param', Expr::same('foo'))));
+        $this->assertFalse($discovery->hasBindings(Foo::clazz, Expr::method('getParameterValue', 'param', Expr::same('bar'))));
     }
 
-    public function testHasBindingsWithTypeAndParameterDefaultValues()
-    {
-        $type1 = new BindingType(Foo::clazz, array(
-            new BindingParameter('param', BindingParameter::OPTIONAL, 'foo'),
-        ));
-        $type2 = new BindingType(Bar::clazz);
-        $binding = new ResourceBinding('/file1', Foo::clazz);
-
-        $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
-
-        $this->assertTrue($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
-        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'bar')));
-    }
-
-    public function testHasBindingsWithTypeAndParametersReturnsFalseIfUnknownType()
+    public function testHasBindingsWithTypeAndExpressionReturnsFalseIfUnknownType()
     {
         $discovery = $this->createLoadedDiscovery();
-        $this->assertFalse($discovery->hasBindings(Foo::clazz, array('param' => 'foo')));
+        $this->assertFalse($discovery->hasBindings(Foo::clazz, Expr::method('getParameterValue', 'param', Expr::same('foo'))));
     }
 
     /**
@@ -242,16 +233,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     public function testHasBindingsWithTypeAndParametersFailsIfInvalidType()
     {
         $discovery = $this->createLoadedDiscovery();
-        $discovery->hasBindings(new stdClass(), array('param' => 'foo'));
-    }
-
-    /**
-     * @expectedException \BadMethodCallException
-     */
-    public function testHasBindingsFailsIfParametersPassedButNoType()
-    {
-        $discovery = $this->createLoadedDiscovery();
-        $discovery->hasBindings(null, array('param' => 'foo'));
+        $discovery->hasBindings(new stdClass(), Expr::method('getParameterValue', 'param', Expr::same('foo')));
     }
 
     public function testGetBindingType()

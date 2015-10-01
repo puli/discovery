@@ -23,6 +23,7 @@ use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
 use Rhumsaa\Uuid\Uuid;
 use stdClass;
+use Webmozart\Expression\Expr;
 
 /**
  * @since  1.0
@@ -254,7 +255,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->removeBindings(new stdClass());
     }
 
-    public function testRemoveBindingsWithTypeAndParameters()
+    public function testRemoveBindingsWithExpression()
     {
         $binding1 = new ResourceBinding('/path1', Foo::clazz, array('param1' => 'foo', 'param2' => 'bar'));
         $binding2 = new ResourceBinding('/path2', Foo::clazz, array('param1' => 'foo'));
@@ -268,7 +269,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->addBinding($binding1);
         $discovery->addBinding($binding2);
         $discovery->addBinding($binding3);
-        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+        $discovery->removeBindings(null, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
@@ -279,21 +280,21 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
-    public function testRemoveBindingsWithTypeAndParameterDefaults()
+    public function testRemoveBindingsWithTypeAndExpression()
     {
-        $binding1 = new ResourceBinding('/path1', Foo::clazz, array('param2' => 'bar'));
-        $binding2 = new ResourceBinding('/path2', Foo::clazz);
+        $binding1 = new ResourceBinding('/path1', Foo::clazz, array('param1' => 'foo', 'param2' => 'bar'));
+        $binding2 = new ResourceBinding('/path2', Foo::clazz, array('param1' => 'foo'));
         $binding3 = new ResourceBinding('/path3', Foo::clazz, array('param1' => 'bar'));
 
         $discovery = $this->createDiscovery();
         $discovery->addBindingType(new BindingType(Foo::clazz, array(
-            new BindingParameter('param1', BindingParameter::OPTIONAL, 'foo'),
+            new BindingParameter('param1'),
             new BindingParameter('param2'),
         )));
         $discovery->addBinding($binding1);
         $discovery->addBinding($binding2);
         $discovery->addBinding($binding3);
-        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+        $discovery->removeBindings(Foo::clazz, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
@@ -308,7 +309,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     {
         $discovery = $this->createDiscovery();
         $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+        $discovery->removeBindings(Foo::clazz, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
@@ -318,30 +319,11 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingsWithTypeAndParametersDoesNothingIfTypeNotFound()
     {
         $discovery = $this->createDiscovery();
-        $discovery->removeBindings(Foo::clazz, array('param1' => 'foo'));
+        $discovery->removeBindings(Foo::clazz, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
         $this->assertCount(0, $discovery->getBindings());
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage stdClass
-     */
-    public function testRemoveBindingsWithTypeAndParametersFailsIfInvalidType()
-    {
-        $discovery = $this->createDiscovery();
-        $discovery->removeBindings(new stdClass(), array('param1' => 'foo'));
-    }
-
-    /**
-     * @expectedException \BadMethodCallException
-     */
-    public function testRemoveBindingsFailsIfParametersPassedButNoType()
-    {
-        $discovery = $this->createDiscovery();
-        $discovery->removeBindings(null, array('param1' => 'foo'));
     }
 
     public function testAddBindingType()
