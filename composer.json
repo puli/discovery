@@ -1,6 +1,6 @@
 {
     "name": "puli/discovery",
-    "description": "Discovers Puli resources bound to predefined types.",
+    "description": "Publishes and discovers artifacts across Puli packages.",
     "homepage": "http://puli.io",
     "license": "MIT",
     "authors": [
