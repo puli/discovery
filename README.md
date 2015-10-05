@@ -13,35 +13,45 @@ Latest release: [1.0.0-beta7](https://packagist.org/packages/puli/discovery#1.0.
 PHP >= 5.3.9
 
 The [Puli] Discovery Component supports binding of Puli resources to *binding
-types*. Binding types can be defined with the `defineType()` method of the 
+types*. Binding types can be defined with the `addBindingType()` method of the 
 [`EditableDiscovery`] interface:
 
 ```php
+use Puli\Discovery\Api\Type\BindingType;
+use Puli\Discovery\Binding\Initializer\ResourceBindingInitializer;
 use Puli\Discovery\InMemoryDiscovery;
 
-// $repo is a Puli repository
-$discovery = new InMemoryDiscovery($repo);
+$discovery = new InMemoryDiscovery(array(
+    // $repo is a Puli\Repository\Api\ResourceRepository instance
+    new ResourceBindingInitializer($repo),
+));
 
-$discovery->defineType('doctrine/xml-mapping');
+$discovery->addBindingType(new BindingType('doctrine/xml-mapping'));
 ```
 
-Resources in the repository can then be bound to the defined type with `bind()`:
+Resource Bindings
+-----------------
+
+Resources in the repository can then be bound to the defined type by passing a
+`ResourceBinding` to `addBinding()`:
 
 ```php
-$discovery->bind('/app/config/doctrine/*.xml', 'doctrine/xml-mapping');
+use Puli\Discovery\Binding\ResourceBinding;
+
+$discovery->addBinding(new ResourceBinding('/app/config/doctrine/*.xml', 'doctrine/xml-mapping'));
 ```
 
-With `findByType()`, you can later retrieve all the bindings for the type:
+With `findBindings()`, you can later retrieve all the bindings for the type:
 
 ```php
-foreach ($discovery->findByType('doctrine/xml-mapping') as $binding) {
+foreach ($discovery->findBindings('doctrine/xml-mapping') as $binding) {
     foreach ($binding->getResources() as $resource) {
         // do something...
     }
 }
 ```
 
-The following [`ResourceDiscovery`] implementations are currently supported:
+The following [`Discovery`] implementations are currently supported:
 
 * [`InMemoryDiscovery`]
 * [`KeyValueStoreDiscovery`]
@@ -49,6 +59,35 @@ The following [`ResourceDiscovery`] implementations are currently supported:
 
 Read the [Resource Discovery] guide in the Puli documentation to learn more
 about resource discovery.
+
+Class Bindings
+--------------
+
+You can also bind classes to binding types. By convention, the common interface
+of all bound classes is used as binding type:
+
+```php
+$discovery->addBindingType(new BindingType(Plugin::class));
+```
+
+Classes can be bound by adding `ClassBinding` instances:
+
+```php
+use Puli\Discovery\Binding\ClassBinding;
+
+$discovery->addBinding(new ClassBinding(MyPlugin::class, Plugin::class));
+```
+
+As before, use `findBindings()` to find all bindings for a binding type:
+
+```php
+foreach ($discovery->findBindings(Plugin::class) as $binding) {
+    $pluginClass = $binding->getClassName();
+    $plugin = new $pluginClass();
+    
+    // do something...
+}
+```
 
 Authors
 -------
@@ -96,7 +135,7 @@ All contents of this package are licensed under the [MIT license].
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
 [`EditableDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.EditableDiscovery.html
-[`ResourceDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.ResourceDiscovery.html
+[`Discovery`]: http://api.puli.io/latest/class-Puli.Discovery.Api.Discovery.html
 [`InMemoryDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.InMemoryDiscovery.html
 [`KeyValueStoreDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.KeyValueStoreDiscovery.html
 [`NullDiscovery`]: http://api.puli.io/latest/class-Puli.Discovery.NullDiscovery.html
