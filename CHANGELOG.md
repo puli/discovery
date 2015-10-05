@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* 1.0.0-beta8 (@release_date@)
+* 1.0.0-beta8 (2015-10-05)
 
  * removed `$repo` argument from the constructors of `Discovery` implementations
  * added `$initializers` argument to the constructors of `Discovery` 
