@@ -1,9 +1,9 @@
 The Puli Discovery Component
 ============================
 
-[![Build Status](https://travis-ci.org/puli/discovery.svg?branch=master)](https://travis-ci.org/puli/discovery)
+[![Build Status](https://travis-ci.org/puli/discovery.svg?branch=1.0.0-beta8)](https://travis-ci.org/puli/discovery)
 [![Build status](https://ci.appveyor.com/api/projects/status/wmg14bydks4xwqs2/branch/master?svg=true)](https://ci.appveyor.com/project/webmozart/discovery/branch/master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/discovery/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/discovery/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/discovery/badges/quality-score.png?b=1.0.0-beta8)](https://scrutinizer-ci.com/g/puli/discovery/?branch=1.0.0-beta8)
 [![Latest Stable Version](https://poser.pugx.org/puli/discovery/v/stable.svg)](https://packagist.org/packages/puli/discovery)
 [![Total Downloads](https://poser.pugx.org/puli/discovery/downloads.svg)](https://packagist.org/packages/puli/discovery)
 [![Dependency Status](https://www.versioneye.com/php/puli:discovery/1.0.0/badge.svg)](https://www.versioneye.com/php/puli:discovery/1.0.0)
