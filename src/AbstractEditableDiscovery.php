@@ -129,7 +129,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     /**
      * Returns whether the discovery contains bindings that match an expression.
      *
-     * @param Expression|null $expr The expression to filter by.
+     * @param Expression $expr The expression to filter by.
      *
      * @return bool Returns `true` if the discovery has bindings and `false`
      *              otherwise.
