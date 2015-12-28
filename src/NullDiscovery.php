@@ -16,7 +16,7 @@ use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 use Webmozart\Expression\Expression;
 
 /**

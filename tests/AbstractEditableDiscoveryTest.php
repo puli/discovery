@@ -21,7 +21,7 @@ use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 use stdClass;
 use Webmozart\Expression\Expr;
 
