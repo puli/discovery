@@ -11,42 +11,20 @@
 
 namespace Puli\Discovery\Tests;
 
-use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingParameter;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Discovery\KeyValueStoreDiscovery;
 use Puli\Discovery\Tests\Fixtures\Foo;
 use Webmozart\Expression\Expr;
-use Webmozart\KeyValueStore\SerializingArrayStore;
 
 /**
  * @since  1.0
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class KeyValueStoreDiscoveryUnloadedTest extends AbstractEditableDiscoveryTest
+abstract class AbstractPersistentDiscoveryTest extends AbstractEditableDiscoveryTest
 {
-    private $store;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->store = new SerializingArrayStore();
-    }
-
-    protected function createDiscovery(array $initializers = array())
-    {
-        return new KeyValueStoreDiscovery($this->store, $initializers);
-    }
-
-    protected function loadDiscoveryFromStorage(EditableDiscovery $discovery, array $initializers = array())
-    {
-        return new KeyValueStoreDiscovery($this->store, $initializers);
-    }
-
     public function testAddBindingKeepsStoredBindings()
     {
         $discovery = $this->createDiscovery();

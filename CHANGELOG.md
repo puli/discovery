@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta9 (@release_date@)
+
+ * added `JsonDiscovery`
+
 * 1.0.0-beta8 (2015-10-05)
 
  * removed `$repo` argument from the constructors of `Discovery` implementations
