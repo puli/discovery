@@ -82,6 +82,8 @@ class JsonDiscovery extends AbstractEditableDiscovery
 
         $this->path = $path;
         $this->encoder = new JsonEncoder();
+        $this->encoder->setPrettyPrinting(true);
+        $this->encoder->setEscapeSlash(false);
     }
 
     /**
