@@ -13,7 +13,7 @@
         "php": "^5.3.9|^7.0",
         "webmozart/assert": "^1.0",
         "webmozart/expression": "^1.0.0-beta5",
-        "ramsey/uuid": "^2.8"
+        "ramsey/uuid": "^3.0"
     },
     "require-dev": {
         "puli/repository": "^1.0-beta8@dev,<1.1",

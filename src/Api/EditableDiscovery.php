@@ -18,7 +18,7 @@ use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 use Webmozart\Expression\Expression;
 
 /**

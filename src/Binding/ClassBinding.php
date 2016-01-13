@@ -13,7 +13,7 @@ namespace Puli\Discovery\Binding;
 
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Binds a class name to a binding type.
