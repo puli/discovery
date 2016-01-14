@@ -1,8 +1,10 @@
 Changelog
 =========
 
-* 1.0.0-beta9 (@release_date@)
+* 1.0.0-beta9 (2016-01-14)
 
+ * decoupled from puli/repository
+ * decoupled from webmozart/glob
  * added `JsonDiscovery`
 
 * 1.0.0-beta8 (2015-10-05)
