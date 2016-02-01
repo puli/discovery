@@ -15,9 +15,9 @@ use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Api\Type\BindingParameter;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\ClassBinding;
-use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Discovery\Tests\Fixtures\Foo;
-use Puli\Discovery\Tests\Fixtures\SubResourceBinding;
+use Puli\Discovery\Test\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\StringBinding;
+use Puli\Discovery\Tests\Api\Type\Fixtures\SubStringBinding;
 use stdClass;
 
 /**
@@ -27,15 +27,15 @@ use stdClass;
  */
 class BindingTypeTest extends PHPUnit_Framework_TestCase
 {
-    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
+    const STRING_BINDING = 'Puli\Discovery\Test\Fixtures\StringBinding';
 
-    const SUB_RESOURCE_BINDING = 'Puli\Discovery\Tests\Fixtures\SubResourceBinding';
+    const SUB_STRING_BINDING = 'Puli\Discovery\Tests\Api\Type\Fixtures\SubStringBinding';
 
     const CLASS_BINDING = 'Puli\Discovery\Binding\ClassBinding';
 
     public function testSetParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             $param1 = new BindingParameter('param1'),
             $param2 = new BindingParameter('param2'),
         ));
@@ -55,7 +55,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
      */
     public function testFailIfInvalidParameter()
     {
-        new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(new \stdClass()));
+        new BindingType(Foo::clazz, self::STRING_BINDING, array(new \stdClass()));
     }
 
     /**
@@ -63,21 +63,21 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
      */
     public function testGetParameterFailsIfNotSet()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $type->getParameter('foo');
     }
 
     public function testHasNoParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $this->assertFalse($type->hasParameters());
     }
 
     public function testHasRequiredParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1', BindingParameter::OPTIONAL),
             new BindingParameter('param2', BindingParameter::REQUIRED),
         ));
@@ -87,7 +87,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testHasNoRequiredParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1', BindingParameter::OPTIONAL),
             new BindingParameter('param2', BindingParameter::OPTIONAL),
         ));
@@ -97,7 +97,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testHasOptionalParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1', BindingParameter::OPTIONAL),
             new BindingParameter('param2', BindingParameter::REQUIRED),
         ));
@@ -107,7 +107,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testHasNoOptionalParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1', BindingParameter::REQUIRED),
             new BindingParameter('param2', BindingParameter::REQUIRED),
         ));
@@ -120,12 +120,12 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
      */
     public function testFailIfInvalidTypeName()
     {
-        new BindingType(new stdClass(), self::RESOURCE_BINDING);
+        new BindingType(new stdClass(), self::STRING_BINDING);
     }
 
     public function testGetParameterValues()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
@@ -134,7 +134,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testGetParameterValuesDoesNotIncludeRequiredParameters()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
@@ -143,7 +143,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testHasParameterValues()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
@@ -152,7 +152,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testHasNoParameterValues()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
@@ -161,7 +161,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testGetParameterValue()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::OPTIONAL, 'default'),
         ));
 
@@ -170,7 +170,7 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
 
     public function testGetParameterValueReturnsNullForRequired()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
 
@@ -182,14 +182,14 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
      */
     public function testGetParameterValueFailsIfNotSet()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $type->getParameterValue('foo');
     }
 
     public function testHasParameterValue()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
             new BindingParameter('param2', BindingParameter::REQUIRED),
         ));
@@ -203,22 +203,22 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
      */
     public function testHasParameterValueFailsIfNotSet()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $type->hasParameterValue('foo');
     }
 
     public function testAcceptsBinding()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
-        $this->assertTrue($type->acceptsBinding(self::RESOURCE_BINDING));
-        $this->assertTrue($type->acceptsBinding(self::SUB_RESOURCE_BINDING));
+        $this->assertTrue($type->acceptsBinding(self::STRING_BINDING));
+        $this->assertTrue($type->acceptsBinding(self::SUB_STRING_BINDING));
         $this->assertFalse($type->acceptsBinding(self::CLASS_BINDING));
-        $this->assertTrue($type->acceptsBinding(new ResourceBinding('/path', Foo::clazz)));
-        $this->assertTrue($type->acceptsBinding(new SubResourceBinding('/path', Foo::clazz)));
+        $this->assertTrue($type->acceptsBinding(new StringBinding('string', Foo::clazz)));
+        $this->assertTrue($type->acceptsBinding(new SubStringBinding('string', Foo::clazz)));
         $this->assertFalse($type->acceptsBinding(new ClassBinding(__CLASS__, Foo::clazz)));
-        $this->assertSame(self::RESOURCE_BINDING, $type->getAcceptedBindingClass());
+        $this->assertSame(self::STRING_BINDING, $type->getAcceptedBindingClass());
     }
 
     /**
@@ -227,5 +227,15 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     public function testFailIfBindingClassNoClassOrInterface()
     {
         new BindingType(Foo::clazz, __NAMESPACE__.'\\Foobar');
+    }
+
+    public function testSerialize()
+    {
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING, array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2', BindingParameter::REQUIRED),
+        ));
+
+        $this->assertEquals($type, unserialize(serialize($type)));
     }
 }

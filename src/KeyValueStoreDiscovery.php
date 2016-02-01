@@ -22,7 +22,7 @@ use Webmozart\Expression\Expression;
 use Webmozart\KeyValueStore\Api\KeyValueStore;
 
 /**
- * A resource discovery that stores the bindings in a key-value store.
+ * A discovery that stores the bindings in a key-value store.
  *
  * @since  1.0
  *
@@ -74,7 +74,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     private $bindingsByKey = array();
 
     /**
-     * Creates a new resource discovery.
+     * Creates a new discovery.
      *
      * @param KeyValueStore        $store        The key-value store used to
      *                                           store the bindings and the

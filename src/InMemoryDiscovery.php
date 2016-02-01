@@ -20,7 +20,7 @@ use Webmozart\Expression\Expr;
 use Webmozart\Expression\Expression;
 
 /**
- * A resource discovery that holds the bindings in memory.
+ * A discovery that holds the bindings in memory.
  *
  * @since  1.0
  *

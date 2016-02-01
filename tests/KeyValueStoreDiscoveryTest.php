@@ -13,6 +13,7 @@ namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\KeyValueStoreDiscovery;
+use Puli\Discovery\Test\AbstractEditableDiscoveryTest;
 use Webmozart\KeyValueStore\SerializingArrayStore;
 
 /**

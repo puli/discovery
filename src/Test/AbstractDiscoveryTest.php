@@ -9,18 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests;
+namespace Puli\Discovery\Test;
 
 use PHPUnit_Framework_MockObject_MockObject;
 use PHPUnit_Framework_TestCase;
+use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
 use Puli\Discovery\Api\Discovery;
 use Puli\Discovery\Api\Type\BindingParameter;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\ClassBinding;
-use Puli\Discovery\Binding\ResourceBinding;
-use Puli\Discovery\Tests\Fixtures\Bar;
-use Puli\Discovery\Tests\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\Bar;
+use Puli\Discovery\Test\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\StringBinding;
 use stdClass;
 use Webmozart\Expression\Expr;
 
@@ -31,7 +32,7 @@ use Webmozart\Expression\Expr;
  */
 abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 {
-    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
+    const STRING_BINDING = 'Puli\Discovery\Test\Fixtures\StringBinding';
 
     const CLASS_BINDING = 'Puli\Discovery\Binding\ClassBinding';
 
@@ -41,8 +42,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
     protected $initializer;
 
     /**
-     * @param BindingType[]     $types
-     * @param ResourceBinding[] $bindings
+     * @param BindingType[] $types
+     * @param Binding[]     $bindings
      *
      * @return Discovery
      */
@@ -55,10 +56,10 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testFindBindings()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING);
         $type2 = new BindingType(Bar::clazz, self::CLASS_BINDING);
-        $binding1 = new ResourceBinding('/file1', Foo::clazz);
-        $binding2 = new ResourceBinding('/file2', Foo::clazz);
+        $binding1 = new StringBinding('string1', Foo::clazz);
+        $binding2 = new StringBinding('string2', Foo::clazz);
         $binding3 = new ClassBinding(__CLASS__, Bar::clazz);
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
@@ -69,7 +70,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testFindBindingsWithExpression()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         ));
@@ -77,8 +78,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         ));
-        $binding1 = new ResourceBinding('/file1', Foo::clazz, array('param1' => 'value1', 'param2' => 'value2'));
-        $binding2 = new ResourceBinding('/file2', Foo::clazz, array('param1' => 'value1'));
+        $binding1 = new StringBinding('string1', Foo::clazz, array('param1' => 'value1', 'param2' => 'value2'));
+        $binding2 = new StringBinding('string2', Foo::clazz, array('param1' => 'value1'));
         $binding3 = new ClassBinding(__CLASS__, Bar::clazz, array('param1' => 'value1', 'param2' => 'value2'));
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
@@ -111,10 +112,10 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testGetBindings()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING);
         $type2 = new BindingType(Bar::clazz, self::CLASS_BINDING);
-        $binding1 = new ResourceBinding('/file1', Foo::clazz);
-        $binding2 = new ResourceBinding('/file2', Foo::clazz);
+        $binding1 = new StringBinding('string1', Foo::clazz);
+        $binding2 = new StringBinding('string2', Foo::clazz);
         $binding3 = new ClassBinding(__CLASS__, Bar::clazz);
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding1, $binding2, $binding3));
@@ -131,8 +132,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testHasBindings()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
-        $binding = new ResourceBinding('/file1', Foo::clazz);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
+        $binding = new StringBinding('string1', Foo::clazz);
 
         $discovery = $this->createLoadedDiscovery(array($type), array($binding));
 
@@ -141,7 +142,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testHasNoBindings()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $discovery = $this->createLoadedDiscovery(array($type));
 
@@ -150,9 +151,9 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testHasBindingsWithType()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
-        $type2 = new BindingType(Bar::clazz, self::RESOURCE_BINDING);
-        $binding = new ResourceBinding('/file1', Foo::clazz);
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING);
+        $type2 = new BindingType(Bar::clazz, self::STRING_BINDING);
+        $binding = new StringBinding('string1', Foo::clazz);
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
 
@@ -178,11 +179,11 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testHasBindingsWithTypeAndExpression()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING, array(
             new BindingParameter('param'),
         ));
-        $type2 = new BindingType(Bar::clazz, self::RESOURCE_BINDING);
-        $binding = new ResourceBinding('/file1', Foo::clazz, array('param' => 'foo'));
+        $type2 = new BindingType(Bar::clazz, self::STRING_BINDING);
+        $binding = new StringBinding('string1', Foo::clazz, array('param' => 'foo'));
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2), array($binding));
 
@@ -208,8 +209,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testGetBindingType()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
-        $type2 = new BindingType(Bar::clazz, self::RESOURCE_BINDING);
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING);
+        $type2 = new BindingType(Bar::clazz, self::STRING_BINDING);
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2));
 
@@ -240,8 +241,8 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testGetBindingTypes()
     {
-        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
-        $type2 = new BindingType(Bar::clazz, self::RESOURCE_BINDING);
+        $type1 = new BindingType(Foo::clazz, self::STRING_BINDING);
+        $type2 = new BindingType(Bar::clazz, self::STRING_BINDING);
 
         $discovery = $this->createLoadedDiscovery(array($type1, $type2));
 
@@ -250,7 +251,7 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testHasBindingType()
     {
-        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type = new BindingType(Foo::clazz, self::STRING_BINDING);
 
         $discovery = $this->createLoadedDiscovery(array($type));
 

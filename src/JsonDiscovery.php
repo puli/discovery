@@ -23,7 +23,7 @@ use Webmozart\Json\JsonDecoder;
 use Webmozart\Json\JsonEncoder;
 
 /**
- * A resource discovery backed by a JSON file.
+ * A discovery backed by a JSON file.
  *
  * @since  1.0
  *
@@ -65,7 +65,7 @@ class JsonDiscovery extends AbstractEditableDiscovery
     private $bindingsByKey = array();
 
     /**
-     * Creates a new resource discovery.
+     * Creates a new discovery.
      *
      * @param string               $path         The path to the JSON file.
      * @param BindingInitializer[] $initializers The binding initializers to

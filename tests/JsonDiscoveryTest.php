@@ -13,7 +13,7 @@ namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\JsonDiscovery;
-use Webmozart\Glob\Test\TestUtil;
+use Puli\Discovery\Test\AbstractPersistentDiscoveryTest;
 
 /**
  * @since  1.0
@@ -34,7 +34,7 @@ class JsonDiscoveryTest extends AbstractPersistentDiscoveryTest
 
     protected function setUp()
     {
-        $this->tempDir = TestUtil::makeTempDir('puli-repository', __CLASS__);
+        $this->tempDir = TestUtil::makeTempDir('puli-discovery', __CLASS__);
         $this->path = $this->tempDir.'/bindings.json';
 
         parent::setUp();

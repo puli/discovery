@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests\Binding;
+namespace Puli\Discovery\Test;
 
 use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Api\Type\BindingParameter;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
-use Puli\Discovery\Tests\Fixtures\Bar;
-use Puli\Discovery\Tests\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\Bar;
+use Puli\Discovery\Test\Fixtures\Foo;
 use stdClass;
 
 /**

@@ -12,7 +12,8 @@
 namespace Puli\Discovery\Tests\Binding;
 
 use Puli\Discovery\Binding\ClassBinding;
-use Puli\Discovery\Tests\Fixtures\Foo;
+use Puli\Discovery\Test\AbstractBindingTest;
+use Puli\Discovery\Test\Fixtures\Foo;
 
 /**
  * @since  1.0

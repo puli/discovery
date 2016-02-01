@@ -30,8 +30,8 @@ use Webmozart\Expression\Expression;
  * use Puli\Discovery\Api\Type\BindingParameter;
  * use Puli\Discovery\Api\Type\BindingType;
  *
- * $discovery->addBindingType(new BindingType('acme/message-catalog', array(
- *     new BindingParameter('translationDomain', null, 'messages'),
+ * $discovery->addBindingType(new BindingType(Extension::class, ClassBinding::class, array(
+ *     new BindingParameter('alias'),
  * ));
  * ```
  *
@@ -39,8 +39,8 @@ use Webmozart\Expression\Expression;
  *
  * ```php
  * $discovery->addBinding(
- *     new ResourceBinding('/app/trans/errors.*.xlf', 'acme/xliff-messages', array(
- *         'translationDomain' => 'errors',
+ *     new ClassBinding(BlogExtension::class, Extension::class, array(
+ *         'alias' => 'blog',
  *     ),
  * );
  * ```
@@ -48,15 +48,11 @@ use Webmozart\Expression\Expression;
  * Use {@link findBindings()} to retrieve bindings for a given type:
  *
  * ```php
- * $bindings = $discovery->findBindings('acme/xliff-messages');
+ * $bindings = $discovery->findBindings(Extension::class);
  *
  * foreach ($bindings as $binding) {
- *     foreach ($binding->getResources() as $resource) {
- *         $translator->addXlfCatalog(
- *             $resource->getLocalPath(),
- *             $binding->getParameter('translationDomain')
- *         );
- *     }
+ *     $className = $binding->getClassName();
+ *     $loader->loadExtension(new $className());
  * }
  * ```
  *

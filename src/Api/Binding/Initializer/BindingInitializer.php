@@ -29,12 +29,20 @@ interface BindingInitializer
     /**
      * Returns whether the initializer accepts binding of the given class.
      *
-     * @param string $className The name of the binding class.
+     * @param Binding|string $binding The binding or the fully-qualified name of
+     *                                the binding class.
      *
      * @return bool Returns `true` if bindings of that class can be initialized
      *              and `false` otherwise.
      */
-    public function acceptsBinding($className);
+    public function acceptsBinding($binding);
+
+    /**
+     * Returns the binding class name that can be initialized.
+     *
+     * @return string The accepted binding class name.
+     */
+    public function getAcceptedBindingClass();
 
     /**
      * Initializes a binding.
