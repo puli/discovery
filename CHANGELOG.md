@@ -4,6 +4,7 @@ Changelog
 * 1.0.0-beta10 (@release_date@)
 
  * decoupled from ramsey/uuid
+ * changed `BindingType` to require exactly one accepted binding class
 
 * 1.0.0-beta9 (2016-01-14)
 

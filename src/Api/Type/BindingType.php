@@ -12,6 +12,7 @@
 namespace Puli\Discovery\Api\Type;
 
 use InvalidArgumentException;
+use Puli\Discovery\Api\Binding\Binding;
 use Webmozart\Assert\Assert;
 
 /**
@@ -29,41 +30,39 @@ class BindingType
     private $name;
 
     /**
+     * @var string
+     */
+    private $acceptedBindingClass;
+
+    /**
      * @var BindingParameter[]
      */
     private $parameters = array();
 
     /**
-     * @var string[]
-     */
-    private $acceptedBindings = array();
-
-    /**
      * Creates a new type.
      *
-     * @param string             $name             The name of the type.
-     * @param BindingParameter[] $parameters       The parameters that can be
-     *                                             set for a binding.
-     * @param string[]           $acceptedBindings The binding class names that
-     *                                             can be bound to this type.
+     * @param string             $name         The name of the type.
+     * @param string             $bindingClass The class name of the accepted
+     *                                         bindings.
+     * @param BindingParameter[] $parameters   The parameters that can be set
+     *                                         for a binding.
      */
-    public function __construct($name, array $parameters = array(), array $acceptedBindings = array())
+    public function __construct($name, $bindingClass, array $parameters = array())
     {
         Assert::stringNotEmpty($name, 'The type name must be a non-empty string. Got: %s');
         Assert::allIsInstanceOf($parameters, 'Puli\Discovery\Api\Type\BindingParameter');
 
-        foreach ($acceptedBindings as $acceptedBinding) {
-            if (!class_exists($acceptedBinding) && !interface_exists($acceptedBinding)) {
-                throw new InvalidArgumentException(sprintf(
-                    'The binding class "%s" is neither a class nor an '.
-                    'interface name. Is there a typo?',
-                    $acceptedBinding
-                ));
-            }
+        if (!class_exists($bindingClass) && !interface_exists($bindingClass)) {
+            throw new InvalidArgumentException(sprintf(
+                'The binding class "%s" is neither a class nor an '.
+                'interface name. Is there a typo?',
+                $bindingClass
+            ));
         }
 
         $this->name = $name;
-        $this->acceptedBindings = $acceptedBindings;
+        $this->acceptedBindingClass = $bindingClass;
 
         foreach ($parameters as $parameter) {
             $this->parameters[$parameter->getName()] = $parameter;
@@ -239,24 +238,17 @@ class BindingType
     /**
      * Returns whether the type accepts a binding class.
      *
-     * @param string $className The fully-qualified name of the binding class.
+     * @param Binding|string $binding The binding or the fully-qualified name of
+     *                                the binding class.
      *
-     * @return bool Returns `true` if the binding class can be bound to this
-     *              type and `false` otherwise.
+     * @return bool Returns `true` if the binding can be bound to this type and
+     *              `false` otherwise.
      */
-    public function acceptsBinding($className)
+    public function acceptsBinding($binding)
     {
-        if (empty($this->acceptedBindings) || in_array($className, $this->acceptedBindings, true)) {
-            return true;
-        }
-
-        foreach ($this->acceptedBindings as $acceptedBinding) {
-            if (is_subclass_of($className, $acceptedBinding)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $binding instanceof $this->acceptedBindingClass
+            || $binding === $this->acceptedBindingClass
+            || is_subclass_of($binding, $this->acceptedBindingClass);
     }
 
     /**
@@ -266,8 +258,8 @@ class BindingType
      *
      * @return string[] An array of class names or an empty array.
      */
-    public function getAcceptedBindings()
+    public function getAcceptedBindingClass()
     {
-        return $this->acceptedBindings;
+        return $this->acceptedBindingClass;
     }
 }

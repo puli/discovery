@@ -17,7 +17,6 @@ use Puli\Discovery\Api\Discovery;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingParameter;
 use Puli\Discovery\Api\Type\BindingType;
-use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
@@ -31,10 +30,6 @@ use Webmozart\Expression\Expr;
  */
 abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 {
-    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
-
-    const CLASS_BINDING = 'Puli\Discovery\Binding\ClassBinding';
-
     /**
      * Creates a discovery that can be written in the test.
      *
@@ -89,7 +84,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding = new ResourceBinding('/path', Foo::clazz);
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding);
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -115,7 +110,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testAddBindingFailsIfTypeDoesNotAcceptBinding()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz, array(), array(self::CLASS_BINDING)));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::CLASS_BINDING));
         $discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
     }
 
@@ -124,7 +119,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding = new ResourceBinding('/path', Foo::clazz);
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding);
         $discovery->addBinding($binding);
 
@@ -140,7 +135,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding2 = new ResourceBinding('/path2', Foo::clazz);
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding1);
         $discovery->addBinding($binding2);
         $discovery->removeBindings();
@@ -168,8 +163,8 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding3 = new ResourceBinding('/path3', Bar::clazz);
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Bar::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding1);
         $discovery->addBinding($binding2);
         $discovery->addBinding($binding3);
@@ -185,7 +180,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingsWithTypeDoesNothingIfNoneFound()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->removeBindings(Foo::clazz);
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -220,7 +215,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding3 = new ResourceBinding('/path3', Foo::clazz, array('param1' => 'bar'));
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz, array(
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         )));
@@ -242,7 +237,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $binding3 = new ResourceBinding('/path3', Foo::clazz, array('param1' => 'bar'));
 
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz, array(
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         )));
@@ -260,7 +255,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingsWithTypeAndParametersDoesNothingIfNoneFound()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->removeBindings(Foo::clazz, Expr::method('getParameterValue', 'param1', Expr::same('foo')));
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -280,7 +275,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
     public function testAddBindingType()
     {
-        $type = new BindingType(Foo::clazz);
+        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
 
         $discovery = $this->createDiscovery();
         $discovery->addBindingType($type);
@@ -292,8 +287,8 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
     public function testAddBindingTypeAfterReadingStorage()
     {
-        $type1 = new BindingType(Foo::clazz);
-        $type2 = new BindingType(Bar::clazz);
+        $type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING);
+        $type2 = new BindingType(Bar::clazz, self::RESOURCE_BINDING);
 
         $discovery = $this->createDiscovery();
         $discovery->addBindingType($type1);
@@ -314,15 +309,15 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testAddBindingTypeFailsIfAlreadyDefined()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
     }
 
     public function testRemoveBindingType()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType($type1 = new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBindingType($type1 = new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Bar::clazz, self::RESOURCE_BINDING));
         $discovery->removeBindingType(Bar::clazz);
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -335,7 +330,7 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingTypeIgnoresUnknownTypes()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
         $discovery->removeBindingType(Bar::clazz);
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -357,11 +352,11 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingTypeRemovesCorrespondingBindings()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Bar::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding1 = new ResourceBinding('/path1', Foo::clazz));
-        $discovery->addBinding($binding2 = new ClassBinding(__CLASS__, Foo::clazz));
-        $discovery->addBinding($binding3 = new ResourceBinding('/path2', Bar::clazz));
+        $discovery->addBinding($binding2 = new ResourceBinding('/path2', Foo::clazz));
+        $discovery->addBinding($binding3 = new ResourceBinding('/path3', Bar::clazz));
 
         $discovery->removeBindingType(Foo::clazz);
 
@@ -373,8 +368,8 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingTypes()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Bar::clazz, self::RESOURCE_BINDING));
         $discovery->removeBindingTypes();
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
@@ -387,10 +382,10 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
     public function testRemoveBindingTypesRemovesBindings()
     {
         $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBindingType(new BindingType(Bar::clazz));
+        $discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
+        $discovery->addBindingType(new BindingType(Bar::clazz, self::RESOURCE_BINDING));
         $discovery->addBinding($binding1 = new ResourceBinding('/path1', Foo::clazz));
-        $discovery->addBinding($binding2 = new ClassBinding(__CLASS__, Bar::clazz));
+        $discovery->addBinding($binding2 = new ResourceBinding('/path2', Bar::clazz));
         $discovery->removeBindingTypes();
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
