@@ -9,13 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Discovery\Tests\Fixtures;
+namespace Puli\Discovery\Tests\Api\Type\Fixtures;
 
-use Puli\Discovery\Binding\ResourceBinding;
+use Puli\Discovery\Test\Fixtures\StringBinding;
 
 /**
+ * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class SubResourceBinding extends ResourceBinding
+class SubStringBinding extends StringBinding
 {
 }

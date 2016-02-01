@@ -14,9 +14,9 @@ namespace Puli\Discovery\Tests;
 
 use PHPUnit_Framework_TestCase;
 use Puli\Discovery\Api\Type\BindingType;
-use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\NullDiscovery;
-use Puli\Discovery\Tests\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\Foo;
+use Puli\Discovery\Test\Fixtures\StringBinding;
 
 /**
  * @since  1.0
@@ -25,7 +25,7 @@ use Puli\Discovery\Tests\Fixtures\Foo;
  */
 class NullDiscoveryTest extends PHPUnit_Framework_TestCase
 {
-    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
+    const RESOURCE_BINDING = 'Puli\Discovery\Test\Fixtures\StringBinding';
 
     /**
      * @var NullDiscovery
@@ -39,21 +39,21 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testFindBindings()
     {
-        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
+        $this->discovery->addBinding(new StringBinding('string', Foo::clazz));
 
         $this->assertSame(array(), $this->discovery->findBindings(Foo::clazz));
     }
 
     public function testGetBindings()
     {
-        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
+        $this->discovery->addBinding(new StringBinding('string', Foo::clazz));
 
         $this->assertSame(array(), $this->discovery->getBindings());
     }
 
     public function testHasBindings()
     {
-        $this->discovery->addBinding(new ResourceBinding('/path', Foo::clazz));
+        $this->discovery->addBinding(new StringBinding('string', Foo::clazz));
 
         $this->assertFalse($this->discovery->hasBindings());
     }

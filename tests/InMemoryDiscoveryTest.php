@@ -13,6 +13,7 @@ namespace Puli\Discovery\Tests;
 
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\InMemoryDiscovery;
+use Puli\Discovery\Test\AbstractEditableDiscoveryTest;
 
 /**
  * @since  1.0

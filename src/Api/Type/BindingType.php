@@ -253,11 +253,9 @@ final class BindingType implements Serializable
     }
 
     /**
-     * Returns the binding class names that can be bound to this type.
+     * Returns the binding class name that can be bound to this type.
      *
-     * Returns an empty array if any binding can be bound to the type.
-     *
-     * @return string[] An array of class names or an empty array.
+     * @return string The accepted binding class name.
      */
     public function getAcceptedBindingClass()
     {

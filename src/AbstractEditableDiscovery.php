@@ -19,7 +19,7 @@ use Webmozart\Assert\Assert;
 use Webmozart\Expression\Expression;
 
 /**
- * Base class for editable resource discoveries.
+ * Base class for editable discoveries.
  *
  * @since  1.0
  *
@@ -38,7 +38,7 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     private $initializersByBindingClass = array();
 
     /**
-     * Creates a new resource discovery.
+     * Creates a new discovery.
      *
      * @param BindingInitializer[] $initializers The binding initializers to
      *                                           apply to newly created or
