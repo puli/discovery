@@ -69,8 +69,8 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
     public function testInitialize()
     {
-        $type = new BindingType(Foo::clazz);
         $binding = $this->createBinding(Foo::clazz);
+        $type = new BindingType(Foo::clazz, get_class($binding));
 
         $this->assertFalse($binding->isInitialized());
 
@@ -82,13 +82,13 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
     public function testInitializeWithParameters()
     {
-        $type = new BindingType(Foo::clazz, array(
-            new BindingParameter('param1'),
-            new BindingParameter('param2'),
-        ));
-
         $binding = $this->createBinding(Foo::clazz, array(
             'param1' => 'value',
+        ));
+
+        $type = new BindingType(Foo::clazz, get_class($binding), array(
+            new BindingParameter('param1'),
+            new BindingParameter('param2'),
         ));
 
         $this->assertSame(array('param1' => 'value'), $binding->getParameterValues());
@@ -116,13 +116,13 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
     public function testInitializeWithParameterDefaults()
     {
-        $type = new BindingType(Foo::clazz, array(
-            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
-            new BindingParameter('param2'),
-        ));
-
         $binding = $this->createBinding(Foo::clazz, array(
             'param2' => 'value',
+        ));
+
+        $type = new BindingType(Foo::clazz, get_class($binding), array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2'),
         ));
 
         $this->assertSame(array('param2' => 'value'), $binding->getParameterValues());
@@ -147,13 +147,13 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
     public function testInitializeWithRequiredParameters()
     {
-        $type = new BindingType(Foo::clazz, array(
-            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
-            new BindingParameter('param2', BindingParameter::REQUIRED),
-        ));
-
         $binding = $this->createBinding(Foo::clazz, array(
             'param2' => 'value',
+        ));
+
+        $type = new BindingType(Foo::clazz, get_class($binding), array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2', BindingParameter::REQUIRED),
         ));
 
         $this->assertSame(array('param2' => 'value'), $binding->getParameterValues());
@@ -182,11 +182,11 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
      */
     public function testInitializeFailsIfMissingRequiredParameter()
     {
-        $type = new BindingType(Foo::clazz, array(
+        $binding = $this->createBinding(Foo::clazz);
+
+        $type = new BindingType(Foo::clazz, get_class($binding), array(
             new BindingParameter('param', BindingParameter::REQUIRED),
         ));
-
-        $binding = $this->createBinding(Foo::clazz);
 
         $binding->initialize($type);
     }
@@ -197,11 +197,11 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
      */
     public function testInitializeFailsIfUnknownParameter()
     {
-        $type = new BindingType(Foo::clazz);
-
         $binding = $this->createBinding(Foo::clazz, array(
             'foo' => 'bar',
         ));
+
+        $type = new BindingType(Foo::clazz, get_class($binding));
 
         $binding->initialize($type);
     }
@@ -212,9 +212,9 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
      */
     public function testInitializeFailsIfWrongType()
     {
-        $type = new BindingType(Foo::clazz);
-
         $binding = $this->createBinding(Bar::clazz);
+
+        $type = new BindingType(Foo::clazz, get_class($binding));
 
         $binding->initialize($type);
     }
@@ -224,10 +224,9 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
      */
     public function testInitializeFailsIfBindingNotAccepted()
     {
-        $binding = $this->getMock('Puli\Discovery\Api\Binding\Binding');
-        $type = new BindingType(Foo::clazz, array(), array(get_class($binding)));
-
         $binding = $this->createBinding(Foo::clazz);
+
+        $type = new BindingType(Foo::clazz, __CLASS__);
 
         $binding->initialize($type);
     }
@@ -266,14 +265,15 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
 
     public function testSerializeInitialized()
     {
-        $type = new BindingType(Foo::clazz, array(
+        $binding = $this->createBinding(Foo::clazz, array(
+            'param1' => 'value',
+        ));
+
+        $type = new BindingType(Foo::clazz, get_class($binding), array(
             new BindingParameter('param1'),
             new BindingParameter('param2'),
         ));
 
-        $binding = $this->createBinding(Foo::clazz, array(
-            'param1' => 'value',
-        ));
         $binding->initialize($type);
 
         $unserialized = unserialize(serialize($binding));

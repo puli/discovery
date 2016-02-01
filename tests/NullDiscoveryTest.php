@@ -25,6 +25,8 @@ use Puli\Discovery\Tests\Fixtures\Foo;
  */
 class NullDiscoveryTest extends PHPUnit_Framework_TestCase
 {
+    const RESOURCE_BINDING = 'Puli\Discovery\Binding\ResourceBinding';
+
     /**
      * @var NullDiscovery
      */
@@ -58,14 +60,14 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
 
     public function testGetBindingTypes()
     {
-        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+        $this->discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
 
         $this->assertSame(array(), $this->discovery->getBindingTypes());
     }
 
     public function testHasBindingTypes()
     {
-        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+        $this->discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
 
         $this->assertFalse($this->discovery->hasBindingTypes());
     }
@@ -75,14 +77,14 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
      */
     public function testGetBindingType()
     {
-        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+        $this->discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
 
         $this->discovery->getBindingType(Foo::clazz);
     }
 
     public function testHasBindingType()
     {
-        $this->discovery->addBindingType(new BindingType(Foo::clazz));
+        $this->discovery->addBindingType(new BindingType(Foo::clazz, self::RESOURCE_BINDING));
 
         $this->assertFalse($this->discovery->hasBindingType(Foo::clazz));
     }

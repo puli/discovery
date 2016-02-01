@@ -90,7 +90,7 @@ abstract class AbstractBinding implements Binding
             ));
         }
 
-        if (!$type->acceptsBinding(get_class($this))) {
+        if (!$type->acceptsBinding($this)) {
             throw BindingNotAcceptedException::forBindingClass($type->getName(), get_class($this));
         }
 
