@@ -13,13 +13,11 @@ namespace Puli\Discovery;
 
 use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
-use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
-use RuntimeException;
 use Webmozart\Assert\Assert;
+use Webmozart\Expression\Expr;
 use Webmozart\Expression\Expression;
 use Webmozart\Json\JsonDecoder;
 use Webmozart\Json\JsonEncoder;
@@ -134,11 +132,6 @@ class JsonDiscovery extends AbstractEditableDiscovery
             $this->loadBindingsForKey($key, false);
         }
 
-        // Remove all binding UUIDs for this binding type
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            unset($this->json['keysByUuid'][$binding->getUuid()->toString()]);
-        }
-
         unset($this->typesByKey[$key]);
         unset($this->bindingsByKey[$key]);
 
@@ -162,7 +155,6 @@ class JsonDiscovery extends AbstractEditableDiscovery
         $this->bindingsByKey = array();
 
         $this->json['keysByTypeName'] = array();
-        $this->json['keysByUuid'] = array();
         $this->json['typesByKey'] = array();
         $this->json['bindingsByKey'] = array();
         $this->json['nextKey'] = 0;
@@ -255,103 +247,26 @@ class JsonDiscovery extends AbstractEditableDiscovery
             throw NoSuchTypeException::forTypeName($typeName);
         }
 
-        if (isset($this->json['keysByUuid'][$binding->getUuid()->toString()])) {
-            // Ignore duplicates
-            return;
-        }
-
         $key = $this->json['keysByTypeName'][$typeName];
 
         if (!isset($this->bindingsByKey[$key])) {
             $this->loadBindingsForKey($key);
         }
 
+        // Ignore duplicates
+        foreach ($this->bindingsByKey[$key] as $other) {
+            if ($binding->equals($other)) {
+                return;
+            }
+        }
+
         $this->initializeBinding($binding);
 
         $this->bindingsByKey[$key][] = $binding;
 
-        $this->json['keysByUuid'][$binding->getUuid()->toString()] = $key;
         $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
 
         $this->flush();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function removeBinding(Uuid $uuid)
-    {
-        if (null === $this->json) {
-            $this->load();
-        }
-
-        $uuidString = $uuid->toString();
-
-        if (!isset($this->json['keysByUuid'][$uuidString])) {
-            return;
-        }
-
-        $key = $this->json['keysByUuid'][$uuidString];
-
-        if (!isset($this->bindingsByKey[$key])) {
-            $this->loadBindingsForKey($key);
-        }
-
-        foreach ($this->bindingsByKey[$key] as $i => $binding) {
-            if ($binding->getUuid()->equals($uuid)) {
-                unset($this->bindingsByKey[$key][$i]);
-            }
-        }
-
-        $this->reindexBindingsForKey($key);
-
-        unset($this->json['keysByUuid'][$uuidString]);
-
-        $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
-
-        $this->flush();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function hasBinding(Uuid $uuid)
-    {
-        if (null === $this->json) {
-            $this->load();
-        }
-
-        return isset($this->json['keysByUuid'][$uuid->toString()]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBinding(Uuid $uuid)
-    {
-        if (null === $this->json) {
-            $this->load();
-        }
-
-        if (!isset($this->json['keysByUuid'][$uuid->toString()])) {
-            throw NoSuchBindingException::forUuid($uuid);
-        }
-
-        $key = $this->json['keysByUuid'][$uuid->toString()];
-
-        if (!isset($this->bindingsByKey[$key])) {
-            $this->loadBindingsForKey($key);
-        }
-
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            if ($binding->getUuid()->equals($uuid)) {
-                return $binding;
-            }
-        }
-
-        // This does not happen except if someone plays with the JSON file
-        // contents (or there's a bug here..)
-        throw new RuntimeException('The discovery is corrupt. Please rebuild it.');
     }
 
     /**
@@ -378,7 +293,7 @@ class JsonDiscovery extends AbstractEditableDiscovery
         $bindings = $this->bindingsByKey[$key];
 
         if (null !== $expr) {
-            $bindings = $this->filterBindings($bindings, $expr);
+            $bindings = Expr::filter($bindings, $expr);
         }
 
         return $bindings;
@@ -416,7 +331,6 @@ class JsonDiscovery extends AbstractEditableDiscovery
         $this->bindingsByKey = array();
 
         $this->json['bindingsByKey'] = array();
-        $this->json['keysByUuid'] = array();
 
         $this->flush();
     }
@@ -436,13 +350,11 @@ class JsonDiscovery extends AbstractEditableDiscovery
             foreach ($bindingsForKey as $i => $binding) {
                 if ($expr->evaluate($binding)) {
                     unset($this->bindingsByKey[$key][$i]);
-                    unset($this->json['keysByUuid'][$binding->getUuid()->toString()]);
                 }
             }
 
             $this->reindexBindingsForKey($key);
-
-            $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
+            $this->syncBindingsForKey($key);
         }
 
         $this->flush();
@@ -463,17 +375,10 @@ class JsonDiscovery extends AbstractEditableDiscovery
 
         $key = $this->json['keysByTypeName'][$typeName];
 
-        if (!isset($this->bindingsByKey[$key])) {
-            // no initialize, since we're removing this anyway
-            $this->loadBindingsForKey($key, false);
-        }
-
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            unset($this->json['keysByUuid'][$binding->getUuid()->toString()]);
-        }
-
-        unset($this->bindingsByKey[$key]);
-        unset($this->json['bindingsByKey'][$key]);
+        unset(
+            $this->bindingsByKey[$key],
+            $this->json['bindingsByKey'][$key]
+        );
 
         $this->flush();
     }
@@ -500,13 +405,11 @@ class JsonDiscovery extends AbstractEditableDiscovery
         foreach ($this->bindingsByKey[$key] as $i => $binding) {
             if ($expr->evaluate($binding)) {
                 unset($this->bindingsByKey[$key][$i]);
-                unset($this->json['keysByUuid'][$binding->getUuid()->toString()]);
             }
         }
 
         $this->reindexBindingsForKey($key);
-
-        $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
+        $this->syncBindingsForKey($key);
 
         $this->flush();
     }
@@ -520,7 +423,7 @@ class JsonDiscovery extends AbstractEditableDiscovery
             $this->load();
         }
 
-        return count($this->json['keysByUuid']) > 0;
+        return count($this->json['bindingsByKey']) > 0;
     }
 
     /**
@@ -560,7 +463,7 @@ class JsonDiscovery extends AbstractEditableDiscovery
 
         $key = $this->json['keysByTypeName'][$typeName];
 
-        return false !== array_search($key, $this->json['keysByUuid'], true);
+        return isset($this->json['bindingsByKey'][$key]);
     }
 
     protected function hasBindingsWithTypeNameThatMatch($typeName, Expression $expr)
@@ -618,6 +521,15 @@ class JsonDiscovery extends AbstractEditableDiscovery
         $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
     }
 
+    private function syncBindingsForKey($key)
+    {
+        if (count($this->bindingsByKey[$key]) > 0) {
+            $this->json['bindingsByKey'][$key] = serialize($this->bindingsByKey[$key]);
+        } else {
+            unset($this->bindingsByKey[$key], $this->json['bindingsByKey'][$key]);
+        }
+    }
+
     /**
      * Loads the JSON file.
      */
@@ -632,7 +544,6 @@ class JsonDiscovery extends AbstractEditableDiscovery
 
         if (!isset($this->json['keysByTypeName'])) {
             $this->json['keysByTypeName'] = array();
-            $this->json['keysByUuid'] = array();
             $this->json['typesByKey'] = array();
             $this->json['bindingsByKey'] = array();
             $this->json['nextKey'] = 0;

@@ -18,7 +18,6 @@ use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
 use Webmozart\Expression\Expression;
 
 /**
@@ -82,15 +81,6 @@ interface EditableDiscovery extends Discovery
      *                                     accept the binding.
      */
     public function addBinding(Binding $binding);
-
-    /**
-     * Removes a binding from the discovery.
-     *
-     * This method does nothing if the given UUID is not found.
-     *
-     * @param Uuid $uuid The UUID of the binding.
-     */
-    public function removeBinding(Uuid $uuid);
 
     /**
      * Removes all bindings from the discovery.

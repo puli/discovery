@@ -12,10 +12,8 @@
 namespace Puli\Discovery\Api;
 
 use Puli\Discovery\Api\Binding\Binding;
-use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
 use Webmozart\Expression\Expression;
 
 /**
@@ -88,27 +86,6 @@ interface Discovery
      * @return Binding[] The bindings.
      */
     public function getBindings();
-
-    /**
-     * Returns whether the discovery contains a binding.
-     *
-     * @param Uuid $uuid The UUID of the binding.
-     *
-     * @return bool Returns `true` if a binding with the given UUID exists and
-     *              `false` otherwise.
-     */
-    public function hasBinding(Uuid $uuid);
-
-    /**
-     * Returns the binding with the given UUID.
-     *
-     * @param Uuid $uuid The UUID of the binding.
-     *
-     * @return Binding The binding.
-     *
-     * @throws NoSuchBindingException If the binding does not exist.
-     */
-    public function getBinding(Uuid $uuid);
 
     /**
      * Returns whether a binding type exists.

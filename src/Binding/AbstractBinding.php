@@ -18,7 +18,6 @@ use Puli\Discovery\Api\Type\BindingNotAcceptedException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
-use Rhumsaa\Uuid\Uuid;
 use Webmozart\Assert\Assert;
 
 /**
@@ -30,11 +29,6 @@ use Webmozart\Assert\Assert;
  */
 abstract class AbstractBinding implements Binding
 {
-    /**
-     * @var Uuid
-     */
-    private $uuid;
-
     /**
      * @var string
      */
@@ -65,16 +59,14 @@ abstract class AbstractBinding implements Binding
      * All parameters that you do not set here will receive the default values
      * set for the parameter.
      *
-     * @param string    $typeName        The name of the type to bind against.
-     * @param array     $parameterValues The values of the parameters defined
-     *                                   for the type.
-     * @param Uuid|null $uuid            The UUID of the binding. A new one is
-     *                                   generated if none is passed.
+     * @param string $typeName        The name of the type to bind against.
+     * @param array  $parameterValues The values of the parameters defined
+     *                                for the type.
      *
      * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
-    public function __construct($typeName, array $parameterValues = array(), Uuid $uuid = null)
+    public function __construct($typeName, array $parameterValues = array())
     {
         Assert::stringNotEmpty($typeName, 'The type name must be a non-empty string. Got: %s');
 
@@ -83,7 +75,6 @@ abstract class AbstractBinding implements Binding
         $this->typeName = $typeName;
         $this->userParameterValues = $parameterValues;
         $this->parameterValues = $parameterValues;
-        $this->uuid = $uuid ?: Uuid::uuid4();
     }
 
     /**
@@ -118,14 +109,6 @@ abstract class AbstractBinding implements Binding
     public function isInitialized()
     {
         return null !== $this->type;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getUuid()
-    {
-        return $this->uuid;
     }
 
     /**
@@ -220,16 +203,31 @@ abstract class AbstractBinding implements Binding
         $this->postUnserialize($data);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function equals(Binding $other)
+    {
+        if (get_class($this) !== get_class($other)) {
+            return false;
+        }
+
+        /** @var AbstractBinding $other */
+        if ($this->typeName !== $other->typeName) {
+            return false;
+        }
+
+        return $this->userParameterValues === $other->userParameterValues;
+    }
+
     protected function preSerialize(array &$data)
     {
         $data[] = $this->typeName;
         $data[] = $this->userParameterValues;
-        $data[] = $this->uuid->toString();
     }
 
     protected function postUnserialize(array &$data)
     {
-        $this->uuid = Uuid::fromString(array_pop($data));
         $this->userParameterValues = array_pop($data);
         $this->parameterValues = $this->userParameterValues;
         $this->typeName = array_pop($data);

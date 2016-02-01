@@ -17,7 +17,6 @@ use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Binding\AbstractBinding;
 use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
 use stdClass;
 
 /**
@@ -30,11 +29,10 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
     /**
      * @param string $typeName
      * @param array  $parameterValues
-     * @param Uuid   $uuid
      *
      * @return AbstractBinding
      */
-    abstract protected function createBinding($typeName, array $parameterValues = array(), Uuid $uuid = null);
+    abstract protected function createBinding($typeName, array $parameterValues = array());
 
     public function testCreate()
     {
@@ -43,15 +41,6 @@ abstract class AbstractBindingTest extends PHPUnit_Framework_TestCase
         $this->assertSame(Foo::clazz, $binding->getTypeName());
         $this->assertSame(array(), $binding->getParameterValues());
         $this->assertFalse($binding->hasParameterValue('param'));
-        $this->assertInstanceOf('Rhumsaa\Uuid\Uuid', $binding->getUuid());
-    }
-
-    public function testCreateWithUuid()
-    {
-        $uuid = Uuid::uuid4();
-        $binding = $this->createBinding(Foo::clazz, array(), $uuid);
-
-        $this->assertSame($uuid, $binding->getUuid());
     }
 
     /**

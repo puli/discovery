@@ -159,19 +159,6 @@ abstract class AbstractEditableDiscovery implements EditableDiscovery
     abstract protected function hasBindingsWithTypeNameThatMatch($typeName, Expression $expr);
 
     /**
-     * Filters the bindings that match the given expression.
-     *
-     * @param Binding[]  $bindings The bindings to filter.
-     * @param Expression $expr     The expression to evaluate for each binding.
-     *
-     * @return Binding[] The filtered bindings.
-     */
-    protected function filterBindings(array $bindings, Expression $expr)
-    {
-        return array_values(array_filter($bindings, array($expr, 'evaluate')));
-    }
-
-    /**
      * Initializes a binding.
      *
      * @param Binding $binding The binding to initialize.

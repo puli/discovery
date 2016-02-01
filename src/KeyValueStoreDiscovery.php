@@ -13,13 +13,11 @@ namespace Puli\Discovery;
 
 use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Binding\Initializer\BindingInitializer;
-use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
-use RuntimeException;
 use Webmozart\Assert\Assert;
+use Webmozart\Expression\Expr;
 use Webmozart\Expression\Expression;
 use Webmozart\KeyValueStore\Api\KeyValueStore;
 
@@ -58,17 +56,6 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     private $keysByTypeName;
 
     /**
-     * Stores the corresponding keys for each binding UUID.
-     *
-     * Potentially contains keys zero or multiple times.
-     *
-     * Synchronized with the entry "::keysByUuid" in the store.
-     *
-     * @var int[]
-     */
-    private $keysByUuid;
-
-    /**
      * Stores the binding type for each key.
      *
      * Synchronized with the entries "t:<key>" in the store.
@@ -102,7 +89,6 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $this->store = $store;
         $this->keysByTypeName = $store->get('::keysByTypeName', array());
-        $this->keysByUuid = $store->get('::keysByUuid', array());
         $this->nextKey = $store->get('::nextKey', 0);
     }
 
@@ -141,24 +127,15 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $key = $this->keysByTypeName[$typeName];
 
-        if (!isset($this->bindingsByKey[$key])) {
-            // no initialize, since we're removing this anyway
-            $this->loadBindingsForKey($key, false);
-        }
-
-        // Remove all binding UUIDs for this binding type
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            unset($this->keysByUuid[$binding->getUuid()->toString()]);
-        }
-
-        unset($this->keysByTypeName[$typeName]);
-        unset($this->typesByKey[$key]);
-        unset($this->bindingsByKey[$key]);
+        unset(
+            $this->keysByTypeName[$typeName],
+            $this->typesByKey[$key],
+            $this->bindingsByKey[$key]
+        );
 
         $this->store->remove('t:'.$key);
         $this->store->remove('b:'.$key);
         $this->store->set('::keysByTypeName', $this->keysByTypeName);
-        $this->store->set('::keysByUuid', $this->keysByUuid);
     }
 
     /**
@@ -167,7 +144,6 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     public function removeBindingTypes()
     {
         $this->keysByTypeName = array();
-        $this->keysByUuid = array();
         $this->typesByKey = array();
         $this->bindingsByKey = array();
         $this->nextKey = 0;
@@ -248,90 +224,24 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             throw NoSuchTypeException::forTypeName($typeName);
         }
 
-        if (isset($this->keysByUuid[$binding->getUuid()->toString()])) {
-            // Ignore duplicates
-            return;
-        }
-
         $key = $this->keysByTypeName[$typeName];
 
         if (!isset($this->bindingsByKey[$key])) {
             $this->loadBindingsForKey($key);
         }
 
+        // Ignore duplicates
+        foreach ($this->bindingsByKey[$key] as $other) {
+            if ($binding->equals($other)) {
+                return;
+            }
+        }
+
         $this->initializeBinding($binding);
 
-        $this->keysByUuid[$binding->getUuid()->toString()] = $key;
         $this->bindingsByKey[$key][] = $binding;
 
         $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
-        $this->store->set('::keysByUuid', $this->keysByUuid);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function removeBinding(Uuid $uuid)
-    {
-        $uuidString = $uuid->toString();
-
-        if (!isset($this->keysByUuid[$uuidString])) {
-            return;
-        }
-
-        $key = $this->keysByUuid[$uuidString];
-
-        if (!isset($this->bindingsByKey[$key])) {
-            $this->loadBindingsForKey($key);
-        }
-
-        foreach ($this->bindingsByKey[$key] as $i => $binding) {
-            if ($binding->getUuid()->equals($uuid)) {
-                unset($this->bindingsByKey[$key][$i]);
-            }
-        }
-
-        // Reindex array
-        $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
-
-        unset($this->keysByUuid[$uuidString]);
-
-        $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
-        $this->store->set('::keysByUuid', $this->keysByUuid);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function hasBinding(Uuid $uuid)
-    {
-        return isset($this->keysByUuid[$uuid->toString()]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBinding(Uuid $uuid)
-    {
-        if (!isset($this->keysByUuid[$uuid->toString()])) {
-            throw NoSuchBindingException::forUuid($uuid);
-        }
-
-        $key = $this->keysByUuid[$uuid->toString()];
-
-        if (!isset($this->bindingsByKey[$key])) {
-            $this->loadBindingsForKey($key);
-        }
-
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            if ($binding->getUuid()->equals($uuid)) {
-                return $binding;
-            }
-        }
-
-        // This does not happen except if someone plays with the key-value store
-        // contents (or there's a bug here..)
-        throw new RuntimeException('The discovery is corrupt. Please rebuild it.');
     }
 
     /**
@@ -354,7 +264,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         $bindings = $this->bindingsByKey[$key];
 
         if (null !== $expr) {
-            $bindings = $this->filterBindings($bindings, $expr);
+            $bindings = Expr::filter($bindings, $expr);
         }
 
         return $bindings;
@@ -382,14 +292,11 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
     protected function removeAllBindings()
     {
         $this->bindingsByKey = array();
-        $this->keysByUuid = array();
 
         // Iterate $keysByTypeName which does not contain duplicate keys
         foreach ($this->keysByTypeName as $key) {
             $this->store->remove('b:'.$key);
         }
-
-        $this->store->remove('::keysByUuid');
     }
 
     /**
@@ -403,17 +310,14 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             foreach ($bindingsForKey as $i => $binding) {
                 if ($expr->evaluate($binding)) {
                     unset($this->bindingsByKey[$key][$i]);
-                    unset($this->keysByUuid[$binding->getUuid()->toString()]);
                 }
             }
 
             // Reindex array
-            $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
+            $this->reindexBindingsForKey($key);
 
-            $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
+            $this->syncBindingsForKey($key);
         }
-
-        $this->store->set('::keysByUuid', $this->keysByUuid);
     }
 
     /**
@@ -432,14 +336,9 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
             $this->loadBindingsForKey($key, false);
         }
 
-        foreach ($this->bindingsByKey[$key] as $binding) {
-            unset($this->keysByUuid[$binding->getUuid()->toString()]);
-        }
-
         unset($this->bindingsByKey[$key]);
 
         $this->store->remove('b:'.$key);
-        $this->store->set('::keysByUuid', $this->keysByUuid);
     }
 
     /**
@@ -460,15 +359,11 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
         foreach ($this->bindingsByKey[$key] as $i => $binding) {
             if ($expr->evaluate($binding)) {
                 unset($this->bindingsByKey[$key][$i]);
-                unset($this->keysByUuid[$binding->getUuid()->toString()]);
             }
         }
 
-        // Reindex array
-        $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
-
-        $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
-        $this->store->set('::keysByUuid', $this->keysByUuid);
+        $this->reindexBindingsForKey($key);
+        $this->syncBindingsForKey($key);
     }
 
     /**
@@ -476,7 +371,19 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
      */
     protected function hasAnyBinding()
     {
-        return count($this->keysByUuid) > 0;
+        // First check loaded keys
+        if (count($this->bindingsByKey) > 0) {
+            return true;
+        }
+
+        // Next check unloaded keys
+        foreach ($this->keysByTypeName as $key) {
+            if ($this->store->exists('b:'.$key)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -508,7 +415,7 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         $key = $this->keysByTypeName[$typeName];
 
-        return false !== array_search($key, $this->keysByUuid, true);
+        return isset($this->bindingsByKey[$key]) || $this->store->exists('b:'.$key);
     }
 
     protected function hasBindingsWithTypeNameThatMatch($typeName, Expression $expr)
@@ -556,6 +463,21 @@ class KeyValueStoreDiscovery extends AbstractEditableDiscovery
 
         if ($initialize) {
             $this->initializeBindings($this->bindingsByKey[$key]);
+        }
+    }
+
+    private function reindexBindingsForKey($key)
+    {
+        $this->bindingsByKey[$key] = array_values($this->bindingsByKey[$key]);
+    }
+
+    private function syncBindingsForKey($key)
+    {
+        if (count($this->bindingsByKey[$key]) > 0) {
+            $this->store->set('b:'.$key, $this->bindingsByKey[$key]);
+        } else {
+            unset($this->bindingsByKey[$key]);
+            $this->store->remove('b:'.$key);
         }
     }
 }

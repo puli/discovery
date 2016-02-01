@@ -61,46 +61,6 @@ abstract class AbstractPersistentDiscoveryTest extends AbstractEditableDiscovery
         $discovery->addBinding($binding2);
     }
 
-    public function testRemoveBindingKeepsStoredBindings()
-    {
-        $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBinding($binding1 = new ResourceBinding('/path1', Foo::clazz));
-        $discovery->addBinding($binding2 = new ClassBinding(__CLASS__, Foo::clazz));
-
-        $discovery = $this->loadDiscoveryFromStorage($discovery);
-        $discovery->removeBinding($binding1->getUuid());
-
-        $this->assertEquals(array($binding2), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding2->getUuid()));
-    }
-
-    public function testRemoveBindingInitializesLoadedBindings()
-    {
-        $binding1 = new ResourceBinding('/path1', Foo::clazz);
-        $binding2 = new ResourceBinding('/path2', Foo::clazz);
-
-        $this->initializer->expects($this->once())
-            ->method('acceptsBinding')
-            ->willReturn(true);
-
-        $this->initializer->expects($this->exactly(2))
-            ->method('initializeBinding')
-            ->withConsecutive(
-                array($binding1),
-                array($binding2)
-            );
-
-        $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBinding($binding1);
-        $discovery->addBinding($binding2);
-
-        $discovery = $this->loadDiscoveryFromStorage($discovery, array($this->initializer));
-        $discovery->removeBinding($binding1->getUuid());
-    }
-
     public function testRemoveBindingsDoesNotInitializeLoadedBindings()
     {
         $this->initializer->expects($this->never())
@@ -157,9 +117,6 @@ abstract class AbstractPersistentDiscoveryTest extends AbstractEditableDiscovery
 
         $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
         $this->assertEquals(array($binding3), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
     public function testRemoveBindingTypeDoesNotInitializeLoadedBindings()
@@ -177,31 +134,6 @@ abstract class AbstractPersistentDiscoveryTest extends AbstractEditableDiscovery
 
         $discovery = $this->loadDiscoveryFromStorage($discovery, array($this->initializer));
         $discovery->removeBindingType(Foo::clazz);
-    }
-
-    public function testGetBindingInitializesLoadedBindings()
-    {
-        $binding1 = new ResourceBinding('/path1', Foo::clazz);
-        $binding2 = new ResourceBinding('/path2', Foo::clazz);
-
-        $this->initializer->expects($this->once())
-            ->method('acceptsBinding')
-            ->willReturn(true);
-
-        $this->initializer->expects($this->exactly(2))
-            ->method('initializeBinding')
-            ->withConsecutive(
-                array($binding1),
-                array($binding2)
-            );
-
-        $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBinding($binding1);
-        $discovery->addBinding($binding2);
-
-        $discovery = $this->loadDiscoveryFromStorage($discovery, array($this->initializer));
-        $discovery->getBinding($binding1->getUuid());
     }
 
     public function testFindBindingsInitializesLoadedBindings()

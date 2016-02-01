@@ -13,7 +13,6 @@ namespace Puli\Discovery\Tests\Binding;
 
 use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
 
 /**
  * @since  1.0
@@ -22,9 +21,9 @@ use Rhumsaa\Uuid\Uuid;
  */
 class ClassBindingTest extends AbstractBindingTest
 {
-    protected function createBinding($typeName, array $parameterValues = array(), Uuid $uuid = null)
+    protected function createBinding($typeName, array $parameterValues = array())
     {
-        return new ClassBinding(__CLASS__, $typeName, $parameterValues, $uuid);
+        return new ClassBinding(__CLASS__, $typeName, $parameterValues);
     }
 
     public function testCreateWithClassName()

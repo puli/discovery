@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta10 (@release_date@)
+
+ * decoupled from ramsey/uuid
+
 * 1.0.0-beta9 (2016-01-14)
 
  * decoupled from puli/repository

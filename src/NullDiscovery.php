@@ -12,11 +12,9 @@
 namespace Puli\Discovery;
 
 use Puli\Discovery\Api\Binding\Binding;
-use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\EditableDiscovery;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
 use Webmozart\Expression\Expression;
 
 /**
@@ -59,22 +57,6 @@ class NullDiscovery implements EditableDiscovery
     /**
      * {@inheritdoc}
      */
-    public function hasBinding(Uuid $uuid)
-    {
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBinding(Uuid $uuid)
-    {
-        throw NoSuchBindingException::forUuid($uuid);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function hasBindingType($typeName)
     {
         return false;
@@ -108,13 +90,6 @@ class NullDiscovery implements EditableDiscovery
      * {@inheritdoc}
      */
     public function addBinding(Binding $binding)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function removeBinding(Uuid $uuid)
     {
     }
 
