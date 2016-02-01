@@ -21,7 +21,7 @@ use Webmozart\Assert\Assert;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingParameter
+final class BindingParameter
 {
     /**
      * Flag: The parameter is optional.

@@ -13,6 +13,7 @@ namespace Puli\Discovery\Api\Type;
 
 use InvalidArgumentException;
 use Puli\Discovery\Api\Binding\Binding;
+use Serializable;
 use Webmozart\Assert\Assert;
 
 /**
@@ -22,7 +23,7 @@ use Webmozart\Assert\Assert;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BindingType
+final class BindingType implements Serializable
 {
     /**
      * @var string
@@ -261,5 +262,53 @@ class BindingType
     public function getAcceptedBindingClass()
     {
         return $this->acceptedBindingClass;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function serialize()
+    {
+        $data = array();
+
+        $this->preSerialize($data);
+
+        return serialize($data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unserialize($serialized)
+    {
+        $data = unserialize($serialized);
+
+        $this->postUnserialize($data);
+    }
+
+    protected function preSerialize(array &$data)
+    {
+        $data[] = $this->name;
+        $data[] = $this->acceptedBindingClass;
+
+        foreach ($this->parameters as $parameter) {
+            $data[] = $parameter->getName();
+            $data[] = $parameter->getFlags();
+            $data[] = $parameter->getDefaultValue();
+        }
+    }
+
+    protected function postUnserialize(array &$data)
+    {
+        while (count($data) > 2) {
+            $defaultValue = array_pop($data);
+            $flags = array_pop($data);
+            $name = array_pop($data);
+
+            $this->parameters[$name] = new BindingParameter($name, $flags, $defaultValue);
+        }
+
+        $this->acceptedBindingClass = array_pop($data);
+        $this->name = array_pop($data);
     }
 }

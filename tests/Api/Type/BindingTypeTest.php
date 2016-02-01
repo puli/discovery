@@ -228,4 +228,14 @@ class BindingTypeTest extends PHPUnit_Framework_TestCase
     {
         new BindingType(Foo::clazz, __NAMESPACE__.'\\Foobar');
     }
+
+    public function testSerialize()
+    {
+        $type = new BindingType(Foo::clazz, self::RESOURCE_BINDING, array(
+            new BindingParameter('param1', BindingParameter::OPTIONAL, 'default'),
+            new BindingParameter('param2', BindingParameter::REQUIRED),
+        ));
+
+        $this->assertEquals($type, unserialize(serialize($type)));
+    }
 }

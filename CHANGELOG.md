@@ -5,6 +5,7 @@ Changelog
 
  * decoupled from ramsey/uuid
  * changed `BindingType` to require exactly one accepted binding class
+ * implemented `Serializable` in `BindingType` to reduce serialized size
 
 * 1.0.0-beta9 (2016-01-14)
 
