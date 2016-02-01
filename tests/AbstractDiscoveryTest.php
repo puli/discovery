@@ -21,7 +21,6 @@ use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
 use stdClass;
 use Webmozart\Expression\Expr;
 
@@ -124,39 +123,6 @@ abstract class AbstractDiscoveryTest extends PHPUnit_Framework_TestCase
         $discovery = $this->createLoadedDiscovery();
 
         $this->assertEquals(array(), $discovery->getBindings());
-    }
-
-    public function testGetBinding()
-    {
-        $type = new BindingType(Foo::clazz);
-        $binding1 = new ResourceBinding('/file1', Foo::clazz);
-        $binding2 = new ResourceBinding('/file2', Foo::clazz);
-
-        $discovery = $this->createLoadedDiscovery(array($type), array($binding1, $binding2));
-
-        $this->assertEquals($binding1, $discovery->getBinding($binding1->getUuid()));
-        $this->assertEquals($binding2, $discovery->getBinding($binding2->getUuid()));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\Binding\NoSuchBindingException
-     */
-    public function testGetBindingFailsIfNotFound()
-    {
-        $discovery = $this->createLoadedDiscovery();
-
-        $discovery->getBinding(Uuid::uuid4());
-    }
-
-    public function testHasBinding()
-    {
-        $type = new BindingType(Foo::clazz);
-        $binding = new ResourceBinding('/file1', Foo::clazz);
-
-        $discovery = $this->createLoadedDiscovery(array($type), array($binding));
-
-        $this->assertTrue($discovery->hasBinding($binding->getUuid()));
-        $this->assertFalse($discovery->hasBinding(Uuid::uuid4()));
     }
 
     public function testHasBindings()

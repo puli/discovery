@@ -11,12 +11,12 @@
 
 namespace Puli\Discovery\Binding;
 
+use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Binding\Initializer\NotInitializedException;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
 use Puli\Repository\Api\ResourceCollection;
 use Puli\Repository\Api\ResourceRepository;
-use Rhumsaa\Uuid\Uuid;
 
 /**
  * Binds one or more resources to a binding type.
@@ -55,20 +55,18 @@ class ResourceBinding extends AbstractBinding
      * All parameters that you do not set here will receive the default values
      * set for the parameter.
      *
-     * @param string    $query           The resource query.
-     * @param string    $typeName        The type to bind against.
-     * @param array     $parameterValues The values of the parameters defined
-     *                                   for the type.
-     * @param string    $language        The language of the resource query.
-     * @param Uuid|null $uuid            The UUID of the binding. A new one is
-     *                                   generated if none is passed.
+     * @param string $query           The resource query.
+     * @param string $typeName        The type to bind against.
+     * @param array  $parameterValues The values of the parameters defined
+     *                                for the type.
+     * @param string $language        The language of the resource query.
      *
      * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
-    public function __construct($query, $typeName, array $parameterValues = array(), $language = 'glob', Uuid $uuid = null)
+    public function __construct($query, $typeName, array $parameterValues = array(), $language = 'glob')
     {
-        parent::__construct($typeName, $parameterValues, $uuid);
+        parent::__construct($typeName, $parameterValues);
 
         $this->query = $query;
         $this->language = $language;
@@ -116,6 +114,23 @@ class ResourceBinding extends AbstractBinding
     public function setRepository(ResourceRepository $repo)
     {
         $this->repo = $repo;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function equals(Binding $other)
+    {
+        if (!parent::equals($other)) {
+            return false;
+        }
+
+        /** @var ResourceBinding $other */
+        if ($this->query !== $other->query) {
+            return false;
+        }
+
+        return $this->language === $other->language;
     }
 
     /**

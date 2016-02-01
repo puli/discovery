@@ -56,27 +56,6 @@ class NullDiscoveryTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($this->discovery->hasBindings());
     }
 
-    public function testHasBinding()
-    {
-        $binding = new ResourceBinding('/path', Foo::clazz);
-
-        $this->discovery->addBinding($binding);
-
-        $this->assertFalse($this->discovery->hasBinding($binding->getUuid()));
-    }
-
-    /**
-     * @expectedException \Puli\Discovery\Api\Binding\NoSuchBindingException
-     */
-    public function testGetBinding()
-    {
-        $binding = new ResourceBinding('/path', Foo::clazz);
-
-        $this->discovery->addBinding($binding);
-
-        $this->discovery->getBinding($binding->getUuid());
-    }
-
     public function testGetBindingTypes()
     {
         $this->discovery->addBindingType(new BindingType(Foo::clazz));

@@ -11,9 +11,9 @@
 
 namespace Puli\Discovery\Binding;
 
+use Puli\Discovery\Api\Binding\Binding;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
-use Rhumsaa\Uuid\Uuid;
 
 /**
  * Binds a class name to a binding type.
@@ -32,20 +32,18 @@ class ClassBinding extends AbstractBinding
     /**
      * Creates a new class binding.
      *
-     * @param string    $className       The fully-qualified name of the bound
-     *                                   class.
-     * @param string    $typeName        The name of the type to bind against.
-     * @param array     $parameterValues The values of the parameters defined
-     *                                   for the type.
-     * @param Uuid|null $uuid            The UUID of the binding. A new one is
-     *                                   generated if none is passed.
+     * @param string $className       The fully-qualified name of the bound
+     *                                class.
+     * @param string $typeName        The name of the type to bind against.
+     * @param array  $parameterValues The values of the parameters defined
+     *                                for the type.
      *
      * @throws NoSuchParameterException  If an invalid parameter was passed.
      * @throws MissingParameterException If a required parameter was not passed.
      */
-    public function __construct($className, $typeName, array $parameterValues = array(), Uuid $uuid = null)
+    public function __construct($className, $typeName, array $parameterValues = array())
     {
-        parent::__construct($typeName, $parameterValues, $uuid);
+        parent::__construct($typeName, $parameterValues);
 
         $this->className = $className;
     }
@@ -58,6 +56,19 @@ class ClassBinding extends AbstractBinding
     public function getClassName()
     {
         return $this->className;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function equals(Binding $other)
+    {
+        if (!parent::equals($other)) {
+            return false;
+        }
+
+        /* @var ClassBinding $other */
+        return $this->className === $other->className;
     }
 
     /**

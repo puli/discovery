@@ -16,7 +16,6 @@ use Puli\Discovery\Api\Type\BindingNotAcceptedException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\MissingParameterException;
 use Puli\Discovery\Api\Type\NoSuchParameterException;
-use Rhumsaa\Uuid\Uuid;
 use Serializable;
 
 /**
@@ -54,11 +53,14 @@ interface Binding extends Serializable
     public function isInitialized();
 
     /**
-     * Returns the UUID of the binding.
+     * Returns whether the binding equals another binding.
      *
-     * @return Uuid The binding UUID.
+     * @param Binding $other The other binding.
+     *
+     * @return bool Returns `true` if the binding equals the other binding and
+     *              `false` otherwise.
      */
-    public function getUuid();
+    public function equals(Binding $other);
 
     /**
      * Returns the name of the bound type.

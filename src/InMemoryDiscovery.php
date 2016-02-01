@@ -12,12 +12,11 @@
 namespace Puli\Discovery;
 
 use Puli\Discovery\Api\Binding\Binding;
-use Puli\Discovery\Api\Binding\NoSuchBindingException;
 use Puli\Discovery\Api\Type\BindingType;
 use Puli\Discovery\Api\Type\DuplicateTypeException;
 use Puli\Discovery\Api\Type\NoSuchTypeException;
-use Rhumsaa\Uuid\Uuid;
 use Webmozart\Assert\Assert;
+use Webmozart\Expression\Expr;
 use Webmozart\Expression\Expression;
 
 /**
@@ -33,11 +32,6 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      * @var BindingType[]
      */
     private $types = array();
-
-    /**
-     * @var Binding[]
-     */
-    private $bindings = array();
 
     /**
      * @var Binding[][]
@@ -74,7 +68,6 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     public function removeBindingTypes()
     {
         $this->types = array();
-        $this->bindings = array();
         $this->bindingsByTypeName = array();
     }
 
@@ -123,33 +116,19 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     public function addBinding(Binding $binding)
     {
-        $uuidString = $binding->getUuid()->toString();
+        $typeName = $binding->getTypeName();
 
-        if (isset($this->bindings[$uuidString])) {
-            return;
+        if (isset($this->bindingsByTypeName[$typeName])) {
+            foreach ($this->bindingsByTypeName[$typeName] as $other) {
+                if ($binding->equals($other)) {
+                    return;
+                }
+            }
         }
 
         $this->initializeBinding($binding);
 
-        $this->bindings[$uuidString] = $binding;
-        $this->bindingsByTypeName[$binding->getTypeName()][$uuidString] = $binding;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function removeBinding(Uuid $uuid)
-    {
-        $uuidString = $uuid->toString();
-
-        if (!isset($this->bindings[$uuidString])) {
-            return;
-        }
-
-        $binding = $this->bindings[$uuidString];
-
-        unset($this->bindings[$uuidString]);
-        unset($this->bindingsByTypeName[$binding->getTypeName()][$uuidString]);
+        $this->bindingsByTypeName[$typeName][] = $binding;
     }
 
     /**
@@ -166,7 +145,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
         $bindings = $this->bindingsByTypeName[$typeName];
 
         if (null !== $expr) {
-            $bindings = $this->filterBindings($bindings, $expr);
+            $bindings = Expr::filter($bindings, $expr);
         }
 
         return array_values($bindings);
@@ -177,27 +156,15 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     public function getBindings()
     {
-        return array_values($this->bindings);
-    }
+        $bindings = array();
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasBinding(Uuid $uuid)
-    {
-        return isset($this->bindings[$uuid->toString()]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBinding(Uuid $uuid)
-    {
-        if (!isset($this->bindings[$uuid->toString()])) {
-            throw NoSuchBindingException::forUuid($uuid);
+        foreach ($this->bindingsByTypeName as $bindingsOfType) {
+            foreach ($bindingsOfType as $binding) {
+                $bindings[] = $binding;
+            }
         }
 
-        return $this->bindings[$uuid->toString()];
+        return $bindings;
     }
 
     /**
@@ -205,7 +172,6 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     protected function removeAllBindings()
     {
-        $this->bindings = array();
         $this->bindingsByTypeName = array();
     }
 
@@ -214,10 +180,15 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     protected function removeBindingsThatMatch(Expression $expr)
     {
-        foreach ($this->bindings as $uuidString => $binding) {
-            if ($expr->evaluate($binding)) {
-                unset($this->bindings[$uuidString]);
-                unset($this->bindingsByTypeName[$binding->getTypeName()][$uuidString]);
+        foreach ($this->bindingsByTypeName as $typeName => $bindings) {
+            foreach ($bindings as $key => $binding) {
+                if ($expr->evaluate($binding)) {
+                    unset($this->bindingsByTypeName[$typeName][$key]);
+                }
+            }
+
+            if (0 === count($this->bindingsByTypeName[$typeName])) {
+                unset($this->bindingsByTypeName[$typeName]);
             }
         }
     }
@@ -229,10 +200,6 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     {
         if (!isset($this->bindingsByTypeName[$typeName])) {
             return;
-        }
-
-        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
-            unset($this->bindings[$binding->getUuid()->toString()]);
         }
 
         unset($this->bindingsByTypeName[$typeName]);
@@ -247,11 +214,14 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
             return;
         }
 
-        foreach ($this->bindingsByTypeName[$typeName] as $uuidString => $binding) {
+        foreach ($this->bindingsByTypeName[$typeName] as $key => $binding) {
             if ($expr->evaluate($binding)) {
-                unset($this->bindings[$uuidString]);
-                unset($this->bindingsByTypeName[$typeName][$uuidString]);
+                unset($this->bindingsByTypeName[$typeName][$key]);
             }
+        }
+
+        if (0 === count($this->bindingsByTypeName[$typeName])) {
+            unset($this->bindingsByTypeName[$typeName]);
         }
     }
 
@@ -260,7 +230,7 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     protected function hasAnyBinding()
     {
-        return count($this->bindings) > 0;
+        return count($this->bindingsByTypeName) > 0;
     }
 
     /**
@@ -268,7 +238,15 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
      */
     protected function hasBindingsThatMatch(Expression $expr)
     {
-        return count($this->filterBindings($this->bindings, $expr)) > 0;
+        foreach ($this->bindingsByTypeName as $typeName => $bindings) {
+            foreach ($bindings as $key => $binding) {
+                if ($expr->evaluate($binding)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -288,6 +266,12 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
             return false;
         }
 
-        return count($this->filterBindings($this->bindingsByTypeName[$typeName], $expr)) > 0;
+        foreach ($this->bindingsByTypeName[$typeName] as $binding) {
+            if ($expr->evaluate($binding)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

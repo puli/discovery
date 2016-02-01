@@ -21,7 +21,6 @@ use Puli\Discovery\Binding\ClassBinding;
 use Puli\Discovery\Binding\ResourceBinding;
 use Puli\Discovery\Tests\Fixtures\Bar;
 use Puli\Discovery\Tests\Fixtures\Foo;
-use Rhumsaa\Uuid\Uuid;
 use stdClass;
 use Webmozart\Expression\Expr;
 
@@ -135,42 +134,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertCount(1, $discovery->getBindings());
     }
 
-    public function testRemoveBinding()
-    {
-        $binding1 = new ResourceBinding('/path1', Foo::clazz);
-        $binding2 = new ResourceBinding('/path2', Foo::clazz);
-
-        $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBinding($binding1);
-        $discovery->addBinding($binding2);
-        $discovery->removeBinding($binding2->getUuid());
-
-        $discovery = $this->loadDiscoveryFromStorage($discovery);
-
-        $this->assertCount(1, $discovery->findBindings(Foo::clazz));
-        $this->assertCount(1, $discovery->getBindings());
-        $this->assertTrue($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-    }
-
-    public function testRemoveBindingIgnoresUnknownUuid()
-    {
-        $binding1 = new ResourceBinding('/path1', Foo::clazz);
-        $binding2 = new ResourceBinding('/path2', Foo::clazz);
-
-        $discovery = $this->createDiscovery();
-        $discovery->addBindingType(new BindingType(Foo::clazz));
-        $discovery->addBinding($binding1);
-        $discovery->addBinding($binding2);
-        $discovery->removeBinding(Uuid::uuid4());
-
-        $discovery = $this->loadDiscoveryFromStorage($discovery);
-
-        $this->assertCount(2, $discovery->findBindings(Foo::clazz));
-        $this->assertCount(2, $discovery->getBindings());
-    }
-
     public function testRemoveBindings()
     {
         $binding1 = new ResourceBinding('/path1', Foo::clazz);
@@ -186,8 +149,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $this->assertCount(0, $discovery->findBindings(Foo::clazz));
         $this->assertCount(0, $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
     }
 
     public function testRemoveBindingsDoesNothingIfNoneFound()
@@ -219,9 +180,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $this->assertEquals(array(), $discovery->findBindings(Foo::clazz));
         $this->assertEquals(array($binding3), $discovery->findBindings(Bar::clazz));
         $this->assertEquals(array($binding3), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
     public function testRemoveBindingsWithTypeDoesNothingIfNoneFound()
@@ -275,9 +233,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
         $this->assertEquals(array($binding3), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
     public function testRemoveBindingsWithTypeAndExpression()
@@ -300,9 +255,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $this->assertEquals(array($binding3), $discovery->findBindings(Foo::clazz));
         $this->assertEquals(array($binding3), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
     public function testRemoveBindingsWithTypeAndParametersDoesNothingIfNoneFound()
@@ -416,9 +368,6 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
         $this->assertEquals(array($binding3), $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
-        $this->assertTrue($discovery->hasBinding($binding3->getUuid()));
     }
 
     public function testRemoveBindingTypes()
@@ -447,7 +396,5 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
         $this->assertCount(0, $discovery->getBindings());
-        $this->assertFalse($discovery->hasBinding($binding1->getUuid()));
-        $this->assertFalse($discovery->hasBinding($binding2->getUuid()));
     }
 }
