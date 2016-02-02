@@ -7,6 +7,7 @@ Changelog
  * changed `BindingType` to require exactly one accepted binding class
  * implemented `Serializable` in `BindingType` to reduce serialized size
  * moved classes that depend on puli/repository in that package
+ * `EditableDiscovery::addBinding()` now accepts duplicates
 
 * 1.0.0-beta9 (2016-01-14)
 

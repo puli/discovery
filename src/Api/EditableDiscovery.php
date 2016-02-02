@@ -67,6 +67,8 @@ interface EditableDiscovery extends Discovery
      *
      * The type of the binding must have been added to the discovery.
      *
+     * Duplicate bindings are allowed.
+     *
      * @param Binding $binding The binding to add.
      *
      * @throws NoSuchParameterException    If an invalid parameter was passed.
