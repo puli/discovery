@@ -114,8 +114,15 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
         $discovery->addBinding(new StringBinding('string', Foo::clazz));
     }
 
-    public function testAddBindingIgnoresDuplicates()
+    public function testAddBindingAcceptsDuplicates()
     {
+        // The idea behind accepting duplicates is that depending on the use
+        // case, multiple modules may define the same binding but the order
+        // in which the modules is loaded is important. Hence if we load
+        // [m1, m2, m3] and m1 and m3 contain the same binding, we cannot simply
+        // discard one of the bindings, since the order might be important for
+        // the end user.
+
         $binding = new StringBinding('string', Foo::clazz);
 
         $discovery = $this->createDiscovery();
@@ -125,8 +132,8 @@ abstract class AbstractEditableDiscoveryTest extends AbstractDiscoveryTest
 
         $discovery = $this->loadDiscoveryFromStorage($discovery);
 
-        $this->assertCount(1, $discovery->findBindings(Foo::clazz));
-        $this->assertCount(1, $discovery->getBindings());
+        $this->assertCount(2, $discovery->findBindings(Foo::clazz));
+        $this->assertCount(2, $discovery->getBindings());
     }
 
     public function testRemoveBindings()

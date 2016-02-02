@@ -118,14 +118,6 @@ class InMemoryDiscovery extends AbstractEditableDiscovery
     {
         $typeName = $binding->getTypeName();
 
-        if (isset($this->bindingsByTypeName[$typeName])) {
-            foreach ($this->bindingsByTypeName[$typeName] as $other) {
-                if ($binding->equals($other)) {
-                    return;
-                }
-            }
-        }
-
         $this->initializeBinding($binding);
 
         $this->bindingsByTypeName[$typeName][] = $binding;

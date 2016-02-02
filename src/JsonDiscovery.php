@@ -253,13 +253,6 @@ class JsonDiscovery extends AbstractEditableDiscovery
             $this->loadBindingsForKey($key);
         }
 
-        // Ignore duplicates
-        foreach ($this->bindingsByKey[$key] as $other) {
-            if ($binding->equals($other)) {
-                return;
-            }
-        }
-
         $this->initializeBinding($binding);
 
         $this->bindingsByKey[$key][] = $binding;
