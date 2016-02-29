@@ -12,11 +12,11 @@
     "require": {
         "php": "^5.3.9|^7.0",
         "webmozart/assert": "^1.0",
-        "webmozart/expression": "^1.0"
+        "webmozart/expression": "^1.0",
+        "webmozart/json": "^1.2"
     },
     "require-dev": {
         "webmozart/key-value-store": "^1.0-beta7",
-        "webmozart/json": "^1.2",
         "phpunit/phpunit": "^4.6",
         "sebastian/version": "^1.0.1"
     },
